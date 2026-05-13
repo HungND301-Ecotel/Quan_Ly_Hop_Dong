@@ -1,6 +1,6 @@
 services:
   hopdong_reverse_proxy_service:
-    image: ${REGISTRY}/qlts_demo_reverse_proxy_img:${VERSION}
+    image: ${REGISTRY}/hopdong_reverse_proxy_img:${VERSION}
     ports:
       # HOST_PORT:CONTAINER_PORT
       - "1111:8888"
@@ -35,7 +35,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ecotel@2025
-      POSTGRES_DB: kcp-web-db
+      POSTGRES_DB: hopdong_db
     ports:
       - "1112:5432"
     volumes:
