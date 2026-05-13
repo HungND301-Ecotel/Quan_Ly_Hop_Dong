@@ -76,11 +76,14 @@ services:
       - "1113:8175"
     environment:
       - ASPNETCORE_URLS=http://+:8175
-      - ASPNETCORE_HTTP_PORTS=8175
-      - ASPNETCORE_HTTPS_PORTS=8175
+      # - ASPNETCORE_HTTP_PORTS=8175
+      # - ASPNETCORE_HTTPS_PORTS=8175
       - ASPNETCORE_ENVIRONMENT=Production
       - AppSettings__Environment=PRODUCTION
+      - AppSettings__ServerRootAddress=${SERVER_ROOT_ADDRESS}
+      - AppSettings__ClientRootAddress=${CLIENT_ROOT_ADDRESS}
       - DatabaseSettings__ConnectionString=${DB_CONNECTION_STRING}
+      - DatabaseSettings__DBProvider=${DB_PROVIDER}
       - AwsS3Configuration__AccessKeyId=${AWS_ACCESS_KEY_ID}
       - AwsS3Configuration__SecretAccessKey=${AWS_SECRET_ACCESS_KEY}
       - AwsS3Configuration__Region=${AWS_REGION}
@@ -132,7 +135,7 @@ services:
       - FileStorageSettings__Uri=${FILE_STORAGE_URI}
 
     depends_on:
-      postgres:
+      hopdong_postgres:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl --fail http://localhost:8175/health || exit 1"]
