@@ -1,0 +1,179 @@
+export const API = {
+  AUTH: {
+    SIGN_IN: '/tokens',
+    REFRESH: '/tokens/refresh',
+  },
+  DASHBOARD: {
+    STATISTICS: '/dashboard/dashboard/statistics',
+  },
+  USER: {
+    LIST: '/user',
+    DETAIL: (userId: string) => `/user/${userId}`,
+    DELETE: (userId: string) => `/user/${userId}`,
+    DELETE_MANY: '/user',
+    PERMISSION: { LIST: '/user/permission' },
+    CREATE: 'user/create',
+    UPDATE: 'user/update',
+    CHANGE_PASSWORD: 'user/change-password',
+    SIGNATURE: {
+      LIST: (userId: string) => `/user/${userId}/signatures`,
+      CREATE: (userId: string) => `/user/${userId}/signatures`,
+      DELETE: (userId: string, signatureId: string) =>
+        `/user/${userId}/signatures/${signatureId}`,
+      SET_DEFAULT: (userId: string, signatureId: string) =>
+        `/user/${userId}/signatures/${signatureId}/set-default`,
+    },
+  },
+  CONTRACT: {
+    CREATE: '/contracts/create',
+    UPLOAD_CONTRACT: '/contracts/upload-contract',
+    UPLOAD_ATTACHMENTS: '/contracts/upload-attachments',
+    PENDING_APPROVAL: {
+      LIST: '/contracts/pending-approval?status=PendingApproval',
+    },
+    MY_VISIBLE: '/contracts/my-visible',
+    DETAIL: (contractId: string) => `/contracts/${contractId}`,
+    SIGN_HISTORY: (contractId: string) => `/contracts/${contractId}/history`,
+    LIST: '/contracts',
+    DELETES: '/contracts',
+    APPROVE: (contractId: string) => `/contracts/${contractId}/approve`,
+    UPDATE: (contractId: string) => `/contracts/${contractId}`,
+    HISTORY: {
+      LIST: '/contracts/histories',
+    },
+    SOON_EXPIRED: '/contracts/soon-expired',
+    PAYMENT_DUE_SOON: '/contracts/payment-due-soon',
+    ACTIVATE: '/contracts/activate',
+    CANCEL: (contractId: string) => `/contracts/${contractId}/cancel`,
+    SUBMIT_FOR_APPROVAL: (contractId: string) => `/contracts/${contractId}/submit-for-approval`,
+    PAUSE: (contractId: string) => `/contracts/${contractId}/pause`,
+    RESUME: (contractId: string) => `/contracts/${contractId}/resume`,
+    ARCHIVE: (contractId: string) => `/contracts/${contractId}/archive`,
+  },
+  PARTNER: {
+    LIST: '/partner',
+    DETAIL: (partnerId: string) => `/partner/${partnerId}`,
+    UPDATE: '/partner',
+    DELETE: '/partner',
+    CREATE: '/partner',
+  },
+  DEPARTMENT: {
+    LIST: '/department',
+    DETAIL: (departmetId: string) => `/department/${departmetId}`,
+    CREATE: '/department',
+    UPDATE: '/department',
+    DELETE: '/department',
+  },
+  MATERIALS: {
+    LIST: '/material',
+    DETAIL: (materialId: string) => `/material/${materialId}`,
+    CREATE: '/material',
+    UPDATE: '/material',
+    DELETE: '/material',
+  },
+  POSITION: {
+    LIST: '/position',
+  },
+  PROCUREMENT_METHOD: {
+    LIST: '/procurementmethod',
+    DETAIL: (contractRegisterId: string) =>
+      `/procurementmethod/${contractRegisterId}`,
+    CREATE: '/procurementmethod',
+    UPDATE: '/procurementmethod',
+    DELETE: '/procurementmethod',
+  },
+  CONTRACT_REGISTER: {
+    LIST: '/contractregister',
+    DETAIL: (procurementMethodId: string) =>
+      `/contractregister/${procurementMethodId}`,
+    CREATE: '/contractregister',
+    UPDATE: '/contractregister',
+    DELETE: '/contractregister',
+  },
+  FILE: '/file',
+  CONTRACT_TYPE: {
+    LIST: '/contracttype',
+    DETAIL: (id: string) => `/contracttype/${id}`,
+    CREATE: '/contracttype',
+    UPDATE: '/contracttype',
+    DELETE: '/contracttype',
+  },
+  CONTRACT_PROGRESS: {
+    DETAIL: (contractId: string) => `/contractprogress/contract/${contractId}`,
+    UPDATE: `/contractprogress/items/batch`,
+    YEARLY_SUMMARY: (contractId: string) =>
+      `/contractprogress/yearly-summary/${contractId}`,
+    WORK_IN_PROGRESS: (contractId: string) =>
+      `/contractprogress/work-in-progress/${contractId}`,
+    BATCH_UPDATE_PROGRESS: `/contractprogress/batch`,
+    ITEMS: (contractId: string) => `/contractprogress/items/${contractId}`,
+    CREATE_WITH_ITEMS: `/contractprogress/with-items`,
+    DELETE: (id: string) => `/contractprogress/${id}`,
+  },
+  CONTRACT_PAYMENT: {
+    DETAIL: (contractId: string) => `/contractpayment/contract/${contractId}`,
+    UPDATE: `/contractpayment/batch`,
+    UPLOAD: '/contractpayment/upload',
+    MATERIAL_UNIT_PRICE_REPORTS: '/contractpayment/material-unit-price-reports',
+    UPDATE_LIQUIDATION_FILE: (contractId: string) =>
+      `/contractpayment/liquidation/${contractId}`,
+    PAYMENT_SCHEDULES: (contractId: string) =>
+      `/contracts/${contractId}/payment-schedules`,
+    SYNC_INVOICE: '/contractpayment/invoice/sync',
+    SYNC_TAX: '/contractpayment/tax/sync',
+    REPORTS: '/contractpayment/reports',
+  },
+  BANK_ACCOUNT: {
+    LIST: '/bankaccounts',
+    DETAIL: (id: string) => `/bankaccounts/${id}`,
+    CREATE: '/bankaccounts',
+    UPDATE: '/bankaccounts',
+    DELETE: '/bankaccounts',
+  },
+  UNIT_OF_MEASURE: {
+    LIST: '/unitofmeasures',
+    DETAIL: (id: string) => `/unitofmeasures/${id}`,
+    CREATE: '/unitofmeasures',
+    UPDATE: '/unitofmeasures',
+    DELETE: '/unitofmeasures',
+  },
+  LEVEL1_CODE: {
+    LIST: '/level1codes',
+    DETAIL: (id: string) => `/level1codes/${id}`,
+    CREATE: '/level1codes',
+    UPDATE: '/level1codes',
+    DELETE: '/level1codes',
+  },
+  LEVEL3_CODE: {
+    LIST: '/level3codes',
+    DETAIL: (id: string) => `/level3codes/${id}`,
+    CREATE: '/level3codes',
+    UPDATE: '/level3codes',
+    DELETE: '/level3codes',
+    BY_LEVEL1: (level1CodeId: string) => `/level3code/${level1CodeId}`,
+  },
+  SIGNED_CONTENT: {
+    LIST: '/signedcontents',
+    DETAIL: (id: string) => `/signedcontents/${id}`,
+    CREATE: '/signedcontents',
+    UPDATE: '/signedcontents',
+    DELETE: '/signedcontents',
+    BY_LEVEL3: (level3CodeId: string) => `/signedcontents/level3code/${level3CodeId}`,
+  },
+
+  CONTRACT_STRUCTURE_CATALOG: {
+    LIST: '/contractstructurecatalog',
+    CREATE: '/contractstructurecatalog',
+    UPDATE: '/contractstructurecatalog',
+    DETAIL: (id: string) => `/contractstructurecatalog/${id}`,
+    DELETE: (id: string) => `/contractstructurecatalog/${id}`,
+  },
+
+    EXTERNAL_SYNC_CONNECTIONS: {
+    LIST: '/externalsyncconnections',
+    DETAIL: (id: string) => `/externalsyncconnections/${id}`,
+    CREATE: '/externalsyncconnections',
+    UPDATE: '/externalsyncconnections',
+    DELETE: '/externalsyncconnections',
+  },
+} as const;

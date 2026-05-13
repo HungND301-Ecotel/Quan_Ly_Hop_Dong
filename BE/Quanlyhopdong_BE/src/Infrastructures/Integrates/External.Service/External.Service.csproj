@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <None Remove="Email\EmailTemplates\vi\currentemail-link.html" />
+      <None Remove="Email\EmailTemplates\vi\currentemail.html" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Email\EmailTemplates\vi\changepwdsuccess.html">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </EmbeddedResource>
+      <EmbeddedResource Include="Email\EmailTemplates\vi\currentemail-link.html">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </EmbeddedResource>
+      <EmbeddedResource Include="Email\EmailTemplates\vi\currentemail.html">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </EmbeddedResource>
+      <EmbeddedResource Include="Email\EmailTemplates\vi\resetpassword.html">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </EmbeddedResource>
+      <EmbeddedResource Include="Email\EmailTemplates\vi\useremailpassword.html">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </EmbeddedResource>
+      <EmbeddedResource Include="Email\EmailTemplates\vi\vi-template.html">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="MailKit" />
+        <PackageReference Include="MimeKit" />
+        <PackageReference Include="Refit" />
+        <PackageReference Include="Refit.HttpClientFactory" /> 
+    </ItemGroup>
+
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\Core\Application\Application.csproj" />
+    </ItemGroup>
+ 
+</Project>

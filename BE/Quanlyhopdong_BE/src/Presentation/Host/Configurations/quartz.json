@@ -1,0 +1,25 @@
+{
+  "Quartz": {
+    "Enabled": true,
+    "AutoNotifyContractExpiringDate": {
+      "Enabled": true,
+      "Scheduled": "0 0 7 * * ?"
+    },
+    "AutoNotifySignatureOverdue": {
+      "Enabled": true,
+      "Scheduled": "0 0 7 * * ?"
+    },
+    "AutoNotifyPaymentDue": {
+      "Enabled": true,
+      "Scheduled": "0 0 7 * * ?"
+    },
+    "AutoCheckContractExpiry": {
+      "Enabled": true,
+      "Scheduled": "0 0 8 * * ?"
+    },
+    "AutoActivateContractsByStartDate": {
+      "Enabled": true,
+      "Scheduled": "0 5 0 * * ?"
+    }
+  }
+}
