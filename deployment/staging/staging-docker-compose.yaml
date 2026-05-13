@@ -1,0 +1,163 @@
+services:
+  hopdong_reverse_proxy_service:
+    image: ${REGISTRY}/qlts_demo_reverse_proxy_img:${VERSION}
+    ports:
+      # HOST_PORT:CONTAINER_PORT
+      - "1111:8888"
+    stdin_open: true
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    networks:
+      - frontnet
+      - backend-net
+    depends_on:
+      - hopdong_frontend_service
+      - hopdong_backend_service
+
+  hopdong_frontend_service:
+    image:
+      ${REGISTRY}/hopdong_frontend_img:${VERSION}
+      # target: development
+    stdin_open: true
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    volumes:
+      # For development only, to synced src code to container
+      - /usr/src/app/node_modules
+      # restart: always
+    networks:
+      - frontnet
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ecotel@2025
+      POSTGRES_DB: kcp-web-db
+    ports:
+      - "1112:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-net
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: kcp-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@ecotel.com
+      PGADMIN_DEFAULT_PASSWORD: ecotel@2025
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "8888:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - backend-net
+
+  # --- .NET API Service ---
+  hopdong_backend_service:
+    image: ${REGISTRY}/hopdong_backend_img:${VERSION}
+    container_name: hopdong_backend_service
+    env_file:
+      - ./env_backend
+    ports:
+      - "1113:8175"
+    environment:
+      - ASPNETCORE_URLS=http://+:8175
+      - ASPNETCORE_HTTP_PORTS=8175
+      - ASPNETCORE_HTTPS_PORTS=8175
+      - ASPNETCORE_ENVIRONMENT=Production
+      - AppSettings__Environment=PRODUCTION
+      - DatabaseSettings__ConnectionString=${DB_CONNECTION_STRING}
+      - AwsS3Configuration__AccessKeyId=${AWS_ACCESS_KEY_ID}
+      - AwsS3Configuration__SecretAccessKey=${AWS_SECRET_ACCESS_KEY}
+      - AwsS3Configuration__Region=${AWS_REGION}
+      - AwsS3Configuration__Uri__SourceDefault=${AWS_URI}
+      - AwsS3Configuration__Bucket__SourceDefault=${AWS_BUCKET}
+      # JWT
+      - SecuritySettings__Provider=Jwt
+      - SecuritySettings__RequireConfirmedAccount=true
+      - SecuritySettings__JwtSettings__Key=${JWT_KEY}
+      - SecuritySettings__JwtSettings__TokenExpirationInMinutes=${JWT_EXPIRATION}
+      - SecuritySettings__JwtSettings__RefreshTokenExpirationInDays=${JWT_REFRESH_EXPIRATION}
+      # Swagger (tắt trên production)
+      - SwaggerSettings__Enable=${SWAGGER_ENABLE}
+      - SwaggerSettings__BaseUrl=${SERVER_ROOT_ADDRESS}
+
+      # Middleware
+      - MiddlewareSettings__EnableHttpsLogging=false
+      - MiddlewareSettings__EnableLocalization=true
+
+      # Mail
+      - MailServerConfiguration__Enable=true
+      - MailServerConfiguration__MailProvider=GMAIL
+      - MailServerConfiguration__ConnectionInfo__Provider=GMAIL
+      - MailServerConfiguration__ConnectionInfo__SMTPServer=smtp.gmail.com
+      - MailServerConfiguration__ConnectionInfo__Port=587
+      - MailServerConfiguration__ConnectionInfo__SenderAddress=${SMTP_SENDER}
+      - MailServerConfiguration__ConnectionInfo__Username=${SMTP_USERNAME}
+      - MailServerConfiguration__ConnectionInfo__Password=${SMTP_PASSWORD}
+      - MailServerConfiguration__ConnectionInfo__IsTrialMode=true
+      - MailServerConfiguration__ConnectionInfo__IntervalCheck=10
+      - MailServerConfiguration__ConnectionInfo__MaxRetry=5
+      - MailServerConfiguration__ConnectionInfo__MaxMailPerLoop=10
+
+      # Digital CA
+      - DigitalCA__ServerUrl=${DIGITAL_CA_URL}
+      - DigitalCA__ApiKey=${DIGITAL_CA_API_KEY}
+      - DigitalCA__Timeout=30
+
+      # Logger
+      - LoggerSettings__AppName=QuanLyHopDong
+      - LoggerSettings__ElasticSearchUrl=${ELASTICSEARCH_URL}
+      - LoggerSettings__WriteToFile=true
+      - LoggerSettings__StructuredConsoleLogging=false
+
+      # CORS
+      - CorsSettings__AllowedOrigins=${CORS_ALLOWED_ORIGINS}
+
+      # File Storage
+      - FileStorageSettings__Uri=${FILE_STORAGE_URI}
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:8175/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - backend-net
+    restart: unless-stopped
+
+volumes:
+  postgres_data: # ✅ Cho postgres
+    driver: local
+    driver_opts:
+      type: none
+      device: /mnt/hdd/hopdong_postgres_data
+      o: bind
+
+  pgadmin_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /mnt/hdd/hopdong_pgadmin_data
+      o: bind
+
+networks:
+  backend-net:
+  frontnet:

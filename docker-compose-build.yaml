@@ -1,0 +1,22 @@
+
+services:
+  # qlts_reverse_proxy_service:
+  #   build:
+  #     context: ./reverse_proxy
+  #   image: ${REGISTRY}/qlts_reverse_proxy_img:${VERSION}
+
+
+  hopdong_reverse_proxy_service:
+    build:
+      context: ./reverse_proxy
+    image: ${REGISTRY}/hopdong_reverse_proxy_img:${VERSION}
+  hopdong_frontend_service:
+    build:
+      context: ./FE
+    image: ${REGISTRY}/hopdong_frontend_img:${VERSION}
+
+  hopdong_backend_service:
+    build:
+      context: ./BE/Quanlyhopdong_BE
+      dockerfile: src/Presentation/Host/Dockerfile
+    image: ${REGISTRY}/hopdong_backend_img:${VERSION}
