@@ -71,7 +71,7 @@ services:
     image: ${REGISTRY}/hopdong_backend_img:${VERSION}
     container_name: hopdong_backend_service
     env_file:
-      - ./env_backend
+      - .env_backend
     ports:
       - "1113:8175"
     environment:
