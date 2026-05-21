@@ -76,63 +76,9 @@ services:
       - "1113:8175"
     environment:
       - ASPNETCORE_URLS=http://+:8175
-      # - ASPNETCORE_HTTP_PORTS=8175
-      # - ASPNETCORE_HTTPS_PORTS=8175
+      - ASPNETCORE_HTTP_PORTS=8175
+      - ASPNETCORE_HTTPs_PORTS=8175
       - ASPNETCORE_ENVIRONMENT=Production
-      - AppSettings__Environment=PRODUCTION
-      - AppSettings__ServerRootAddress=${SERVER_ROOT_ADDRESS}
-      - AppSettings__ClientRootAddress=${CLIENT_ROOT_ADDRESS}
-      - DatabaseSettings__ConnectionString=${DB_CONNECTION_STRING}
-      - DatabaseSettings__DBProvider=${DB_PROVIDER}
-      - AwsS3Configuration__AccessKeyId=${AWS_ACCESS_KEY_ID}
-      - AwsS3Configuration__SecretAccessKey=${AWS_SECRET_ACCESS_KEY}
-      - AwsS3Configuration__Region=${AWS_REGION}
-      - AwsS3Configuration__Uri__SourceDefault=${AWS_URI}
-      - AwsS3Configuration__Bucket__SourceDefault=${AWS_BUCKET}
-      # JWT
-      - SecuritySettings__Provider=Jwt
-      - SecuritySettings__RequireConfirmedAccount=true
-      - SecuritySettings__JwtSettings__Key=${JWT_KEY}
-      - SecuritySettings__JwtSettings__TokenExpirationInMinutes=${JWT_EXPIRATION}
-      - SecuritySettings__JwtSettings__RefreshTokenExpirationInDays=${JWT_REFRESH_EXPIRATION}
-      # Swagger (tắt trên production)
-      - SwaggerSettings__Enable=${SWAGGER_ENABLE}
-      - SwaggerSettings__BaseUrl=${SERVER_ROOT_ADDRESS}
-
-      # Middleware
-      - MiddlewareSettings__EnableHttpsLogging=false
-      - MiddlewareSettings__EnableLocalization=true
-
-      # Mail
-      - MailServerConfiguration__Enable=true
-      - MailServerConfiguration__MailProvider=GMAIL
-      - MailServerConfiguration__ConnectionInfo__Provider=GMAIL
-      - MailServerConfiguration__ConnectionInfo__SMTPServer=smtp.gmail.com
-      - MailServerConfiguration__ConnectionInfo__Port=587
-      - MailServerConfiguration__ConnectionInfo__SenderAddress=${SMTP_SENDER}
-      - MailServerConfiguration__ConnectionInfo__Username=${SMTP_USERNAME}
-      - MailServerConfiguration__ConnectionInfo__Password=${SMTP_PASSWORD}
-      - MailServerConfiguration__ConnectionInfo__IsTrialMode=true
-      - MailServerConfiguration__ConnectionInfo__IntervalCheck=10
-      - MailServerConfiguration__ConnectionInfo__MaxRetry=5
-      - MailServerConfiguration__ConnectionInfo__MaxMailPerLoop=10
-
-      # Digital CA
-      - DigitalCA__ServerUrl=${DIGITAL_CA_URL}
-      - DigitalCA__ApiKey=${DIGITAL_CA_API_KEY}
-      - DigitalCA__Timeout=30
-
-      # Logger
-      - LoggerSettings__AppName=QuanLyHopDong
-      - LoggerSettings__ElasticSearchUrl=${ELASTICSEARCH_URL}
-      - LoggerSettings__WriteToFile=true
-      - LoggerSettings__StructuredConsoleLogging=false
-
-      # CORS
-      - CorsSettings__AllowedOrigins=${CORS_ALLOWED_ORIGINS}
-
-      # File Storage
-      - FileStorageSettings__Uri=${FILE_STORAGE_URI}
 
     depends_on:
       hopdong_postgres:
