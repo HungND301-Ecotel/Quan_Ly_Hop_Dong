@@ -10,6 +10,32 @@ import {
   RejectContractReq,
 } from '@/services/contract/type';
 
+type ContractListResponse =
+  | Contract[]
+  | {
+      data?: Contract[];
+      items?: Contract[];
+      result?: Contract[];
+      Result?: Contract[];
+      results?: Contract[];
+    };
+
+const toContractArray = (response: ContractListResponse | undefined) => {
+  if (Array.isArray(response)) return response;
+  if (!response || typeof response !== 'object') return [];
+
+  const responseMap = response as Record<string, unknown>;
+  const list = [
+    responseMap.data,
+    responseMap.items,
+    responseMap.result,
+    responseMap.Result,
+    responseMap.results,
+  ].find(Array.isArray);
+
+  return (list ?? []) as Contract[];
+};
+
 async function createContract(body: unknown) {
   return await api.post<ContractType[], unknown>(API.CONTRACT.CREATE, body);
 }
@@ -49,9 +75,10 @@ async function uploadAttachments(body: {
 }
 
 async function getContractPendingList() {
-  return await api.get<Contract[], undefined>(
+  const response = await api.get<ContractListResponse, undefined>(
     API.CONTRACT.PENDING_APPROVAL.LIST
   );
+  return toContractArray(response);
 }
 
 export type GetContractListReq = {
@@ -72,7 +99,11 @@ export type GetContractByFormatReq = {
 };
 
 async function getContractList(req?: GetContractListReq) {
-  return await api.get<Contract[], GetContractListReq>(API.CONTRACT.LIST, req);
+  const response = await api.get<ContractListResponse, GetContractListReq>(
+    API.CONTRACT.LIST,
+    req
+  );
+  return toContractArray(response);
 }
 
 async function deleteContract(contractIds: string[]) {
@@ -90,7 +121,10 @@ async function getContractHistory(contractId: string) {
 }
 
 async function getContractHistoryList() {
-  return await api.get<Contract[], undefined>(API.CONTRACT.HISTORY.LIST);
+  const response = await api.get<ContractListResponse, undefined>(
+    API.CONTRACT.HISTORY.LIST
+  );
+  return toContractArray(response);
 }
 
 async function rejectContract(req: RejectContractReq) {
@@ -112,17 +146,19 @@ async function updateContract(contractId: string, req: unknown) {
 }
 
 async function getContractSoonExpired(req?: GetContractByFormatReq) {
-  return await api.get<Contract[], GetContractByFormatReq>(
+  const response = await api.get<ContractListResponse, GetContractByFormatReq>(
     API.CONTRACT.SOON_EXPIRED,
     req
   );
+  return toContractArray(response);
 }
 
 async function getContractPaymentDueSoon(req?: GetContractByFormatReq) {
-  return await api.get<Contract[], GetContractByFormatReq>(
+  const response = await api.get<ContractListResponse, GetContractByFormatReq>(
     API.CONTRACT.PAYMENT_DUE_SOON,
     req
   );
+  return toContractArray(response);
 }
 
 export type ActivateContractReq = {
@@ -197,10 +233,11 @@ async function archiveContract(contractId: string) {
 }
 
 async function getMyVisibleContractList(req?: GetContractListReq) {
-  return await api.get<Contract[], GetContractListReq>(
+  const response = await api.get<ContractListResponse, GetContractListReq>(
     API.CONTRACT.MY_VISIBLE,
     req
   );
+  return toContractArray(response);
 }
 
 export const contractService = {

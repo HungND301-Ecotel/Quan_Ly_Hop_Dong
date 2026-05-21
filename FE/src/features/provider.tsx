@@ -7,6 +7,7 @@ import { User } from '@/types/user.type';
 import { jwtDecode } from 'jwt-decode';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
@@ -42,11 +43,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (res) {
           authStore.set(res);
           await fetchUser(res.token);
+          toast.success('Đăng nhập thành công');
           navigate('/');
         }
       } catch (error) {
         console.error('Login failed', error);
-        throw error;
+        toast.error('Tên đăng nhập hoặc mật khẩu sai');
       }
     },
     [fetchUser, navigate]
