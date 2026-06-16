@@ -2,6 +2,7 @@ import { DataTableEvent } from '@/components/data-table/types';
 import { Form } from '@/components/form/form';
 import { FormInput } from '@/components/form/form-input';
 import { FormRow } from '@/components/form/form-row';
+import { FormYear } from '@/components/form/form-year';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -53,6 +54,8 @@ export function ContractRegisterEdit({
     if (detail.data) {
       form.reset({
         name: detail.data.name,
+        year: detail.data.year ?? new Date().getFullYear(),
+        description: detail.data.description ?? '',
       });
     }
   }, [detail.data, form]);
@@ -122,6 +125,20 @@ export function ContractRegisterEdit({
                 name='name'
                 label='Tên sổ theo dõi'
                 placeholder='Nhập tên sổ theo dõi hợp đồng'
+              />
+              <FormYear
+                control={form.control}
+                name='year'
+                label='Thời gian (Năm)'
+                required
+              />
+            </FormRow>
+            <FormRow>
+              <FormInput
+                control={form.control}
+                name='description'
+                label='Mô tả'
+                placeholder='Nhập mô tả sổ theo dõi hợp đồng'
               />
             </FormRow>
           </div>

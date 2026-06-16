@@ -1,4 +1,4 @@
-﻿using Application.Common.Events;
+using Application.Common.Events;
 using Application.Common.Interfaces;
 using Domain.Common.Enums;
 using Domain.Entities.Catalog;
@@ -248,6 +248,12 @@ public class ApplicationDbContext(
             .HasForeignKey<Level1Code>(lc => lc.ContractTypeId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<Level1Code>()
+            .HasOne(lc => lc.ContractRegister)
+            .WithMany()
+            .HasForeignKey(lc => lc.ContractRegisterId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Level3Code - many with Level1Code, 1-1 with SignedContent
         modelBuilder.Entity<Level3Code>()
             .HasIndex(l3 => l3.Code)
@@ -270,7 +276,6 @@ public class ApplicationDbContext(
             .WithOne(l3 => l3.SignedContent)
             .HasForeignKey<SignedContent>(sc => sc.Level3CodeId)
             .OnDelete(DeleteBehavior.Restrict);
-
         // Contracts
         modelBuilder.Entity<Contract>()
             .HasIndex(c => c.ContractNumber)

@@ -19,7 +19,7 @@ public class Level1CodeService(IUnitOfWork unitOfWork) : ILevel1CodeService
         search = search ?? string.Empty;
         var list = await _level1CodeRepo.GetAllAsync(
             predicate: x => x.Code.Contains(search) || x.Description.Contains(search),
-            include: q => q.Include(x => x.ContractType),
+            include: q => q.Include(x => x.ContractType).Include(x => x.ContractRegister),
             disableTracking: true);
         
         return list.Select(x => new Level1CodeDto
@@ -28,7 +28,9 @@ public class Level1CodeService(IUnitOfWork unitOfWork) : ILevel1CodeService
             Code = x.Code,
             Description = x.Description,
             ContractTypeId = x.ContractTypeId,
-            ContractTypeName = x.ContractType.Name
+            ContractTypeName = x.ContractType.Name,
+            ContractRegisterId = x.ContractRegisterId,
+            ContractRegisterName = x.ContractRegister != null ? x.ContractRegister.Name : null
         }).ToList();
     }
 
@@ -36,7 +38,7 @@ public class Level1CodeService(IUnitOfWork unitOfWork) : ILevel1CodeService
     {
         var entity = await _level1CodeRepo.GetFirstOrDefaultAsync(
             predicate: x => x.Id == id,
-            include: q => q.Include(x => x.ContractType),
+            include: q => q.Include(x => x.ContractType).Include(x => x.ContractRegister),
             disableTracking: true);
         
         if (entity == null)
@@ -50,17 +52,30 @@ public class Level1CodeService(IUnitOfWork unitOfWork) : ILevel1CodeService
             Code = entity.Code,
             Description = entity.Description,
             ContractTypeId = entity.ContractTypeId,
-            ContractTypeName = entity.ContractType.Name
+            ContractTypeName = entity.ContractType.Name,
+            ContractRegisterId = entity.ContractRegisterId,
+            ContractRegisterName = entity.ContractRegister != null ? entity.ContractRegister.Name : null
         };
     }
 
-    public async Task<Guid> CreateAsync(string code, Guid contractTypeId, string? description = null)
+    public async Task<Guid> CreateAsync(string code, Guid contractTypeId, Guid? contractRegisterId, string? description = null)
     {
         // Validate ContractType exists
         var contractType = await _contractTypeRepo.FindAsync(contractTypeId);
         if (contractType == null)
         {
             throw new NotFoundException("ContractType not found");
+        }
+
+        // Validate ContractRegister exists
+        if (contractRegisterId.HasValue && contractRegisterId.Value != Guid.Empty)
+        {
+            var contractRegisterRepo = unitOfWork.GetRepository<ContractRegister>();
+            var contractRegister = await contractRegisterRepo.FindAsync(contractRegisterId.Value);
+            if (contractRegister == null)
+            {
+                throw new NotFoundException("ContractRegister not found");
+            }
         }
 
         // Check 1-1 mapping duplicate: each ContractType can only be linked to one Level1Code
@@ -77,13 +92,13 @@ public class Level1CodeService(IUnitOfWork unitOfWork) : ILevel1CodeService
             throw new ConflictException($"Code '{code}' đã tồn tại");
         }
 
-        var entity = Level1Code.Create(code, contractTypeId, description);
+        var entity = Level1Code.Create(code, contractTypeId, contractRegisterId, description);
         await _level1CodeRepo.InsertAsync(entity);
         await unitOfWork.SaveChangesAsync();
         return entity.Id;
     }
 
-    public async Task<bool> UpdateAsync(Guid id, string code, Guid contractTypeId, string? description = null)
+    public async Task<bool> UpdateAsync(Guid id, string code, Guid contractTypeId, Guid? contractRegisterId, string? description = null)
     {
         var entity = await _level1CodeRepo.GetFirstOrDefaultAsync(
             predicate: x => x.Id == id,
@@ -101,6 +116,17 @@ public class Level1CodeService(IUnitOfWork unitOfWork) : ILevel1CodeService
             throw new NotFoundException("ContractType not found");
         }
 
+        // Validate ContractRegister exists
+        if (contractRegisterId.HasValue && contractRegisterId.Value != Guid.Empty)
+        {
+            var contractRegisterRepo = unitOfWork.GetRepository<ContractRegister>();
+            var contractRegister = await contractRegisterRepo.FindAsync(contractRegisterId.Value);
+            if (contractRegister == null)
+            {
+                throw new NotFoundException("ContractRegister not found");
+            }
+        }
+
         // Check 1-1 mapping duplicate: each ContractType can only be linked to one Level1Code
         bool isContractTypeAssigned = await _level1CodeRepo.AnyAsync(x => x.ContractTypeId == contractTypeId && x.Id != id);
         if (isContractTypeAssigned)
@@ -115,7 +141,7 @@ public class Level1CodeService(IUnitOfWork unitOfWork) : ILevel1CodeService
             throw new ConflictException($"Code '{code}' đã tồn tại");
         }
 
-        entity.Update(code, contractTypeId, description);
+        entity.Update(code, contractTypeId, contractRegisterId, description);
         _level1CodeRepo.Update(entity);
         await unitOfWork.SaveChangesAsync();
         return true;

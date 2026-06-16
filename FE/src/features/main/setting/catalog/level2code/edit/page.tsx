@@ -100,6 +100,7 @@ export function EditLevel2CodeAction({ row, table }: DataTableEvent<Level2Code>)
         ) : (
           <Button variant='default' size='lg'>
             <PlusIcon />
+            Tạo mới
           </Button>
         )}
       </DialogTrigger>

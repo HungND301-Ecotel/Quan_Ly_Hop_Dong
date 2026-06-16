@@ -11,6 +11,14 @@ export const CONTRACT_REGISTER_COLUMNS: ColumnDef<ContractRegister>[] = [
     header: 'Tên sổ theo dõi',
   },
   {
+    accessorKey: 'year',
+    header: 'Năm',
+  },
+  {
+    accessorKey: 'description',
+    header: 'Mô tả',
+  },
+  {
     id: 'action',
     header: () => <div className='text-right w-full pr-4'>Thao tác</div>,
     cell: (props) => {

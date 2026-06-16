@@ -33,6 +33,7 @@ public class Level1CodesController : BaseAuthController
         var result = await Mediator.Send(new CreateLevel1CodeCommand(
             createModel.Code,
             createModel.ContractTypeId,
+            createModel.ContractRegisterId,
             createModel.Description));
         return Ok(result, MessageCommon.CreateSuccess);
     }
@@ -44,6 +45,7 @@ public class Level1CodesController : BaseAuthController
             updateModel.Id,
             updateModel.Code,
             updateModel.ContractTypeId,
+            updateModel.ContractRegisterId,
             updateModel.Description));
         return Ok(result, MessageCommon.UpdateSuccess);
     }

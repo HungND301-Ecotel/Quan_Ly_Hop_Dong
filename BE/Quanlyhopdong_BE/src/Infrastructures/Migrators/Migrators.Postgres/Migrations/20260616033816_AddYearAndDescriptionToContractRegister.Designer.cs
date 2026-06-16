@@ -3,6 +3,7 @@ using System;
 using EfCore.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Migrators.PostgreSQL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260616033816_AddYearAndDescriptionToContractRegister")]
+    partial class AddYearAndDescriptionToContractRegister
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1420,9 +1423,6 @@ namespace Migrators.PostgreSQL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("ContractRegisterId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("ContractTypeId")
                         .HasColumnType("uuid");
 
@@ -1452,8 +1452,6 @@ namespace Migrators.PostgreSQL.Migrations
                     b.HasIndex("Code")
                         .IsUnique()
                         .HasFilter("\"DeletedOn\" IS NULL");
-
-                    b.HasIndex("ContractRegisterId");
 
                     b.HasIndex("ContractTypeId")
                         .IsUnique()
@@ -2955,18 +2953,11 @@ namespace Migrators.PostgreSQL.Migrations
 
             modelBuilder.Entity("Domain.Entities.Category.Level1Code", b =>
                 {
-                    b.HasOne("Domain.Entities.Category.ContractRegister", "ContractRegister")
-                        .WithMany()
-                        .HasForeignKey("ContractRegisterId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Domain.Entities.Category.ContractType", "ContractType")
                         .WithOne("Level1Code")
                         .HasForeignKey("Domain.Entities.Category.Level1Code", "ContractTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("ContractRegister");
 
                     b.Navigation("ContractType");
                 });

@@ -16,6 +16,7 @@ import { useApi } from '@/hooks/use-api';
 import { level1CodeService } from '@/services/level1code';
 import { Level1Code } from '@/services/level1code/type';
 import { contractTypeService } from '@/services/contract-type';
+import { ContractRegisterService } from '@/services/contract-register';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { EditIcon, PlusIcon, Save } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -34,6 +35,11 @@ export function EditLevel1CodeAction({ row, table }: DataTableEvent<Level1Code>)
   // ✅ Lấy danh sách loại hợp đồng cho FormSelect
   const contractTypes = useApi({
     service: contractTypeService.getContractTypeList,
+  });
+
+  // ✅ Lấy danh sách sổ theo dõi cho FormSelect
+  const contractRegisters = useApi({
+    service: ContractRegisterService.getContractRegisterList,
   });
 
   const onRefresh = () => {
@@ -59,6 +65,7 @@ export function EditLevel1CodeAction({ row, table }: DataTableEvent<Level1Code>)
       code: detail.data.code,
       description: detail.data.description,
       contractTypeId: detail.data.contractTypeId,
+      contractRegisterId: detail.data.contractRegisterId ?? '',
     });
   }, [detail.data, form]);
 
@@ -71,14 +78,18 @@ export function EditLevel1CodeAction({ row, table }: DataTableEvent<Level1Code>)
   const onSubmit = async (values: Level1CodeValues) => {
     try {
       setLoading(true);
+      const submitValues = {
+        ...values,
+        contractRegisterId: values.contractRegisterId || null,
+      };
       if (row) {
         await level1CodeService.updateLevel1Code({
           id: row.original.id,
-          ...values,
-        });
+          ...submitValues,
+        } as any);
         toast.success('Cập nhật mã cấp 1 thành công');
       } else {
-        await level1CodeService.createLevel1Code(values);
+        await level1CodeService.createLevel1Code(submitValues as any);
         toast.success('Tạo mới mã cấp 1 thành công');
       }
       setOpen(false);
@@ -141,12 +152,26 @@ export function EditLevel1CodeAction({ row, table }: DataTableEvent<Level1Code>)
                 }
               />
             </FormRow>
-            <FormInput
-              control={form.control}
-              name='description'
-              label='Mô tả'
-              placeholder='Nhập mô tả'
-            />
+             <FormRow>
+              <FormSelect
+                control={form.control}
+                name='contractRegisterId'
+                label='Sổ theo dõi hợp đồng'
+                placeholder='Chọn sổ theo dõi'
+                options={
+                  contractRegisters.data?.map((r) => ({
+                    label: `${r.name} - ${r.year ? `Năm ${r.year}` : ''}`,
+                    value: r.id,
+                  })) ?? []
+                }
+              />
+              <FormInput
+                control={form.control}
+                name='description'
+                label='Mô tả'
+                placeholder='Nhập mô tả'
+              />
+            </FormRow>
           </div>
 
           <div className='flex justify-end items-center gap-3 p-4 px-6 pb-0 border-t'>
