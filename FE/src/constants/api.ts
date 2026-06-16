@@ -177,6 +177,14 @@ export const API = {
     DELETE: (id: string) => `/contractstructurecatalog/${id}`,
   },
 
+  CONTRACT_FIELD: {
+    LIST: '/contractfield',
+    DETAIL: (id: string) => `/contractfield/${id}`,
+    CREATE: '/contractfield',
+    UPDATE: '/contractfield',
+    DELETE: '/contractfield',
+  },
+
     EXTERNAL_SYNC_CONNECTIONS: {
     LIST: '/externalsyncconnections',
     DETAIL: (id: string) => `/externalsyncconnections/${id}`,

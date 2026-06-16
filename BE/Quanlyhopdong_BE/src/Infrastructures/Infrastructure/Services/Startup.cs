@@ -68,6 +68,7 @@ internal static class Startup
         services.AddTransient<ILevel2CodeService, Level2CodeService>();
         services.AddTransient<ILevel3CodeService, Level3CodeService>();
         services.AddTransient<ISignedContentService, SignedContentService>();
+        services.AddTransient<IContractFieldService, ContractFieldService>();
         return services;
     }
 }

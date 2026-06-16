@@ -58,6 +58,8 @@ import { ContractRegisterService } from '@/services/contract-register';
 import { ContractRegister } from '@/services/contract-register/type';
 import { contractTypeService } from '@/services/contract-type';
 import { ContractType } from '@/services/contract-type/type';
+import { contractFieldService } from '@/services/contract-field';
+import { ContractField } from '@/services/contract-field/type';
 import { ContractGuarantee } from '@/services/contract/type';
 import { departmentService } from '@/services/department';
 import { Department } from '@/services/department/type';
@@ -243,6 +245,7 @@ export function ContractBasicInformationForm() {
   const hasInitializedFromContract = useRef(false);
 
   const [contractTypes, setContractTypes] = useState<ContractType[]>([]);
+  const [contractFields, setContractFields] = useState<ContractField[]>([]);
   const [contractRegisters, setContractRegisters] = useState<
     ContractRegister[]
   >([]);
@@ -397,6 +400,7 @@ export function ContractBasicInformationForm() {
         procurementMethodId: contract.procurementMethodId,
         contractStructureId: contract.contractStructureId,
         contractTypeId: contract.contractTypeId,
+        contractFieldId: contract.contractFieldId,
         title: contract.title,
         contractRegisterId: contract.contractRegisterId,
         contractNumber: contract.contractNumber,
@@ -598,6 +602,7 @@ export function ContractBasicInformationForm() {
       positionService.getPositionList(),
       level1CodeService.getLevel1CodeList(),
       contractStructureCatalogService.getContractStructureCatalogList(),
+      contractFieldService.getContractFieldList(),
     ]);
 
     promises.then(
@@ -613,6 +618,7 @@ export function ContractBasicInformationForm() {
         _positions,
         level1CodesData,
         contractStructuresData,
+        contractFieldsData,
       ]) => {
         setContractTypes(contractTypes || []);
         setContractRegisters(contractRegisters || []);
@@ -624,6 +630,7 @@ export function ContractBasicInformationForm() {
         setDepartments(departments || []);
         setLevel1Codes(level1CodesData || []);
         setContractStructures(contractStructuresData || []);
+        setContractFields(contractFieldsData || []);
       }
     ).finally(() => {
       setIsCatalogLoading(false);
@@ -871,6 +878,23 @@ export function ContractBasicInformationForm() {
               render={({ field }) => (
                 <input type='hidden' {...field} value={field.value ?? ''} />
               )}
+            />
+          </FormGroupContent>
+        </FormGroup>
+
+        <FormGroup>
+          <FormGroupHeader>
+            <FormGroupLabel>Lĩnh vực hợp đồng</FormGroupLabel>
+          </FormGroupHeader>
+          <FormGroupContent>
+            <FormSelect
+              control={form.control}
+              name='contractFieldId'
+              placeholder='Chọn lĩnh vực hợp đồng'
+              options={[
+                { label: 'Không chọn', value: '' },
+                ...contractFields.map((f) => ({ value: f.id, label: f.name }))
+              ]}
             />
           </FormGroupContent>
         </FormGroup>

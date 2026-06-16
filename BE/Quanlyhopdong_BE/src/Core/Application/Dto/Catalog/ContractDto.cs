@@ -21,6 +21,8 @@ public class ShortContractDto
     public string ContractStructureName { get; set; } = string.Empty;
     public Guid ContractTypeId { get; set; }
     public string ContractTypeName { get; set; }
+    public Guid? ContractFieldId { get; set; }
+    public string? ContractFieldName { get; set; }
     public Guid ProcurementMethodId { get; set; }
     public string ProcurementMethodCode { get; set; }
     public string ProcurementMethodName { get; set; }
@@ -66,6 +68,8 @@ public class ContractDto
     public string ContractStructureName { get; set; } = string.Empty;
     public Guid ContractTypeId { get; set; }
     public string ContractTypeName { get; set; }
+    public Guid? ContractFieldId { get; set; }
+    public string? ContractFieldName { get; set; }
     public Guid ProcurementMethodId { get; set; }
     public string ProcurementMethodCode { get; set; }
     public string ProcurementMethodName { get; set; }
@@ -138,6 +142,7 @@ public class CreateContractDto
     public Guid? ContractStructureId { get; set; }
     public Guid ProcurementMethodId { get; set; }
     public Guid ContractTypeId { get; set; }
+    public Guid? ContractFieldId { get; set; }
     public Guid ContractRegisterId { get; set; }
     public ContractFormat ContractFormat { get; set; }
     public CreateParentContractRelationshipDto? ParentRelationship { get; set; }
@@ -174,6 +179,7 @@ public class UpdateContractDto
     public Guid? ContractStructureId { get; set; }
     public Guid ProcurementMethodId { get; set; }
     public Guid ContractTypeId { get; set; }
+    public Guid? ContractFieldId { get; set; }
     public Guid ContractRegisterId { get; set; }
     public ContractFormat ContractFormat { get; set; }
     public CreateParentContractRelationshipDto? ParentRelationship { get; set; }
@@ -345,6 +351,8 @@ public class PrepareExtensionDto
     public string ContractStructureName { get; set; } = string.Empty;
     public Guid ProcurementMethodId { get; set; }
     public Guid ContractTypeId { get; set; }
+    public Guid? ContractFieldId { get; set; }
+    public string? ContractFieldName { get; set; }
     public Guid ContractRegisterId { get; set; }
     public ContractFormat ContractFormat { get; set; }
     public Guid? PartnerId { get; set; }

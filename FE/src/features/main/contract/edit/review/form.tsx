@@ -24,6 +24,8 @@ import { ContractRegisterService } from '@/services/contract-register';
 import { ContractRegister } from '@/services/contract-register/type';
 import { contractTypeService } from '@/services/contract-type';
 import { ContractSignFlow, ContractType } from '@/services/contract/type';
+import { contractFieldService } from '@/services/contract-field';
+import { ContractField } from '@/services/contract-field/type';
 import { departmentService } from '@/services/department';
 import { Department } from '@/services/department/type';
 import { materialService } from '@/services/material';
@@ -194,6 +196,7 @@ export function ContractReviewForm() {
   const [isAutoLiquidated, setIsAutoLiquidated] = useState(true);
 
   const [contractTypes, setContractTypes] = useState<ContractType[]>([]);
+  const [contractFields, setContractFields] = useState<ContractField[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -225,6 +228,10 @@ export function ContractReviewForm() {
   const contractTypeMap = useMemo(
     () => new Map(contractTypes.map((ct) => [ct.id, ct.name])),
     [contractTypes]
+  );
+  const contractFieldMap = useMemo(
+    () => new Map(contractFields.map((cf) => [cf.id, cf.name])),
+    [contractFields]
   );
   const partnerMap = useMemo(
     () => new Map(partners.map((p) => [p.id, p])),
@@ -299,6 +306,7 @@ export function ContractReviewForm() {
       level2CodeService.getLevel2CodeList(),
       level3CodeService.getLevel3CodeList(),
       contractStructureCatalogService.getContractStructureCatalogList(),
+      contractFieldService.getContractFieldList(),
     ]);
 
     promises
@@ -317,6 +325,7 @@ export function ContractReviewForm() {
           level2CodesData,
           level3CodesData,
           contractStructuresData,
+          contractFieldsData,
         ]) => {
           setContractTypes(contractTypesData || []);
           setPartners(partnersData || []);
@@ -331,6 +340,7 @@ export function ContractReviewForm() {
           setLevel2Codes(level2CodesData || []);
           setLevel3Codes(level3CodesData || []);
           setContractStructures(contractStructuresData || []);
+          setContractFields(contractFieldsData || []);
         }
       )
       .finally(() => {
@@ -491,6 +501,7 @@ export function ContractReviewForm() {
       const requestBody = {
         ...contractFormat,
         ...basicInformationWithoutSchedules,
+        contractFieldId: basicInformation?.contractFieldId || null,
         isDebtTrackingEnabled: true,
         // Hợp đồng phê duyệt: truyền giá trị user chọn
         isAutoLiquidated,
@@ -626,6 +637,11 @@ export function ContractReviewForm() {
                 <InfoRow
                   label='Loại hợp đồng'
                   value={contractTypeMap.get(basicInformation?.contractTypeId || '')}
+                  loading={loading}
+                />
+                <InfoRow
+                  label='Lĩnh vực hợp đồng'
+                  value={contractFieldMap.get(basicInformation?.contractFieldId || '')}
                   loading={loading}
                 />
                 <InfoRow

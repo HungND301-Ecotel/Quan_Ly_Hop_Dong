@@ -19,6 +19,7 @@ public class Contract : AuditableEntity<Guid>
     public ScheduleType? ScheduleType { get; set; }
     public Guid ProcurementMethodId { get; protected set; }
     public Guid ContractTypeId { get; protected set; }
+    public Guid? ContractFieldId { get; protected set; }
     public Guid ContractRegisterId { get; protected set; }
     public ContractFormat ContractFormat { get; protected set; }
     public Guid? PartnerId { get; protected set; }
@@ -65,6 +66,9 @@ public class Contract : AuditableEntity<Guid>
 
     [ForeignKey("ContractStructureId")]
     public virtual ContractStructureCatalog? ContractStructureCatalog { get; protected set; }
+
+    [ForeignKey("ContractFieldId")]
+    public virtual ContractField? ContractField { get; protected set; }
 
     private IList<ContractAttachment> _contractAttachments = new List<ContractAttachment>();
     public virtual IReadOnlyCollection<ContractAttachment> ContractAttachments => _contractAttachments.AsReadOnly();
@@ -119,6 +123,7 @@ public class Contract : AuditableEntity<Guid>
         string contractNumber,
         Guid? contractStructureId,
         Guid contractTypeId,
+        Guid? contractFieldId,
         Guid? partnerId,
         Guid departmentId,
         Guid procurementMethodId,
@@ -144,6 +149,7 @@ public class Contract : AuditableEntity<Guid>
             IsDebtTrackingEnabled = isDebtTrackingEndable,
             IsAutoLiquidated = isAutoLiquidated,
             ContractTypeId = contractTypeId,
+            ContractFieldId = contractFieldId,
             PartnerId = partnerId,
             DepartmentId = departmentId,
             ContractValue = contractValue,
@@ -175,6 +181,7 @@ public class Contract : AuditableEntity<Guid>
         string contractNumber,
         Guid? contractStructureId,
         Guid contractTypeId,
+        Guid? contractFieldId,
         Guid? partnerId,
         Guid departmentId,
         Guid procurementMethodId,
@@ -199,6 +206,7 @@ public class Contract : AuditableEntity<Guid>
         IsDebtTrackingEnabled = isDebtTrackingEndable;
         IsAutoLiquidated = isAutoLiquidated;
         ContractTypeId = contractTypeId;
+        ContractFieldId = contractFieldId;
         PartnerId = partnerId;
         DepartmentId = departmentId;
         ContractValue = contractValue;
