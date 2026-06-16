@@ -723,6 +723,8 @@ public partial class ContractService(
             ContractStructureName = contract.ContractStructureCatalog?.Name ?? string.Empty,
             ProcurementMethodId = contract.ProcurementMethodId,
             ContractTypeId = contract.ContractTypeId,
+            ContractFieldId = contract.ContractFieldId,
+            ContractFieldName = contract.ContractField?.Name,
             ContractRegisterId = contract.ContractRegisterId,
             ContractFormat = contract.ContractFormat,
             PartnerId = contract.PartnerId,
@@ -789,6 +791,7 @@ public partial class ContractService(
                 isDebtTrackingEndable: dto.IsDebtTrackingEnabled,
                 isAutoLiquidated: dto.IsAutoLiquidated,
                 contractTypeId: autoContractTypeId,
+                contractFieldId: dto.ContractFieldId,
                 partnerId: dto.PartnerId,
                 departmentId: dto.DepartmentId,
                 contractValue: dto.ContractValue,
@@ -1102,6 +1105,7 @@ public partial class ContractService(
                 .Include(x => x.ContractItems)
                 .Include(x => x.ProcurementMethod)
                 .Include(x => x.ContractRegister)
+                .Include(x => x.ContractField)
                 .Where(x => (x.IsDebtTrackingEnabled == isDebtTrackingEnabled || isDebtTrackingEnabled == null));
 
         if (onlyCurrentUserVisible)
@@ -1174,6 +1178,7 @@ public partial class ContractService(
                 item.Level2CodeId = contract.Level2CodeId;
                 item.Level2Code = contract.Level2Code?.Code;
                 item.Level3Code = contract.Level3Code?.Code;
+                item.ContractFieldName = contract.ContractField?.Name;
                 item.ContractStructureName = contract.ContractStructureCatalog?.Name ?? string.Empty;
                 item.Title = contract.SignedContent?.Title;
                 item.IsArchiveContract = contract.Status == ContractStatus.Archive;
@@ -1283,6 +1288,7 @@ public partial class ContractService(
             .Include(x => x.ContractGuarantees).ThenInclude(x => x.BankAccount)
             .Include(x => x.ProcurementMethod)
             .Include(x => x.ContractRegister)
+            .Include(x => x.ContractField)
             .FirstOrDefaultAsync(x => x.Id == id && x.DeletedOn == null)
             ?? throw new NotFoundException("Contract not found");
 
@@ -1293,6 +1299,7 @@ public partial class ContractService(
         dto.Level2CodeId = query.Level2CodeId;
         dto.Level2Code = query.Level2Code?.Code;
         dto.Level3Code = query.Level3Code?.Code;
+        dto.ContractFieldName = query.ContractField?.Name;
         dto.ContractStructureName = query.ContractStructureCatalog?.Name ?? string.Empty;
         dto.PartnerDetail = query.Partner?.Adapt<PartnerDto>();
         
@@ -1742,6 +1749,7 @@ public partial class ContractService(
                 isDebtTrackingEndable: dto.IsDebtTrackingEnabled,
                 isAutoLiquidated: dto.IsAutoLiquidated,
                 contractTypeId: autoContractTypeId,
+                contractFieldId: dto.ContractFieldId,
                 partnerId: dto.PartnerId,
                 departmentId: dto.DepartmentId,
                 contractValue: dto.ContractValue,

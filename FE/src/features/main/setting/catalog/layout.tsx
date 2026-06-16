@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import {
   Banknote,
   BookCheck,
+  BookOpen,
   Building2,
   ChevronDown,
   ChevronRight,
@@ -47,6 +48,11 @@ const CATALOG_ITEMS: MenuItem[] = [
     name: 'Loại hợp đồng',
     icon: FileText,
     url: '/setting/catalog/contract-type',
+  },
+  {
+    name: 'Lĩnh vực hợp đồng',
+    icon: BookOpen,
+    url: '/setting/catalog/contract-field',
   },
   {
     name: 'Hình thức hợp đồng',

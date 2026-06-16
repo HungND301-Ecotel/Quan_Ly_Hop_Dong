@@ -65,6 +65,7 @@ export const BasicInformationSchema = z
     contractStructureId: z.string().nonempty({ error: 'Không được để trống' }),
 
     contractTypeId: z.string().nonempty({ error: 'Không được để trống' }),
+    contractFieldId: z.string().optional().nullable(),
     title: z.string().nonempty({ error: 'Không được để trống' }),
     contractRegisterId: z.string().nonempty({ error: 'Không được để trống' }),
     contractNumber: z.string().nonempty({ error: 'Không được để trống' }),
@@ -198,6 +199,7 @@ export const BasicInformationDefault: BasicInformationValues = {
   contractStructureId: '',
 
   contractTypeId: '',
+  contractFieldId: '',
   title: '',
   contractRegisterId: '',
   contractNumber: '',

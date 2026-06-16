@@ -3,6 +3,7 @@ using System;
 using EfCore.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Migrators.PostgreSQL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260616081651_AddContractFieldCatalog")]
+    partial class AddContractFieldCatalog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -75,9 +78,6 @@ namespace Migrators.PostgreSQL.Migrations
                     b.Property<string>("AppendixNumber")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<Guid?>("ContractFieldId")
-                        .HasColumnType("uuid");
 
                     b.Property<string>("ContractFormat")
                         .IsRequired()
@@ -181,8 +181,6 @@ namespace Migrators.PostgreSQL.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ContractFieldId");
 
                     b.HasIndex("ContractNumber")
                         .IsUnique()
@@ -2657,10 +2655,6 @@ namespace Migrators.PostgreSQL.Migrations
 
             modelBuilder.Entity("Domain.Entities.Catalog.Contract", b =>
                 {
-                    b.HasOne("Domain.Entities.Category.ContractField", "ContractField")
-                        .WithMany()
-                        .HasForeignKey("ContractFieldId");
-
                     b.HasOne("Domain.Entities.Category.ContractRegister", "ContractRegister")
                         .WithMany("Contracts")
                         .HasForeignKey("ContractRegisterId")
@@ -2712,8 +2706,6 @@ namespace Migrators.PostgreSQL.Migrations
                         .WithMany("Contracts")
                         .HasForeignKey("SignedContentId")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ContractField");
 
                     b.Navigation("ContractRegister");
 

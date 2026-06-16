@@ -72,6 +72,7 @@ public class ApplicationDbContext(
     public DbSet<ContractRegister> ContractRegisters { get; set; }
     public DbSet<ContractStructureCatalog> ContractStructureCatalogs { get; set; }
     public DbSet<ContractType> ContractTypes { get; set; }
+    public DbSet<ContractField> ContractFields { get; set; }
     public DbSet<Level1Code> Level1Codes { get; set; }
     public DbSet<Level3Code> Level3Codes { get; set; }
     public DbSet<SignedContent> SignedContents { get; set; }

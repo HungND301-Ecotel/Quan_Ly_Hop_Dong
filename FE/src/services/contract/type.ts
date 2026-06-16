@@ -33,6 +33,7 @@ export type CreateContractReq = {
   contractStructure?: string;
   procurementMethodId?: string;
   contractTypeId: string;
+  contractFieldId?: string;
   contractRegisterId?: string;
   contractFormat: number;
   parentContractId?: string;
@@ -74,6 +75,7 @@ export type UpdateContractReq = {
   id: string; // Path parameter
   title: string;
   contractTypeId: string;
+  contractFieldId?: string;
   contractFormat: number;
   parentContractId?: string;
   partnerId: string;
@@ -185,6 +187,8 @@ export type Contract = {
   title: string;
   contractTypeId: string;
   contractTypeName: string;
+  contractFieldId?: string;
+  contractFieldName?: string;
   contractFormat: number;
   isDebtTrackingEnabled?: boolean;
   parentContractId?: string;

@@ -17,6 +17,7 @@ import { Level2CodeManagementPage } from './catalog/level2code/page';
 import { Level3CodeManagementPage } from './catalog/level3code/page';
 import { SignedContentManagementPage } from './catalog/signedContent/page';
 import { ContractStructureCatalogManagementPage } from './catalog/structure/page';
+import { ContractFieldPage } from './catalog/contract-field/page';
 import { ExternalSyncConfigPage } from './server/ExternalSyncConfigPage';
 
 export const settingRouter: RouteObject = {
@@ -145,6 +146,14 @@ export const settingRouter: RouteObject = {
           handle: {
             title: 'Quản lý thành phần hợp đồng vật tư',
             description: 'Quản lý thông tin thành phần vật tư hợp đồng',
+          },
+        },
+        {
+          path: 'contract-field',
+          element: <ContractFieldPage />,
+          handle: {
+            title: 'Quản lý lĩnh vực hợp đồng',
+            description: 'Quản lý danh mục lĩnh vực hợp đồng',
           },
         },
         {
