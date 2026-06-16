@@ -19,6 +19,10 @@ export const LEVEL3_CODE_COLUMNS: ColumnDef<Level3Code>[] = [
     header: 'Mã cấp 1',
   },
   {
+    accessorKey: 'level2CodeName',
+    header: 'Mã cấp 2',
+  },
+  {
     id: 'action',
     header: () => <div className='text-right w-full pr-4'>Thao tác</div>,
     cell: (props) => (

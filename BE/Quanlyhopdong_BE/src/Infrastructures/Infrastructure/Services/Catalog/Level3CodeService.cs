@@ -12,13 +12,14 @@ public class Level3CodeService(IUnitOfWork unitOfWork) : ILevel3CodeService
 {
     private readonly IWriteRepository<Level3Code> _level3CodeRepo = unitOfWork.GetRepository<Level3Code>();
     private readonly IWriteRepository<Level1Code> _level1CodeRepo = unitOfWork.GetRepository<Level1Code>();
+    private readonly IWriteRepository<Level2Code> _level2CodeRepo = unitOfWork.GetRepository<Level2Code>();
 
     public async Task<IList<Level3CodeDto>> GetAllAsync(string? search)
     {
         search = search ?? string.Empty;
         var list = await _level3CodeRepo.GetAllAsync(
             predicate: x => x.Code.Contains(search) || x.Description.Contains(search),
-            include: q => q.Include(x => x.Level1Code),
+            include: q => q.Include(x => x.Level1Code).Include(x => x.Level2Code),
             disableTracking: true);
         
         return list.Select(x => new Level3CodeDto
@@ -27,7 +28,9 @@ public class Level3CodeService(IUnitOfWork unitOfWork) : ILevel3CodeService
             Code = x.Code,
             Description = x.Description,
             Level1CodeId = x.Level1CodeId,
-            Level1CodeName = x.Level1Code.Code
+            Level1CodeName = x.Level1Code.Code,
+            Level2CodeId = x.Level2CodeId,
+            Level2CodeName = x.Level2Code?.Code
         }).ToList();
     }
 
@@ -35,7 +38,7 @@ public class Level3CodeService(IUnitOfWork unitOfWork) : ILevel3CodeService
     {
         var entity = await _level3CodeRepo.GetFirstOrDefaultAsync(
             predicate: x => x.Id == id,
-            include: q => q.Include(x => x.Level1Code),
+            include: q => q.Include(x => x.Level1Code).Include(x => x.Level2Code),
             disableTracking: true);
         
         if (entity == null)
@@ -49,7 +52,9 @@ public class Level3CodeService(IUnitOfWork unitOfWork) : ILevel3CodeService
             Code = entity.Code,
             Description = entity.Description,
             Level1CodeId = entity.Level1CodeId,
-            Level1CodeName = entity.Level1Code.Code
+            Level1CodeName = entity.Level1Code.Code,
+            Level2CodeId = entity.Level2CodeId,
+            Level2CodeName = entity.Level2Code?.Code
         };
     }
 
@@ -63,17 +68,27 @@ public class Level3CodeService(IUnitOfWork unitOfWork) : ILevel3CodeService
         return list.Select(x => new Level3CodeLookupDto
         {
             Id = x.Id,
-            Name = x.Code
+            Code = x.Code
         }).ToList();
     }
 
-    public async Task<Guid> CreateAsync(string code, Guid level1CodeId, string? description = null)
+    public async Task<Guid> CreateAsync(string code, Guid level1CodeId, Guid? level2CodeId = null, string? description = null)
     {
         // Validate Level1Code exists
         var level1Code = await _level1CodeRepo.FindAsync(level1CodeId);
         if (level1Code == null)
         {
             throw new NotFoundException("Level1Code not found");
+        }
+
+        // Validate Level2Code if provided
+        if (level2CodeId.HasValue)
+        {
+            var level2Code = await _level2CodeRepo.FindAsync(level2CodeId.Value);
+            if (level2Code == null)
+            {
+                throw new NotFoundException("Level2Code not found");
+            }
         }
 
         // Check for duplicate code
@@ -83,13 +98,13 @@ public class Level3CodeService(IUnitOfWork unitOfWork) : ILevel3CodeService
             throw new ConflictException($"Code '{code}' đã tồn tại");
         }
 
-        var entity = Level3Code.Create(code, level1CodeId, description);
+        var entity = Level3Code.Create(code, level1CodeId, level2CodeId, description);
         await _level3CodeRepo.InsertAsync(entity);
         await unitOfWork.SaveChangesAsync();
         return entity.Id;
     }
 
-    public async Task<bool> UpdateAsync(Guid id, string code, Guid level1CodeId, string? description = null)
+    public async Task<bool> UpdateAsync(Guid id, string code, Guid level1CodeId, Guid? level2CodeId = null, string? description = null)
     {
         var entity = await _level3CodeRepo.GetFirstOrDefaultAsync(
             predicate: x => x.Id == id,
@@ -107,6 +122,16 @@ public class Level3CodeService(IUnitOfWork unitOfWork) : ILevel3CodeService
             throw new NotFoundException("Level1Code not found");
         }
 
+        // Validate Level2Code if provided
+        if (level2CodeId.HasValue)
+        {
+            var level2Code = await _level2CodeRepo.FindAsync(level2CodeId.Value);
+            if (level2Code == null)
+            {
+                throw new NotFoundException("Level2Code not found");
+            }
+        }
+
         // Check for duplicate code
         var isDuplicate = await _level3CodeRepo.AnyAsync(x => x.Code == code.ToUpper().Trim() && x.Id != id);
         if (isDuplicate)
@@ -114,7 +139,7 @@ public class Level3CodeService(IUnitOfWork unitOfWork) : ILevel3CodeService
             throw new ConflictException($"Code '{code}' đã tồn tại");
         }
 
-        entity.Update(code, level1CodeId, description);
+        entity.Update(code, level1CodeId, level2CodeId, description);
         _level3CodeRepo.Update(entity);
         await unitOfWork.SaveChangesAsync();
         return true;

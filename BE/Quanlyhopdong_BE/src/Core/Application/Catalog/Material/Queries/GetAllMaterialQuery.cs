@@ -1,4 +1,4 @@
-﻿using Application.Common.Repositories;
+using Application.Common.Repositories;
 using Application.Common.UnitOfWork;
 using Application.Dto.Catalog;
 using MediatR;
@@ -23,7 +23,7 @@ public class GetAllMaterialQueryHandler(IUnitOfWork unitOfWork) : IRequestHandle
                 MaterialGroupId = m.MaterialGroupId,
                 MaterialGroupName = m.MaterialGroup != null ? m.MaterialGroup.Name : null,
                 UnitOfMeasureId = m.UnitOfMeasureId,
-                UnitOfMeasureName = m.UnitOfMeasure.Name,
+                UnitOfMeasureName = m.UnitOfMeasure != null ? m.UnitOfMeasure.Name : string.Empty,
                 Price = m.Price
             },
             predicate: m => m.IsOtherMaterial == request.IsOtherMaterial,

@@ -1,4 +1,4 @@
-﻿using Domain.Common.Enums;
+using Domain.Common.Enums;
 using Domain.Entities.Catalog;
 
 namespace Application.Dto.Catalog;
@@ -10,7 +10,8 @@ public class ShortContractDto
     public string? Title { get; set; }
     public Guid? Level1CodeId { get; set; }
     public string? Level1CodeCode { get; set; }
-    public string Level2Code { get; set; }
+    public Guid? Level2CodeId { get; set; }
+    public string? Level2Code { get; set; }
     public Guid? Level3CodeId { get; set; }
     public string? Level3Code { get; set; }
     public string ContractNumber { get; set; }
@@ -54,7 +55,8 @@ public class ContractDto
     public string? Title { get; set; }
     public Guid? Level1CodeId { get; set; }
     public string? Level1CodeCode { get; set; }
-    public string Level2Code { get; set; }
+    public Guid? Level2CodeId { get; set; }
+    public string? Level2Code { get; set; }
     public Guid? Level3CodeId { get; set; }
     public string? Level3Code { get; set; }
     public string ContractNumber { get; set; }
@@ -129,7 +131,7 @@ public class CreateContractDto
     public bool IsDebtTrackingEnabled { get; set; } = true;
     public bool IsAutoLiquidated { get; set; } = false;
     public Guid? Level1CodeId { get; set; }
-    public string Level2Code { get; set; }
+    public Guid? Level2CodeId { get; set; }
     public Guid? Level3CodeId { get; set; }
     public string ContractNumber { get; set; }
     public string AppendixNumber { get; set; } = string.Empty;
@@ -165,7 +167,7 @@ public class UpdateContractDto
     public bool IsDebtTrackingEnabled { get; set; } = true;
     public bool IsAutoLiquidated { get; set; } = false;
     public Guid? Level1CodeId { get; set; }
-    public string Level2Code { get; set; }
+    public Guid? Level2CodeId { get; set; }
     public Guid? Level3CodeId { get; set; }
     public string ContractNumber { get; set; }
     public string AppendixNumber { get; set; } = string.Empty;
@@ -336,7 +338,7 @@ public class PrepareExtensionDto
     public bool IsDebtTrackingEnabled { get; set; } = true;
     public bool IsAutoLiquidated { get; set; } = false;
     public Guid? Level1CodeId { get; set; }
-    public string Level2Code { get; set; }
+    public Guid? Level2CodeId { get; set; }
 
     public Guid? Level3CodeId { get; set; }
     public Guid? ContractStructureId { get; set; }

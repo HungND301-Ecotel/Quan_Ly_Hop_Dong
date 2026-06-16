@@ -16,6 +16,8 @@ import { useApi } from '@/hooks/use-api';
 import { level3CodeService } from '@/services/level3code';
 import { Level3Code } from '@/services/level3code/type';
 import { level1CodeService } from '@/services/level1code';
+import { level2CodeService } from '@/services/level2code';
+import { Level2CodeLookup } from '@/services/level2code/type';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { EditIcon, PlusIcon, Save } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -53,18 +55,83 @@ export function EditLevel3CodeAction({ row, table }: DataTableEvent<Level3Code>)
     mode: 'onSubmit',
   });
 
+  const [level2Codes, setLevel2Codes] = useState<Level2CodeLookup[]>([]);
+  const [isLevel2Loading, setIsLevel2Loading] = useState(false);
+
+  const watchedLevel1CodeId = form.watch('level1CodeId');
+  const watchedLevel2CodeId = form.watch('level2CodeId');
+  const watchedSuffix = form.watch('suffix');
+
+  // Load Level 2 codes when Level 1 changes
+  useEffect(() => {
+    if (!watchedLevel1CodeId) {
+      setLevel2Codes([]);
+      form.setValue('level2CodeId', '');
+      return;
+    }
+    setIsLevel2Loading(true);
+    level2CodeService.getLevel2CodeByLevel1(watchedLevel1CodeId)
+      .then((data) => {
+        setLevel2Codes(data || []);
+      })
+      .finally(() => {
+        setIsLevel2Loading(false);
+      });
+  }, [watchedLevel1CodeId, form]);
+
+  // Parse existing code on edit mode when detail data and lists are loaded
+  useEffect(() => {
+    const detailData = detail.data;
+    if (!detailData || level1Codes.loading || level2Codes.length === 0) return;
+
+    const lvl1 = level1Codes.data?.find((c) => c.id === detailData.level1CodeId);
+    if (!lvl1) return;
+
+    const fullCode = detailData.code;
+    const remaining = fullCode.startsWith(lvl1.code)
+      ? fullCode.slice(lvl1.code.length)
+      : fullCode;
+
+    const matchingLvl2 = level2Codes.find((c) => remaining.startsWith(c.code));
+    if (matchingLvl2) {
+      const suffix = remaining.slice(matchingLvl2.code.length);
+      form.setValue('level2CodeId', matchingLvl2.id);
+      form.setValue('suffix', suffix);
+    } else {
+      form.setValue('suffix', remaining);
+    }
+  }, [detail.data, level2Codes, level1Codes.data, form]);
+
+  // Calculate the final computed code dynamically
+  useEffect(() => {
+    const lvl1 = level1Codes.data?.find((c) => c.id === watchedLevel1CodeId);
+    const lvl2 = level2Codes.find((c) => c.id === watchedLevel2CodeId);
+    const finalCode = `${lvl1?.code || ''}${lvl2?.code || ''}${watchedSuffix || ''}`;
+    form.setValue('code', finalCode);
+  }, [
+    watchedLevel1CodeId,
+    watchedLevel2CodeId,
+    watchedSuffix,
+    level1Codes.data,
+    level2Codes,
+    form,
+  ]);
+
   useEffect(() => {
     if (!detail.data) return;
     form.reset({
       code: detail.data.code,
       description: detail.data.description,
       level1CodeId: detail.data.level1CodeId,
+      level2CodeId: '',
+      suffix: '',
     });
   }, [detail.data, form]);
 
   useEffect(() => {
     if (!open) {
       form.reset(Level3CodeDefault);
+      setLevel2Codes([]);
     }
   }, [open, form]);
 
@@ -74,11 +141,19 @@ export function EditLevel3CodeAction({ row, table }: DataTableEvent<Level3Code>)
       if (row) {
         await level3CodeService.updateLevel3Code({
           id: row.original.id,
-          ...values,
+          code: values.code,
+          description: values.description,
+          level1CodeId: values.level1CodeId,
+          level2CodeId: values.level2CodeId || undefined,
         });
         toast.success('Cập nhật mã cấp 3 thành công');
       } else {
-        await level3CodeService.createLevel3Code(values);
+        await level3CodeService.createLevel3Code({
+          code: values.code,
+          description: values.description,
+          level1CodeId: values.level1CodeId,
+          level2CodeId: values.level2CodeId || undefined,
+        });
         toast.success('Tạo mới mã cấp 3 thành công');
       }
       setOpen(false);
@@ -122,12 +197,6 @@ export function EditLevel3CodeAction({ row, table }: DataTableEvent<Level3Code>)
         >
           <div className='flex-1 p-6 flex flex-col gap-6'>
             <FormRow>
-              <FormInput
-                control={form.control}
-                name='code'
-                label='Mã cấp 3'
-                placeholder='Nhập mã cấp 3'
-              />
               <FormSelect
                 control={form.control}
                 name='level1CodeId'
@@ -139,6 +208,41 @@ export function EditLevel3CodeAction({ row, table }: DataTableEvent<Level3Code>)
                     value: c.id,
                   })) ?? []
                 }
+              />
+              <FormSelect
+                control={form.control}
+                name='level2CodeId'
+                label='Mã cấp 2'
+                placeholder={
+                  !watchedLevel1CodeId
+                    ? 'Chọn mã cấp 1 trước'
+                    : isLevel2Loading
+                      ? 'Đang tải...'
+                      : 'Chọn mã cấp 2'
+                }
+                disabled={!watchedLevel1CodeId || isLevel2Loading}
+                options={
+                  level2Codes.map((c) => ({
+                    label: `${c.code}`,
+                    value: c.id,
+                  }))
+                }
+              />
+            </FormRow>
+            <FormRow>
+              <FormInput
+                control={form.control}
+                name='suffix'
+                label='Số đuôi'
+                placeholder='Nhập số đuôi, ví dụ: 01'
+              />
+              <FormInput
+                control={form.control}
+                name='code'
+                label='Mã cấp 3 (Xem trước)'
+                readOnly
+                className='opacity-50 cursor-not-allowed select-none bg-muted'
+                placeholder='Mã cấp 3 tự sinh'
               />
             </FormRow>
             <FormInput

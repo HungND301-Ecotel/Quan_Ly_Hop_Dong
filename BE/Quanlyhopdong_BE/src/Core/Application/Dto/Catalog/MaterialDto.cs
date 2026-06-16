@@ -1,4 +1,4 @@
-﻿namespace Application.Dto.Catalog;
+namespace Application.Dto.Catalog;
 
 public class MaterialDto
 {
@@ -8,9 +8,9 @@ public class MaterialDto
     public string Name { get; set; }
     public Guid? MaterialGroupId { get; set; }
     public string? MaterialGroupName { get; set; }
-    public Guid UnitOfMeasureId { get; set; }
+    public Guid? UnitOfMeasureId { get; set; }
     public string? UnitOfMeasureName { get; set; }
-    public decimal Price { get; set; }
+    public decimal? Price { get; set; }
 }
 
 public class CreateMaterialDto
@@ -19,17 +19,17 @@ public class CreateMaterialDto
     public string MaterialCode { get; set; }
     public string Name { get; set; }
     public Guid? MaterialGroupId { get; set; }
-    public Guid UnitOfMeasureId { get; set; }
-    public decimal Price { get; set; }
+    public Guid? UnitOfMeasureId { get; set; }
+    public decimal? Price { get; set; }
 }
 
 public class ExternalMaterialSyncItemDto
 {
     public string MaterialCode { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
-    public string UnitOfMeasureCode { get; set; } = string.Empty;
+    public string? UnitOfMeasureCode { get; set; }
     public string? MaterialGroupCode { get; set; }
-    public decimal Price { get; set; }
+    public decimal? Price { get; set; }
     public bool IsOtherMaterial { get; set; }
 }
 

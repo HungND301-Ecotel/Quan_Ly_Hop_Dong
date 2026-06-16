@@ -58,7 +58,7 @@ export const BasicInformationSchema = z
     departmentId: z.string().nonempty({ error: 'Không được để trống' }),
 
     level1CodeId: z.string().nonempty({ error: 'Không được để trống' }),
-    level2Code: z.string().nonempty({ error: 'Không được để trống' }),
+    level2CodeId: z.string().nonempty({ error: 'Không được để trống' }),
     level3CodeId: z.string().nonempty({ error: 'Không được để trống' }),
 
     procurementMethodId: z.string().nonempty({ error: 'Không được để trống' }),
@@ -191,7 +191,7 @@ export const BasicInformationDefault: BasicInformationValues = {
   departmentId: '',
 
   level1CodeId: '',
-  level2Code: '',
+  level2CodeId: '',
   level3CodeId: '',
 
   procurementMethodId: '',

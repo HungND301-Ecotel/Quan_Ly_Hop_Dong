@@ -140,9 +140,8 @@ namespace Migrators.PostgreSQL.Migrations
                     b.Property<Guid?>("Level1CodeId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Level2Code")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid?>("Level2CodeId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("Level3CodeId")
                         .HasColumnType("uuid");
@@ -193,6 +192,8 @@ namespace Migrators.PostgreSQL.Migrations
                     b.HasIndex("DepartmentId");
 
                     b.HasIndex("Level1CodeId");
+
+                    b.HasIndex("Level2CodeId");
 
                     b.HasIndex("Level3CodeId")
                         .HasFilter("\"DeletedOn\" IS NULL");
@@ -1256,6 +1257,9 @@ namespace Migrators.PostgreSQL.Migrations
                     b.Property<DateTimeOffset?>("DeletedOn")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
                     b.Property<Guid>("LastModifiedBy")
                         .HasColumnType("uuid");
 
@@ -1265,6 +1269,9 @@ namespace Migrators.PostgreSQL.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int?>("Year")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -1413,6 +1420,9 @@ namespace Migrators.PostgreSQL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("ContractRegisterId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("ContractTypeId")
                         .HasColumnType("uuid");
 
@@ -1443,11 +1453,54 @@ namespace Migrators.PostgreSQL.Migrations
                         .IsUnique()
                         .HasFilter("\"DeletedOn\" IS NULL");
 
+                    b.HasIndex("ContractRegisterId");
+
                     b.HasIndex("ContractTypeId")
                         .IsUnique()
                         .HasFilter("\"DeletedOn\" IS NULL");
 
                     b.ToTable("Level1Codes");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Category.Level2Code", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("DeletedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("LastModifiedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("LastModifiedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("Level1CodeId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Level1CodeId");
+
+                    b.ToTable("Level2Code");
                 });
 
             modelBuilder.Entity("Domain.Entities.Category.Level3Code", b =>
@@ -1484,6 +1537,9 @@ namespace Migrators.PostgreSQL.Migrations
                     b.Property<Guid>("Level1CodeId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("Level2CodeId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Code")
@@ -1491,6 +1547,8 @@ namespace Migrators.PostgreSQL.Migrations
                         .HasFilter("\"DeletedOn\" IS NULL");
 
                     b.HasIndex("Level1CodeId");
+
+                    b.HasIndex("Level2CodeId");
 
                     b.ToTable("Level3Codes");
                 });
@@ -1537,11 +1595,11 @@ namespace Migrators.PostgreSQL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("Price")
+                    b.Property<decimal?>("Price")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<Guid>("UnitOfMeasureId")
+                    b.Property<Guid?>("UnitOfMeasureId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
@@ -2573,6 +2631,10 @@ namespace Migrators.PostgreSQL.Migrations
                         .HasForeignKey("Level1CodeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("Domain.Entities.Category.Level2Code", "Level2Code")
+                        .WithMany("Contracts")
+                        .HasForeignKey("Level2CodeId");
+
                     b.HasOne("Domain.Entities.Category.Level3Code", "Level3Code")
                         .WithMany("Contracts")
                         .HasForeignKey("Level3CodeId")
@@ -2602,6 +2664,8 @@ namespace Migrators.PostgreSQL.Migrations
                     b.Navigation("Department");
 
                     b.Navigation("Level1Code");
+
+                    b.Navigation("Level2Code");
 
                     b.Navigation("Level3Code");
 
@@ -2891,13 +2955,31 @@ namespace Migrators.PostgreSQL.Migrations
 
             modelBuilder.Entity("Domain.Entities.Category.Level1Code", b =>
                 {
+                    b.HasOne("Domain.Entities.Category.ContractRegister", "ContractRegister")
+                        .WithMany()
+                        .HasForeignKey("ContractRegisterId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Domain.Entities.Category.ContractType", "ContractType")
                         .WithOne("Level1Code")
                         .HasForeignKey("Domain.Entities.Category.Level1Code", "ContractTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("ContractRegister");
+
                     b.Navigation("ContractType");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Category.Level2Code", b =>
+                {
+                    b.HasOne("Domain.Entities.Category.Level1Code", "Level1Code")
+                        .WithMany()
+                        .HasForeignKey("Level1CodeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Level1Code");
                 });
 
             modelBuilder.Entity("Domain.Entities.Category.Level3Code", b =>
@@ -2908,7 +2990,13 @@ namespace Migrators.PostgreSQL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Domain.Entities.Category.Level2Code", "Level2Code")
+                        .WithMany()
+                        .HasForeignKey("Level2CodeId");
+
                     b.Navigation("Level1Code");
+
+                    b.Navigation("Level2Code");
                 });
 
             modelBuilder.Entity("Domain.Entities.Category.Material", b =>
@@ -2921,8 +3009,7 @@ namespace Migrators.PostgreSQL.Migrations
                     b.HasOne("Domain.Entities.Category.UnitOfMeasure", "UnitOfMeasure")
                         .WithMany("Materials")
                         .HasForeignKey("UnitOfMeasureId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("MaterialGroup");
 
@@ -3159,6 +3246,11 @@ namespace Migrators.PostgreSQL.Migrations
                     b.Navigation("Contracts");
 
                     b.Navigation("Level3Codes");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Category.Level2Code", b =>
+                {
+                    b.Navigation("Contracts");
                 });
 
             modelBuilder.Entity("Domain.Entities.Category.Level3Code", b =>

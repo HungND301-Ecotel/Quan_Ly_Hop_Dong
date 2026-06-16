@@ -15,6 +15,10 @@ export const LEVEL1_CODE_COLUMNS: ColumnDef<Level1Code>[] = [
     header: 'Mô tả',
   },
   {
+    accessorKey: 'contractRegisterName',
+    header: 'Sổ theo dõi',
+  },
+  {
     accessorKey: 'contractTypeName',
     header: 'Loại hợp đồng',
   },

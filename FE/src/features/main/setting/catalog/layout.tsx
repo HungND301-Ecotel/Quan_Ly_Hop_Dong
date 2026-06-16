@@ -59,6 +59,11 @@ const CATALOG_ITEMS: MenuItem[] = [
     url: '/setting/catalog/level1',
   },
   {
+    name: 'Mã cấp 2',
+    icon: ListTree,
+    url: '/setting/catalog/level2',
+  },
+  {
     name: 'Mã cấp 3',
     icon: ListTree,
     url: '/setting/catalog/level3',

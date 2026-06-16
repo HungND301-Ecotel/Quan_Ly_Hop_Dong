@@ -13,6 +13,7 @@ import { OtherMaterialManagementPage } from './catalog/material/AnotherMaterialP
 import { BankAccountManagementPage } from './catalog/bank-account/page';
 import { UnitOfMeasureManagementPage } from './catalog/unit/page';
 import { Level1CodeManagementPage } from './catalog/level1code/page';
+import { Level2CodeManagementPage } from './catalog/level2code/page';
 import { Level3CodeManagementPage } from './catalog/level3code/page';
 import { SignedContentManagementPage } from './catalog/signedContent/page';
 import { ContractStructureCatalogManagementPage } from './catalog/structure/page';
@@ -48,6 +49,14 @@ export const settingRouter: RouteObject = {
           handle: {
             title: 'Quản lý mã cấp 1',
             description: 'Quản lý danh mục mã cấp 1',
+          },
+        },
+        {
+          path: 'level2',
+          element: <Level2CodeManagementPage />,
+          handle: {
+            title: 'Quản lý mã cấp 2',
+            description: 'Quản lý danh mục mã cấp 2',
           },
         },
         {
