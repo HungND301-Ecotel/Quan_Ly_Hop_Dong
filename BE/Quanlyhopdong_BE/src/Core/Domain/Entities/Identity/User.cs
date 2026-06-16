@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.RegularExpressions;
 using Domain.Common.Contracts;
@@ -12,7 +12,7 @@ namespace Domain.Entities.Identity;
 public class User : AuditableEntity<Guid>, IAggregateRoot
 {
     // Main constructor with required fields
-    public User(string userName, string? email, string? phoneNumber, string? fullname, Guid positionId, UserRole role)
+    public User(string userName, string? email, string? phoneNumber, string? fullname, Guid positionId, UserRole? role)
     {
         SetUserName(userName);
         if (!string.IsNullOrEmpty(email))
@@ -36,7 +36,7 @@ public class User : AuditableEntity<Guid>, IAggregateRoot
         DomainEvents.Add(EntityCreatedEvent.WithEntity(this));
     }
 
-    public User(string userName, string? email, string? fullname, Guid positionId, UserRole role, string passwordHash)
+    public User(string userName, string? email, string? fullname, Guid positionId, UserRole? role, string passwordHash)
     {
         SetUserName(userName);
         if (!string.IsNullOrEmpty(email))
