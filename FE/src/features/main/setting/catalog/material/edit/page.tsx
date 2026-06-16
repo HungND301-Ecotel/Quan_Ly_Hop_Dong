@@ -59,8 +59,8 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
     form.reset({
       name: detail.data.name,
       materialCode: detail.data.materialCode,
-      unitOfMeasureId: detail.data.unitOfMeasureId, // ✅ đổi từ unitOfMeasure
-      price: detail.data.price,
+      unitOfMeasureId: detail.data.unitOfMeasureId || '',
+      price: detail.data.price ?? undefined,
     });
   }, [detail.data, form]);
 
@@ -73,14 +73,19 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
   const onSubmit = async (values: MaterialInformationValues) => {
     try {
       setLoading(true);
+      const payload = {
+        ...values,
+        unitOfMeasureId: values.unitOfMeasureId || null,
+        price: values.price === undefined || values.price === null || String(values.price) === '' ? null : Number(values.price),
+      };
       if (row) {
         await materialService.updateMaterial({
           id: row.original.id,
-          ...values,
+          ...payload,
         });
         toast.success('Cập nhật thông tin thành phần hợp đồng thành công');
       } else {
-        await materialService.createMaterial(values);
+        await materialService.createMaterial(payload);
         toast.success('Tạo mới thành phần hợp đồng thành công');
       }
 
@@ -108,7 +113,7 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
           </Button>
         )}
       </DialogTrigger>
-
+ 
       <DialogContent className='flex flex-col gap-0 w-full md:min-w-2xl lg:min-w-4xl px-0 overflow-hidden'>
         <DialogHeader className='gap-1 p-6 pt-0 border-b'>
           <DialogTitle className='text-2xl font-semibold'>
@@ -138,19 +143,20 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
                 placeholder='Nhập tên thành phần hợp đồng'
               />
             </FormRow>
-
+ 
             <FormRow>
               <FormSelect
                 control={form.control}
                 name='unitOfMeasureId'
                 label='Đơn vị tính'
                 placeholder='Chọn đơn vị tính'
-                options={
-                  unitOfMeasures.data?.map((u) => ({
+                options={[
+                  { label: 'Không chọn', value: '' },
+                  ...(unitOfMeasures.data?.map((u) => ({
                     label: u.name,
                     value: u.id,
-                  })) ?? []
-                }
+                  })) ?? [])
+                ]}
               />
               <FormNumber
                 control={form.control}

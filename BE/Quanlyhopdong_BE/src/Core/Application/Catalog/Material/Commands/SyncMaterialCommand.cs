@@ -29,7 +29,7 @@ public class SyncMaterialCommandHandler(
             string name = row.Name?.Trim() ?? string.Empty;
             string unitCode = row.UnitOfMeasureCode?.Trim() ?? string.Empty;
 
-            if (string.IsNullOrWhiteSpace(materialCode) || string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(unitCode))
+            if (string.IsNullOrWhiteSpace(materialCode) || string.IsNullOrWhiteSpace(name))
             {
                 skippedCount++;
                 continue;
@@ -37,7 +37,7 @@ public class SyncMaterialCommandHandler(
 
             row.MaterialCode = materialCode;
             row.Name = name;
-            row.UnitOfMeasureCode = unitCode;
+            row.UnitOfMeasureCode = string.IsNullOrWhiteSpace(unitCode) ? null : unitCode;
             row.MaterialGroupCode = string.IsNullOrWhiteSpace(row.MaterialGroupCode) ? null : row.MaterialGroupCode.Trim();
 
             sourceByCode[materialCode] = row;
@@ -56,7 +56,8 @@ public class SyncMaterialCommandHandler(
 
         var sourceCodes = sourceByCode.Keys.ToList();
         var unitCodes = sourceByCode.Values
-            .Select(x => x.UnitOfMeasureCode)
+            .Where(x => !string.IsNullOrWhiteSpace(x.UnitOfMeasureCode))
+            .Select(x => x.UnitOfMeasureCode!)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
         var groupCodes = sourceByCode.Values
@@ -69,9 +70,11 @@ public class SyncMaterialCommandHandler(
             predicate: x => sourceCodes.Contains(x.MaterialCode),
             disableTracking: false);
 
-        var units = await _unitOfMeasureRepo.GetAllAsync(
-            predicate: x => unitCodes.Contains(x.Code),
-            disableTracking: true);
+        var units = unitCodes.Count == 0
+            ? []
+            : await _unitOfMeasureRepo.GetAllAsync(
+                predicate: x => unitCodes.Contains(x.Code),
+                disableTracking: true);
 
         var groups = groupCodes.Count == 0
             ? []
@@ -92,10 +95,18 @@ public class SyncMaterialCommandHandler(
 
         foreach (var source in sourceByCode.Values)
         {
-            if (!unitsByCode.TryGetValue(source.UnitOfMeasureCode, out var unit))
+            Guid? unitId = null;
+            if (!string.IsNullOrWhiteSpace(source.UnitOfMeasureCode))
             {
-                skippedCount++;
-                continue;
+                if (unitsByCode.TryGetValue(source.UnitOfMeasureCode, out var unit))
+                {
+                    unitId = unit.Id;
+                }
+                else
+                {
+                    skippedCount++;
+                    continue;
+                }
             }
 
             Guid? materialGroupId = null;
@@ -108,7 +119,7 @@ public class SyncMaterialCommandHandler(
             if (existingByCode.TryGetValue(source.MaterialCode, out var existing))
             {
                 bool isChanged = existing.Name != source.Name
-                    || existing.UnitOfMeasureId != unit.Id
+                    || existing.UnitOfMeasureId != unitId
                     || existing.MaterialGroupId != materialGroupId
                     || existing.Price != source.Price
                     || existing.IsOtherMaterial;
@@ -118,7 +129,7 @@ public class SyncMaterialCommandHandler(
                     existing.Update(
                         source.MaterialCode,
                         source.Name,
-                        unit.Id,
+                        unitId,
                         source.Price,
                         source.IsOtherMaterial,
                         "",
@@ -134,7 +145,7 @@ public class SyncMaterialCommandHandler(
             var newMaterial = Domain.Entities.Category.Material.Create(
                 source.MaterialCode,
                 source.Name,
-                unit.Id,
+                unitId,
                 source.Price,
                 source.IsOtherMaterial,
                 "",

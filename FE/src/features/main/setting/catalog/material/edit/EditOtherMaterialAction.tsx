@@ -59,8 +59,8 @@ export function EditOtherMaterialAction({ row, table }: DataTableEvent<Material>
     form.reset({
       name: detail.data.name,
       materialCode: detail.data.materialCode,
-      unitOfMeasureId: detail.data.unitOfMeasureId, // ✅
-      price: detail.data.price,
+      unitOfMeasureId: detail.data.unitOfMeasureId || '',
+      price: detail.data.price ?? undefined,
     });
   }, [detail.data, form]);
 
@@ -73,17 +73,22 @@ export function EditOtherMaterialAction({ row, table }: DataTableEvent<Material>
   const onSubmit = async (values: MaterialInformationValues) => {
     try {
       setLoading(true);
+      const preppedValues = {
+        ...values,
+        unitOfMeasureId: values.unitOfMeasureId || null,
+        price: values.price === undefined || values.price === null || String(values.price) === '' ? null : Number(values.price),
+      };
       if (row) {
         const payload = {
           id: row.original.id,
-          ...values,
+          ...preppedValues,
           isOtherMaterial: true,
         };
         await materialService.updateMaterial(payload);
         toast.success('Cập nhật thông tin thành phần hợp đồng khác thành công');
       } else {
         const payload = {
-          ...values,
+          ...preppedValues,
           isOtherMaterial: true,
         };
         await materialService.createMaterial(payload);
@@ -152,12 +157,13 @@ export function EditOtherMaterialAction({ row, table }: DataTableEvent<Material>
                 name='unitOfMeasureId'
                 label='Đơn vị tính'
                 placeholder='Chọn đơn vị tính'
-                options={
-                  unitOfMeasures.data?.map((u) => ({
+                options={[
+                  { label: 'Không chọn', value: '' },
+                  ...(unitOfMeasures.data?.map((u) => ({
                     label: u.name,
                     value: u.id,
-                  })) ?? []
-                }
+                  })) ?? [])
+                ]}
               />
               <FormNumber
                 control={form.control}

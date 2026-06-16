@@ -121,10 +121,13 @@ function CreateMaterialDialog({
   const onSubmit = async (values: MaterialInformationValues) => {
     try {
       setLoading(true);
-      await materialService.createMaterial({
+      const payload = {
         ...values,
+        unitOfMeasureId: values.unitOfMeasureId || null,
+        price: values.price === undefined || values.price === null || String(values.price) === '' ? null : Number(values.price),
         ...(isOtherMaterial && { isOtherMaterial: true }),
-      });
+      };
+      await materialService.createMaterial(payload);
       toast.success(
         `Tạo mới ${isOtherMaterial ? 'thành phần hợp đồng khác' : 'vật tư'} thành công`
       );
@@ -190,12 +193,13 @@ function CreateMaterialDialog({
                 name='unitOfMeasureId'
                 label='Đơn vị tính'
                 placeholder='Chọn đơn vị tính'
-                options={
-                  unitOfMeasures.data?.map((u) => ({
+                options={[
+                  { label: 'Không chọn', value: '' },
+                  ...(unitOfMeasures.data?.map((u) => ({
                     label: u.name,
                     value: u.id,
-                  })) ?? []
-                }
+                  })) ?? [])
+                ]}
               />
               <FormNumber
                 control={form.control}

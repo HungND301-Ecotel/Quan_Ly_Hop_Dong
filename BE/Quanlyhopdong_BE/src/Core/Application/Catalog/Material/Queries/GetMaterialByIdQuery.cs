@@ -1,4 +1,4 @@
-﻿using Application.Common.Exceptions;
+using Application.Common.Exceptions;
 using Application.Common.Repositories;
 using Application.Common.UnitOfWork;
 using Application.Dto.Catalog;
@@ -24,7 +24,7 @@ public class GetMaterialByIdQueryHandler(IUnitOfWork unitOfWork) : IRequestHandl
                        MaterialGroupId = m.MaterialGroupId,
                        MaterialGroupName = m.MaterialGroup != null ? m.MaterialGroup.Name : null,
                        UnitOfMeasureId = m.UnitOfMeasureId,
-                       UnitOfMeasureName = m.UnitOfMeasure.Name,
+                       UnitOfMeasureName = m.UnitOfMeasure != null ? m.UnitOfMeasure.Name : string.Empty,
                        Price = m.Price
                    },
                    predicate: m => m.Id == request.Id,

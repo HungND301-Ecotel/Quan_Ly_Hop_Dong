@@ -848,7 +848,7 @@ public partial class ContractService(
                     {
                         if (materialMap.TryGetValue(p.MaterialId, out var mPrice))
                         {
-                            return ContractItem.Create(p.MaterialId, p.Quantity, mPrice);
+                            return ContractItem.Create(p.MaterialId, p.Quantity, mPrice ?? 0);
                         }
                         else
                         {
@@ -1884,7 +1884,7 @@ public partial class ContractService(
                 {
                     if (materialMap.TryGetValue(p.MaterialId, out var mPrice))
                     {
-                        return ContractItem.Create(p.MaterialId, p.Quantity, mPrice);
+                        return ContractItem.Create(p.MaterialId, p.Quantity, mPrice ?? 0);
                     }
                     else
                     {
