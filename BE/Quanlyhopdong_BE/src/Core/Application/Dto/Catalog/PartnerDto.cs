@@ -1,4 +1,4 @@
-﻿namespace Application.Dto.Catalog;
+namespace Application.Dto.Catalog;
 
 public class PartnerDto
 {
@@ -9,6 +9,9 @@ public class PartnerDto
     public string? Phone { get; set; }
     public string? Address { get; set; }
     public string? ContactPerson { get; set; }
+    public Guid? BankId { get; set; }
+    public string? Fax { get; set; }
+    public Guid? PositionId { get; set; }
 }
 
 public class CreatePartnerDto
@@ -19,4 +22,7 @@ public class CreatePartnerDto
     public string? Phone { get; set; }
     public string? Address { get; set; }
     public string? ContactPerson { get; set; }
+    public Guid? BankId { get; set; }
+    public string? Fax { get; set; }
+    public Guid? PositionId { get; set; }
 }
