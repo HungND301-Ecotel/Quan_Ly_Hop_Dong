@@ -96,7 +96,7 @@ export function ContractRenew({ contract, callback }: ContractRenewProps) {
                                     title: contractData.title ?? '',
                                     contractStructureId: contractData.contractStructureId ?? '',
                                     level1CodeId: contractData.level1CodeId ?? '',
-                                    level2Code: contractData.level2Code ?? '',
+                                    level2CodeId: contractData.level2CodeId ?? '',
                                     level3CodeId: contractData.level3CodeId ?? '',
                                     notes: contractData.notes ?? '',
                                     contractValue: contractData.contractValue ?? 0,

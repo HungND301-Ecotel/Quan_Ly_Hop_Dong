@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using Domain.Common.Contracts;
 using Domain.Common.Enums;
 using Domain.Entities.Category;
@@ -10,7 +10,7 @@ public class Contract : AuditableEntity<Guid>
     public bool IsDebtTrackingEnabled { get; protected set; } = true;
     public bool IsAutoLiquidated { get; protected set; } = false;
     public Guid? Level1CodeId { get; protected set; }
-    public string Level2Code { get; protected set; } = string.Empty;
+    public Guid? Level2CodeId { get; protected set; }
     public Guid? Level3CodeId { get; protected set; }
     public Guid? SignedContentId { get; protected set; }
     public string ContractNumber { get; protected set; } = string.Empty;
@@ -53,6 +53,9 @@ public class Contract : AuditableEntity<Guid>
 
     [ForeignKey("Level1CodeId")]
     public virtual Level1Code? Level1Code { get; protected set; } = null!;
+
+    [ForeignKey("Level2CodeId")]
+    public virtual Level2Code? Level2Code { get; protected set; }
 
     [ForeignKey("Level3CodeId")]
     public virtual Level3Code? Level3Code { get; protected set; }
@@ -111,7 +114,7 @@ public class Contract : AuditableEntity<Guid>
         bool isDebtTrackingEndable,
         bool isAutoLiquidated,
         Guid? level1CodeId,
-        string level2Code,
+        Guid? level2CodeId,
         Guid? level3CodeId,
         string contractNumber,
         Guid? contractStructureId,
@@ -150,7 +153,7 @@ public class Contract : AuditableEntity<Guid>
             Notes = notes,
             ContractFormat = contractFormat,
             Level1CodeId = level1CodeId,
-            Level2Code = level2Code,
+            Level2CodeId = level2CodeId,
             Level3CodeId = level3CodeId,
             ContractNumber = contractNumber,
             ContractStructureId = contractStructureId,
@@ -167,7 +170,7 @@ public class Contract : AuditableEntity<Guid>
         bool isDebtTrackingEndable,
         bool isAutoLiquidated,
         Guid? level1CodeId,
-        string level2Code,
+        Guid? level2CodeId,
         Guid? level3CodeId,
         string contractNumber,
         Guid? contractStructureId,
@@ -205,7 +208,7 @@ public class Contract : AuditableEntity<Guid>
         Notes = notes;
         ContractFormat = contractFormat;
         Level1CodeId = level1CodeId;
-        Level2Code = level2Code;
+        Level2CodeId = level2CodeId;
         Level3CodeId = level3CodeId;
         ContractNumber = contractNumber;
         ContractStructureId = contractStructureId;

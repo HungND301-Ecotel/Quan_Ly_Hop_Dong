@@ -80,8 +80,10 @@ import { BankAccountSelect } from '@/components/form/bank-form';
 import { useApi } from '@/hooks/use-api';
 import { unitOfMeasureService } from '@/services/unit';
 import { Level1Code } from '@/services/level1code/type';
+import { Level2CodeLookup } from '@/services/level2code/type';
 import { Level3Code } from '@/services/level3code/type';
 import { level1CodeService } from '@/services/level1code';
+import { level2CodeService } from '@/services/level2code';
 import { level3CodeService } from '@/services/level3code';
 import { signedContentService } from '@/services/signedContent';
 import { MaterialImportDialog } from '../../all/components/Materialimportdialog';
@@ -249,6 +251,8 @@ export function ContractBasicInformationForm() {
   const [otherMaterials, setOtherMaterials] = useState<Material[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [level1Codes, setLevel1Codes] = useState<Level1Code[]>([]);
+  const [level2Codes, setLevel2Codes] = useState<Level2CodeLookup[]>([]);
+  const [isLevel2Loading, setIsLevel2Loading] = useState(false);
   const [level3Codes, setLevel3Codes] = useState<Level3Code[]>([]);
   const [isLevel3Loading, setIsLevel3Loading] = useState(false);
   const [contractStructures, setContractStructures] = useState<ContractStructureCatalog[]>([]);
@@ -376,13 +380,15 @@ export function ContractBasicInformationForm() {
       console.log('contract.paymentSchedules:', contract.paymentSchedules);
       isResettingForm.current = true;
       if (contract.level1CodeId) {
+        level2CodeService.getLevel2CodeByLevel1(contract.level1CodeId)
+          .then((data) => setLevel2Codes(data || []));
         level3CodeService.getLevel3CodeByLevel1(contract.level1CodeId)
           .then((data) => setLevel3Codes(data || []));
       }
       form.reset({
         departmentId: contract.departmentId,
         level1CodeId: contract.level1CodeId,
-        level2Code: contract.level2Code,
+        level2CodeId: contract.level2CodeId,
         level3CodeId: contract.level3CodeId,
         procurementMethodId: contract.procurementMethodId,
         contractStructureId: contract.contractStructureId,
@@ -715,10 +721,18 @@ export function ContractBasicInformationForm() {
       form.setValue('contractTypeId', selected.contractTypeId);
     }
 
-    // Reset level3 và title khi đổi level1
+    // Reset level2, level3 và title khi đổi level1
+    form.setValue('level2CodeId', '');
     form.setValue('level3CodeId', '');
     form.setValue('title', '');
+    setLevel2Codes([]);
     setLevel3Codes([]);
+
+    // Load level2 theo level1
+    setIsLevel2Loading(true);
+    level2CodeService.getLevel2CodeByLevel1(watchedLevel1CodeId)
+      .then((data) => setLevel2Codes(data || []))
+      .finally(() => setIsLevel2Loading(false));
 
     // Load level3 theo level1
     setIsLevel3Loading(true);
@@ -796,11 +810,23 @@ export function ContractBasicInformationForm() {
                 }))}
               />
 
-              <FormInput
+              {/* Mã cấp II — chọn từ danh sách */}
+              <FormSelect
                 control={form.control}
-                name='level2Code'
+                name='level2CodeId'
                 label='Mã cấp II'
-                placeholder='Nhập mã cấp II'
+                placeholder={
+                  !watchedLevel1CodeId
+                    ? 'Chọn mã cấp I trước'
+                    : isLevel2Loading
+                      ? 'Đang tải...'
+                      : 'Chọn mã cấp II'
+                }
+                disabled={!watchedLevel1CodeId || isLevel2Loading}
+                options={level2Codes.map((l) => ({
+                  value: l.id,
+                  label: l.code,
+                }))}
               />
 
               {/* Mã cấp III — chọn từ danh sách */}
@@ -818,7 +844,7 @@ export function ContractBasicInformationForm() {
                 disabled={!watchedLevel1CodeId || isLevel3Loading}
                 options={level3Codes.map((l) => ({
                   value: l.id,
-                  label: `${l.name}${l.description ? ` - ${l.description}` : ''}`,
+                  label: `${l.code}${l.description ? ` - ${l.description}` : ''}`,
                 }))}
               />
             </FormRow>

@@ -1,35 +1,31 @@
 namespace Application.Dto.Catalog;
 
-public class Level3CodeDto
+public class Level2CodeDto
 {
     public Guid Id { get; set; }
     public string Code { get; set; } = string.Empty;
     public string? Description { get; set; }
     public Guid Level1CodeId { get; set; }
     public string Level1CodeName { get; set; } = string.Empty;
-    public Guid? Level2CodeId { get; set; }
-    public string? Level2CodeName { get; set; }
 }
 
-public class Level3CodeLookupDto
+public class Level2CodeLookupDto
 {
     public Guid Id { get; set; }
     public string Code { get; set; } = string.Empty;
 }
 
-public class CreateLevel3CodeRequest
+public class CreateLevel2CodeRequest
 {
     public string Code { get; set; } = string.Empty;
     public string? Description { get; set; }
     public Guid Level1CodeId { get; set; }
-    public Guid? Level2CodeId { get; set; }
 }
 
-public class UpdateLevel3CodeRequest
+public class UpdateLevel2CodeRequest
 {
     public Guid Id { get; set; }
     public string Code { get; set; } = string.Empty;
     public string? Description { get; set; }
     public Guid Level1CodeId { get; set; }
-    public Guid? Level2CodeId { get; set; }
 }

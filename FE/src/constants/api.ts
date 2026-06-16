@@ -144,6 +144,14 @@ export const API = {
     UPDATE: '/level1codes',
     DELETE: '/level1codes',
   },
+  LEVEL2_CODE: {
+    LIST: '/level2codes',
+    DETAIL: (id: string) => `/level2codes/${id}`,
+    CREATE: '/level2codes',
+    UPDATE: '/level2codes',
+    DELETE: '/level2codes',
+    BY_LEVEL1: (level1CodeId: string) => `/level2code/${level1CodeId}`,
+  },
   LEVEL3_CODE: {
     LIST: '/level3codes',
     DETAIL: (id: string) => `/level3codes/${id}`,

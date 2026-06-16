@@ -1,4 +1,4 @@
-﻿using Application.Common.Exceptions;
+using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Common.Repositories;
 using Application.Common.UnitOfWork;
@@ -51,6 +51,7 @@ public partial class ContractService(
     private readonly IWriteRepository<NotificationConfig> _notificationConfigRepo = unitOfWork.GetRepository<NotificationConfig>();
     private readonly IWriteRepository<ContractRelationship> _contractRelationshipRepo = unitOfWork.GetRepository<ContractRelationship>();
     private readonly IWriteRepository<Level1Code> _Level1CodeRepo = unitOfWork.GetRepository<Level1Code>();
+    private readonly IWriteRepository<Level2Code> _level2CodeRepo = unitOfWork.GetRepository<Level2Code>();
     private readonly IWriteRepository<Level3Code> _level3CodeRepo = unitOfWork.GetRepository<Level3Code>();
     private readonly IWriteRepository<ContractStructureCatalog> _contractStructureCatalogRepo = unitOfWork.GetRepository<ContractStructureCatalog>();
     private readonly IWriteRepository<SignedContent> _signedContentRepo = unitOfWork.GetRepository<SignedContent>();
@@ -716,7 +717,7 @@ public partial class ContractService(
             IsDebtTrackingEnabled = contract.IsDebtTrackingEnabled,
             IsAutoLiquidated = contract.IsAutoLiquidated,
             Level1CodeId = contract.Level1CodeId,
-            Level2Code = contract.Level2Code,
+            Level2CodeId = contract.Level2CodeId,
             Level3CodeId = contract.Level3CodeId,
             ContractStructureId = contract.ContractStructureId,
             ContractStructureName = contract.ContractStructureCatalog?.Name ?? string.Empty,
@@ -797,7 +798,7 @@ public partial class ContractService(
                 notes: dto.Notes,
                 contractFormat: dto.ContractFormat,
                 level1CodeId: dto.Level1CodeId,
-                level2Code: dto.Level2Code,
+                level2CodeId: dto.Level2CodeId,
                 level3CodeId: dto.Level3CodeId,
                 contractStructureId: dto.ContractStructureId,
                 contractNumber: dto.ContractNumber,
@@ -1091,6 +1092,7 @@ public partial class ContractService(
                 .Include(x => x.ContractType)
             .Include(x => x.ContractStructureCatalog)
                 .Include(x => x.Level1Code)
+            .Include(x => x.Level2Code)
             .Include(x => x.Level3Code)
             .Include(x => x.SignedContent)
                 .Include(x => x.Partner)
@@ -1169,6 +1171,8 @@ public partial class ContractService(
             if (itemMap.TryGetValue(item.Id, out var contract))
             {
                 item.Level1CodeCode = contract.Level1Code?.Code;
+                item.Level2CodeId = contract.Level2CodeId;
+                item.Level2Code = contract.Level2Code?.Code;
                 item.Level3Code = contract.Level3Code?.Code;
                 item.ContractStructureName = contract.ContractStructureCatalog?.Name ?? string.Empty;
                 item.Title = contract.SignedContent?.Title;
@@ -1266,6 +1270,7 @@ public partial class ContractService(
             .Include(x => x.ContractType)
             .Include(x => x.ContractStructureCatalog)
             .Include(x => x.Level1Code)
+            .Include(x => x.Level2Code)
             .Include(x => x.Level3Code)
             .Include(x => x.SignedContent)
             .Include(x => x.Partner)
@@ -1285,6 +1290,8 @@ public partial class ContractService(
 
         dto.Title = query.SignedContent?.Title;
         dto.Level1CodeCode = query.Level1Code?.Code;
+        dto.Level2CodeId = query.Level2CodeId;
+        dto.Level2Code = query.Level2Code?.Code;
         dto.Level3Code = query.Level3Code?.Code;
         dto.ContractStructureName = query.ContractStructureCatalog?.Name ?? string.Empty;
         dto.PartnerDetail = query.Partner?.Adapt<PartnerDto>();
@@ -1650,6 +1657,15 @@ public partial class ContractService(
                 .Include(c => c.ContractAttachments),
             disableTracking: false);
 
+        if (dto.Level2CodeId.HasValue)
+        {
+            var level2Code = await _level2CodeRepo.FindAsync(dto.Level2CodeId.Value);
+            if (level2Code == null)
+            {
+                throw new NotFoundException("Level2Code not found");
+            }
+        }
+
         if (dto.Level3CodeId.HasValue)
         {
             var level3Code = await _level3CodeRepo.FindAsync(dto.Level3CodeId.Value);
@@ -1735,7 +1751,7 @@ public partial class ContractService(
                 notes: dto.Notes,
                 contractFormat: dto.ContractFormat,
                 level1CodeId: dto.Level1CodeId,
-                level2Code: dto.Level2Code,
+                level2CodeId: dto.Level2CodeId,
                 level3CodeId: dto.Level3CodeId,
                 contractStructureId: dto.ContractStructureId,
                 contractNumber: dto.ContractNumber,
@@ -2134,6 +2150,15 @@ public partial class ContractService(
             if (level1Code == null)
             {
                 throw new NotFoundException("Level1Code not found");
+            }
+        }
+
+        if (dto.Level2CodeId.HasValue)
+        {
+            var level2Code = await _level2CodeRepo.FindAsync(dto.Level2CodeId.Value);
+            if (level2Code == null)
+            {
+                throw new NotFoundException("Level2Code not found");
             }
         }
 
@@ -2673,6 +2698,7 @@ public partial class ContractService(
                     .Include(x => x.Department)
                     .Include(x => x.ContractRegister)
                     .Include(x => x.Level1Code)
+                    .Include(x => x.Level2Code)
                     .Include(x => x.Level3Code)
                     .Include(x => x.ContractItems)
                     .Include(x => x.ContractGuarantees)
@@ -2697,7 +2723,7 @@ public partial class ContractService(
             {
                 // 1. CONTRACT CLASSIFICATION INFORMATION
                 CodeLevel1 = contract.Level1Code?.Code,
-                CodeLevel2 = contract.Level2Code,
+                CodeLevel2 = contract.Level2Code?.Code,
                 CodeLevel3 = contract.Level3Code?.Code,
                 ContractType = contract.ContractType?.Name,
 
@@ -2866,6 +2892,7 @@ public partial class ContractService(
                     .Include(x => x.Department)
                     .Include(x => x.ContractRegister)
                     .Include(x => x.Level1Code)
+                    .Include(x => x.Level2Code)
                     .Include(x => x.Level3Code)
                     .Include(x => x.ContractItems)
                     .Include(x => x.ContractGuarantees)
@@ -2889,7 +2916,7 @@ public partial class ContractService(
                 {
                     // 1. CONTRACT CLASSIFICATION INFORMATION
                     CodeLevel1 = contract.Level1Code?.Code,
-                    CodeLevel2 = contract.Level2Code,
+                    CodeLevel2 = contract.Level2Code?.Code,
                     CodeLevel3 = contract.Level3Code?.Code,
                     ContractType = contract.ContractType?.Name,
 

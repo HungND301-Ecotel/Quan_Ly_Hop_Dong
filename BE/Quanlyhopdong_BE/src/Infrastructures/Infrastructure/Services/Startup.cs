@@ -1,4 +1,4 @@
-﻿using System.Threading.Channels;
+using System.Threading.Channels;
 using Application.Common.Services;
 using Application.Configurations;
 using Application.Dto.Authorization.Verification;
@@ -65,6 +65,7 @@ internal static class Startup
         services.AddTransient<IInvoiceSyncSourceService, InvoiceSyncSourceService>();
         services.AddTransient<ITaxSyncSourceService, TaxSyncSourceService>();
         services.AddTransient<ILevel1CodeService, Level1CodeService>();
+        services.AddTransient<ILevel2CodeService, Level2CodeService>();
         services.AddTransient<ILevel3CodeService, Level3CodeService>();
         services.AddTransient<ISignedContentService, SignedContentService>();
         return services;

@@ -1,14 +1,14 @@
 import { DataTableSelectColumn } from '@/components/data-table';
-import { Level3Code } from '@/services/level3code/type';
+import { Level2Code } from '@/services/level2code/type';
 import { ColumnDef } from '@tanstack/react-table';
-import { Level3CodeDelete } from './delete/page';
-import { EditLevel3CodeAction } from './edit/page';
+import { Level2CodeDelete } from './delete/page';
+import { EditLevel2CodeAction } from './edit/page';
 
-export const LEVEL3_CODE_COLUMNS: ColumnDef<Level3Code>[] = [
-  DataTableSelectColumn as ColumnDef<Level3Code>,
+export const LEVEL2_CODE_COLUMNS: ColumnDef<Level2Code>[] = [
+  DataTableSelectColumn as ColumnDef<Level2Code>,
   {
     accessorKey: 'code',
-    header: 'Mã cấp 3',
+    header: 'Mã cấp 2',
   },
   {
     accessorKey: 'description',
@@ -19,16 +19,12 @@ export const LEVEL3_CODE_COLUMNS: ColumnDef<Level3Code>[] = [
     header: 'Mã cấp 1',
   },
   {
-    accessorKey: 'level2CodeName',
-    header: 'Mã cấp 2',
-  },
-  {
     id: 'action',
     header: () => <div className='text-right w-full pr-4'>Thao tác</div>,
     cell: (props) => (
       <div className='flex items-center gap-1 justify-end'>
-        <EditLevel3CodeAction {...props} />
-        <Level3CodeDelete {...props} />
+        <EditLevel2CodeAction {...props} />
+        <Level2CodeDelete {...props} />
       </div>
     ),
   },

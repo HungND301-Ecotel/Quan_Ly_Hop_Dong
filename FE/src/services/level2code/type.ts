@@ -1,25 +1,26 @@
-export type Level3Code = {
+export type Level2Code = {
   id: string;
   code: string;
   description: string;
   level1CodeId: string;
   level1CodeName?: string;
-  level2CodeId?: string;
-  level2CodeName?: string;
   isActive?: boolean;
 };
+
+export type Level2CodeLookup = {
+  id: string;
+  code: string;
+};
  
-export type CreateLevel3CodeReq = {
+export type CreateLevel2CodeReq = {
   code: string;
   description: string;
   level1CodeId: string;
-  level2CodeId?: string;
 };
  
-export type UpdateLevel3CodeReq = {
+export type UpdateLevel2CodeReq = {
   id: string;
   code: string;
   description: string;
   level1CodeId: string;
-  level2CodeId?: string;
 };

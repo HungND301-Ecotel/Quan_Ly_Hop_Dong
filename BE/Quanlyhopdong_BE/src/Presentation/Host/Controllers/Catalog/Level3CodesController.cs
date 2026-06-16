@@ -38,14 +38,14 @@ public class Level3CodesController : BaseAuthController
     [HttpPost]
     public async Task<IActionResult> CreateLevel3CodeAsync([FromBody] CreateLevel3CodeRequest createModel)
     {
-        Guid result = await Mediator.Send(new CreateLevel3CodeCommand(createModel.Code, createModel.Level1CodeId, createModel.Description));
+        Guid result = await Mediator.Send(new CreateLevel3CodeCommand(createModel.Code, createModel.Level1CodeId, createModel.Level2CodeId, createModel.Description));
         return Ok(result, MessageCommon.CreateSuccess);
     }
 
     [HttpPut]
     public async Task<IActionResult> UpdateLevel3CodeAsync([FromBody] UpdateLevel3CodeRequest updateModel)
     {
-        bool result = await Mediator.Send(new UpdateLevel3CodeCommand(updateModel.Id, updateModel.Code, updateModel.Level1CodeId, updateModel.Description));
+        bool result = await Mediator.Send(new UpdateLevel3CodeCommand(updateModel.Id, updateModel.Code, updateModel.Level1CodeId, updateModel.Level2CodeId, updateModel.Description));
         return Ok(result, MessageCommon.UpdateSuccess);
     }
 

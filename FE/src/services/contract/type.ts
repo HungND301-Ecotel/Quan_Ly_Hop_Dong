@@ -23,7 +23,8 @@ export enum ContractSubStatusEnum {
 
 export type CreateContractReq = {
   level1CodeId: string;
-  level2Code: string;
+  level2CodeId?: string;
+  level2Code?: string;
   level3CodeId: string;
   contractNumber: string;
   appendixNumber?: string;
@@ -87,6 +88,9 @@ export type UpdateContractReq = {
   subStatus?: string;
   signingFlows: UpdateContractSignFlow[];
   signDeadline: string;
+  level1CodeId?: string;
+  level2CodeId?: string;
+  level3CodeId?: string;
 };
 
 export type ContractAttachment = {
@@ -172,6 +176,7 @@ export type ChildContractRelationship = {
 export type Contract = {
   level1CodeId: string;
   level1CodeCode: string;
+  level2CodeId?: string;
   level2Code: string;
   level3CodeId: string;
   level3Code: string;

@@ -60,8 +60,10 @@ import { BankAccountService } from '@/services/bank-account';
 import { BankAccount } from '@/services/bank-account/type';
 import { ScheduleType } from '@/constants/schedule-type';
 import { Level1Code } from '@/services/level1code/type';
+import { Level2Code } from '@/services/level2code/type';
 import { Level3Code } from '@/services/level3code/type';
 import { level1CodeService } from '@/services/level1code';
+import { level2CodeService } from '@/services/level2code';
 import { level3CodeService } from '@/services/level3code';
 import { ContractStructureCatalog } from '@/services/structure/type';
 import { contractStructureCatalogService } from '@/services/structure';
@@ -203,12 +205,17 @@ export function ContractReviewForm() {
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [linkedContractLabel, setLinkedContractLabel] = useState<string | null>(null);
   const [level1Codes, setLevel1Codes] = useState<Level1Code[]>([]);
+  const [level2Codes, setLevel2Codes] = useState<Level2Code[]>([]);
   const [level3Codes, setLevel3Codes] = useState<Level3Code[]>([]);
   const [contractStructures, setContractStructures] = useState<ContractStructureCatalog[]>([]);
 
   const level1CodeMap = useMemo(
     () => new Map(level1Codes.map((l) => [l.id, l.code])),
     [level1Codes]
+  );
+  const level2CodeMap = useMemo(
+    () => new Map(level2Codes.map((l) => [l.id, l.code])),
+    [level2Codes]
   );
   const level3CodeMap = useMemo(
     () => new Map(level3Codes.map((l) => [l.id, l.code])),
@@ -289,6 +296,7 @@ export function ContractReviewForm() {
       materialService.getOtherMaterialList(),
       BankAccountService.getBankAccountList(),
       level1CodeService.getLevel1CodeList(),
+      level2CodeService.getLevel2CodeList(),
       level3CodeService.getLevel3CodeList(),
       contractStructureCatalogService.getContractStructureCatalogList(),
     ]);
@@ -306,6 +314,7 @@ export function ContractReviewForm() {
           otherMaterialsData,
           bankAccountsData,
           level1CodesData,
+          level2CodesData,
           level3CodesData,
           contractStructuresData,
         ]) => {
@@ -319,6 +328,7 @@ export function ContractReviewForm() {
           setOtherMaterials(otherMaterialsData || []);
           setBankAccounts(bankAccountsData || []);
           setLevel1Codes(level1CodesData || []);
+          setLevel2Codes(level2CodesData || []);
           setLevel3Codes(level3CodesData || []);
           setContractStructures(contractStructuresData || []);
         }
@@ -603,7 +613,7 @@ export function ContractReviewForm() {
                   <InfoRow label='Mã cấp I' value={level1CodeMap.get(basicInformation?.level1CodeId || '')} loading={loading} />
                   <InfoRow
                     label='Mã cấp II'
-                    value={basicInformation?.level2Code}
+                    value={level2CodeMap.get(basicInformation?.level2CodeId || '')}
                     loading={loading}
                   />
                   <InfoRow label='Mã cấp III' value={level3CodeMap.get(basicInformation?.level3CodeId || '')} loading={loading} />
