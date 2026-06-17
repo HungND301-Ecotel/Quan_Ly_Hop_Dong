@@ -45,11 +45,13 @@ public class ContractPaymentService(
             disableTracking: true)
             ?? throw new NotFoundException($"Contract with ID {contractId} not found");
 
-        var isManager = contract.ContractUserRoles.Any(r => r.UserId == currentUserId && r.Role == Domain.Common.Enums.ContractRole.Manager);
+        var isAuthorized = contract.ContractUserRoles.Any(r => r.UserId == currentUserId && (
+            r.Role == Domain.Common.Enums.ContractRole.Manager ||
+            r.Role == Domain.Common.Enums.ContractRole.ReceivingOfficer));
 
-        if (!isManager)
+        if (!isAuthorized)
         {
-            throw new BadRequestException("Only the Direct Contract Manager is allowed to update payments and acceptance reports.");
+            throw new BadRequestException("Only the Direct Contract Manager or the Receiving Officer is allowed to update payments/documents.");
         }
     }
 
@@ -196,7 +198,8 @@ public class ContractPaymentService(
                 include: c => c.Include(x => x.ContractPayments)
                     .ThenInclude(cp => cp.Invoice)
                     .Include(x => x.ContractPayments)
-                    .ThenInclude(cp => cp.Tax!),
+                    .ThenInclude(cp => cp.Tax!)
+                    .Include(x => x.ContractUserRoles),
                 disableTracking: false);
 
             if (contract == null)
@@ -205,6 +208,18 @@ public class ContractPaymentService(
             }
 
             await ValidatePaymentPermissionAsync(request.ContractId);
+
+            var currentUserId = currentUser.UserId;
+            var user = await _userRepo.FindAsync(currentUserId);
+            var isAdmin = user?.Role == Domain.Common.Enums.UserRole.Admin;
+            if (!isAdmin)
+            {
+                var isManager = contract.ContractUserRoles.Any(r => r.UserId == currentUserId && r.Role == Domain.Common.Enums.ContractRole.Manager);
+                if (!isManager)
+                {
+                    throw new BadRequestException("Only the Direct Contract Manager is allowed to update payments and acceptance reports.");
+                }
+            }
 
             var results = new List<UpdateContractPaymentBatchResult>();
             var addedCount = 0;
@@ -411,6 +426,7 @@ public class ContractPaymentService(
         {
             var contract = await _contractRepo.GetFirstOrDefaultAsync(
                 predicate: c => c.Id == request.ContractId,
+                include: c => c.Include(x => x.ContractUserRoles),
                 disableTracking: false);
 
             if (contract == null)
@@ -419,6 +435,18 @@ public class ContractPaymentService(
             }
 
             await ValidatePaymentPermissionAsync(request.ContractId);
+
+            var currentUserId = currentUser.UserId;
+            var user = await _userRepo.FindAsync(currentUserId);
+            var isAdmin = user?.Role == Domain.Common.Enums.UserRole.Admin;
+            if (!isAdmin)
+            {
+                var isManager = contract.ContractUserRoles.Any(r => r.UserId == currentUserId && r.Role == Domain.Common.Enums.ContractRole.Manager);
+                if (!isManager)
+                {
+                    throw new BadRequestException("Only the Direct Contract Manager is allowed to update the contract liquidation file.");
+                }
+            }
 
             await unitOfWork.BeginTransactionAsync();
 
@@ -484,6 +512,7 @@ public class ContractPaymentService(
             // Validate contract exists
             var contract = await _contractRepo.GetFirstOrDefaultAsync(
                 predicate: c => c.Id == request.ContractId,
+                include: c => c.Include(x => x.ContractUserRoles),
                 disableTracking: true);
 
             if (contract == null)
@@ -492,6 +521,31 @@ public class ContractPaymentService(
             }
 
             await ValidatePaymentPermissionAsync(request.ContractId);
+
+            var currentUserId = currentUser.UserId;
+            var user = await _userRepo.FindAsync(currentUserId);
+            var isAdmin = user?.Role == Domain.Common.Enums.UserRole.Admin;
+
+            if (!isAdmin)
+            {
+                var isManager = contract.ContractUserRoles.Any(r => r.UserId == currentUserId && r.Role == Domain.Common.Enums.ContractRole.Manager);
+                var isReceiving = contract.ContractUserRoles.Any(r => r.UserId == currentUserId && r.Role == Domain.Common.Enums.ContractRole.ReceivingOfficer);
+
+                if (request.FileType == PaymentFileType.AcceptanceReport || request.FileType == PaymentFileType.Liquidation)
+                {
+                    if (!isManager)
+                    {
+                        throw new BadRequestException("Only the Direct Contract Manager is allowed to upload acceptance reports or liquidation files.");
+                    }
+                }
+                else if (request.FileType == PaymentFileType.Invoice || request.FileType == PaymentFileType.Tax)
+                {
+                    if (!isReceiving)
+                    {
+                        throw new BadRequestException("Only the Receiving Officer is allowed to upload invoices or tax files.");
+                    }
+                }
+            }
 
             // Validate file extension
             var allowedExtensions = new[] { ".pdf", ".doc", ".docx", ".png", ".jpg", ".jpeg" };

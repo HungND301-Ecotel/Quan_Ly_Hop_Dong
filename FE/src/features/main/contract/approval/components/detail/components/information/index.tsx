@@ -317,35 +317,40 @@ export function ContractInformation({
       <Section title='Phân công quản lý' icon={Users}>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           {Object.values(ContractRole).map((roleDef) => {
-            const roleData = information?.contractUserRoles?.find(
+            const roleUsers = information?.contractUserRoles?.filter(
               (r) => r.role === roleDef.id
-            );
+            ) || [];
             return (
               <div
                 key={roleDef.id}
                 className='p-4 rounded-lg border bg-white space-y-2'
               >
                 <div className='flex items-center gap-2'>
-
                   <span className='text-xs font-medium text-muted-foreground'>
                     {roleDef.name}
                   </span>
                 </div>
                 {loading ? (
                   <Skeleton className='h-10 w-full' />
-                ) : (
-                  <div className='space-y-1'>
-                    <div className='text-sm font-semibold'>
-                      {roleData?.fullname || 'Chưa phân công'}
-                    </div>
-                    {roleData && (
-                      <div className='text-xs text-muted-foreground'>
-                        {roleData.departmentName}
-                        {roleData.positionName
-                          ? ` / ${roleData.positionName}`
-                          : ''}
+                ) : roleUsers.length > 0 ? (
+                  <div className='space-y-2'>
+                    {roleUsers.map((user, idx) => (
+                      <div key={user.userId + '-' + idx} className='text-sm border-b last:border-0 pb-1.5 last:pb-0'>
+                        <div className='font-semibold text-foreground'>
+                          {user.fullname}
+                        </div>
+                        <div className='text-xs text-muted-foreground'>
+                          {user.departmentName}
+                          {user.positionName
+                            ? ` / ${user.positionName}`
+                            : ''}
+                        </div>
                       </div>
-                    )}
+                    ))}
+                  </div>
+                ) : (
+                  <div className='text-sm text-muted-foreground italic'>
+                    Chưa phân công
                   </div>
                 )}
               </div>

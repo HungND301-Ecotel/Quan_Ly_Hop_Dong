@@ -60,7 +60,11 @@ export function EconomicContractDetail({
   const isManager = contractUserRoles.some(
     (r) => r.userId === user?.id && r.role === 1
   );
-  const canUpdateProgressOrPayment = isAdmin || isManager;
+  const isReceivingOfficer = contractUserRoles.some(
+    (r) => r.userId === user?.id && r.role === 3
+  );
+  const canUpdateProgress = isAdmin || isManager;
+  const canSyncDocument = isAdmin || isReceivingOfficer;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -128,7 +132,7 @@ export function EconomicContractDetail({
                   <ProgressSectionNew
                     contractId={contract.id}
                     contractValue={contract.contractValue}
-                    disabled={!canUpdateProgressOrPayment}
+                    disabled={!canUpdateProgress}
                   />
                 )}
               </TabsContent>
@@ -140,7 +144,7 @@ export function EconomicContractDetail({
                     contractValue={contract.contractValue}
                     onSaved={callback}
                     onNavigateToDocument={() => setTab('document')}
-                    disabled={!canUpdateProgressOrPayment}
+                    disabled={!canUpdateProgress}
                   />
                 )}
               </TabsContent>
@@ -156,7 +160,7 @@ export function EconomicContractDetail({
 
               <TabsContent value='document'>
                 {tab === 'document' && (
-                  <DocumentSection contract={contract} />
+                  <DocumentSection contract={contract} disabled={!canSyncDocument} />
                 )}
               </TabsContent>
             </div>

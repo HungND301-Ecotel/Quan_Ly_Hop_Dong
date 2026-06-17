@@ -114,22 +114,22 @@ export function ContractRenew({ contract, callback }: ContractRenewProps) {
                                     })) ?? [],
                                     // Map contractUserRoles từ detail
                                     contractUserRoles: {
-                                        draftingOfficer: {
-                                            userId: contractData.contractUserRoles?.find((r) => r.role === 0)?.userId ?? '',
-                                            departmentId: contractData.contractUserRoles?.find((r) => r.role === 0)?.departmentId ?? '', // ← thêm
-                                        },
-                                        manager: {
-                                            userId: contractData.contractUserRoles?.find((r) => r.role === 1)?.userId ?? '',
-                                            departmentId: contractData.contractUserRoles?.find((r) => r.role === 1)?.departmentId ?? '',
-                                        },
-                                        coordinator: {
-                                            userId: contractData.contractUserRoles?.find((r) => r.role === 2)?.userId ?? '',
-                                            departmentId: contractData.contractUserRoles?.find((r) => r.role === 2)?.departmentId ?? '',
-                                        },
-                                        receivingOfficer: {
-                                            userId: contractData.contractUserRoles?.find((r) => r.role === 3)?.userId ?? '',
-                                            departmentId: contractData.contractUserRoles?.find((r) => r.role === 3)?.departmentId ?? '',
-                                        },
+                                        draftingOfficer: (() => {
+                                            const filtered = contractData.contractUserRoles?.filter((r) => r.role === 0) || [];
+                                            return filtered.length > 0 ? filtered.map(r => ({ userId: r.userId ?? '', departmentId: r.departmentId ?? '' })) : [{ departmentId: '', userId: '' }];
+                                        })(),
+                                        manager: (() => {
+                                            const filtered = contractData.contractUserRoles?.filter((r) => r.role === 1) || [];
+                                            return filtered.length > 0 ? filtered.map(r => ({ userId: r.userId ?? '', departmentId: r.departmentId ?? '' })) : [{ departmentId: '', userId: '' }];
+                                        })(),
+                                        coordinator: (() => {
+                                            const filtered = contractData.contractUserRoles?.filter((r) => r.role === 2) || [];
+                                            return filtered.length > 0 ? filtered.map(r => ({ userId: r.userId ?? '', departmentId: r.departmentId ?? '' })) : [{ departmentId: '', userId: '' }];
+                                        })(),
+                                        receivingOfficer: (() => {
+                                            const filtered = contractData.contractUserRoles?.filter((r) => r.role === 3) || [];
+                                            return filtered.length > 0 ? filtered.map(r => ({ userId: r.userId ?? '', departmentId: r.departmentId ?? '' })) : [{ departmentId: '', userId: '' }];
+                                        })(),
                                     },
                                 }}
                                 callback={handleSuccess}

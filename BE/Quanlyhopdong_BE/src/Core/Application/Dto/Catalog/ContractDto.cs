@@ -293,33 +293,57 @@ public class CreateContractAttachmentDto
 
 public class CreateContractUserRoleDto
 {
-    public Guid DraftingOfficerUserId { get; set; }
-    public Guid ManagerUserId { get; set; }
-    public Guid CoordinatorUserId { get; set; }
-    public Guid ReceivingOfficerUserId { get; set; }
+    public List<Guid> DraftingOfficerUserIds { get; set; } = new List<Guid>();
+    public List<Guid> ManagerUserIds { get; set; } = new List<Guid>();
+    public List<Guid> CoordinatorUserIds { get; set; } = new List<Guid>();
+    public List<Guid> ReceivingOfficerUserIds { get; set; } = new List<Guid>();
 
     public List<ContractUserRole> ToDomain(Guid contractId)
     {
         var roles = new List<ContractUserRole>();
 
-        if (DraftingOfficerUserId != Guid.Empty)
+        if (DraftingOfficerUserIds != null)
         {
-            roles.Add(ContractUserRole.Create(DraftingOfficerUserId, ContractRole.DraftingOfficer));
+            foreach (var userId in DraftingOfficerUserIds)
+            {
+                if (userId != Guid.Empty)
+                {
+                    roles.Add(ContractUserRole.Create(userId, ContractRole.DraftingOfficer));
+                }
+            }
         }
 
-        if (ManagerUserId != Guid.Empty)
+        if (ManagerUserIds != null)
         {
-            roles.Add(ContractUserRole.Create(ManagerUserId, ContractRole.Manager));
+            foreach (var userId in ManagerUserIds)
+            {
+                if (userId != Guid.Empty)
+                {
+                    roles.Add(ContractUserRole.Create(userId, ContractRole.Manager));
+                }
+            }
         }
 
-        if (CoordinatorUserId != Guid.Empty)
+        if (CoordinatorUserIds != null)
         {
-            roles.Add(ContractUserRole.Create(CoordinatorUserId, ContractRole.Coordinator));
+            foreach (var userId in CoordinatorUserIds)
+            {
+                if (userId != Guid.Empty)
+                {
+                    roles.Add(ContractUserRole.Create(userId, ContractRole.Coordinator));
+                }
+            }
         }
 
-        if (ReceivingOfficerUserId != Guid.Empty)
+        if (ReceivingOfficerUserIds != null)
         {
-            roles.Add(ContractUserRole.Create(ReceivingOfficerUserId, ContractRole.ReceivingOfficer));
+            foreach (var userId in ReceivingOfficerUserIds)
+            {
+                if (userId != Guid.Empty)
+                {
+                    roles.Add(ContractUserRole.Create(userId, ContractRole.ReceivingOfficer));
+                }
+            }
         }
 
         return roles;

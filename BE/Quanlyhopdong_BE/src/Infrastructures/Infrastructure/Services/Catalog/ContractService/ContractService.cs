@@ -1120,8 +1120,7 @@ public partial class ContractService(
                                     || x.ContractUserRoles.Any(r => r.UserId == currentUserId && (
                                         r.Role == ContractRole.Coordinator ||
                                         r.Role == ContractRole.DraftingOfficer ||
-                                        r.Role == ContractRole.ReceivingOfficer ||
-                                        (r.Role == ContractRole.Manager &&
+                                        ((r.Role == ContractRole.Manager || r.Role == ContractRole.ReceivingOfficer) &&
                                          x.Status != ContractStatus.Draft &&
                                          x.Status != ContractStatus.PendingApproval &&
                                          x.Status != ContractStatus.RequiresRevision)
@@ -1313,13 +1312,13 @@ public partial class ContractService(
             var hasDraftingOfficerRole = userRoles.Any(r => r.Role == ContractRole.DraftingOfficer);
             var hasReceivingOfficerRole = userRoles.Any(r => r.Role == ContractRole.ReceivingOfficer);
 
-            if (hasManagerRole && !hasCoordinatorRole && !hasDraftingOfficerRole && !hasReceivingOfficerRole)
+            if ((hasManagerRole || hasReceivingOfficerRole) && !hasCoordinatorRole && !hasDraftingOfficerRole)
             {
                 if (query.Status == ContractStatus.Draft ||
                     query.Status == ContractStatus.PendingApproval ||
                     query.Status == ContractStatus.RequiresRevision)
                 {
-                    throw new BadRequestException("As the Direct Contract Manager, you can only view this contract after drafting and approval are completed.");
+                    throw new BadRequestException("You can only view this contract after drafting and approval are completed.");
                 }
             }
         }

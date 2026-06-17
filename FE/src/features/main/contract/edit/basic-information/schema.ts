@@ -13,44 +13,45 @@ const ContractGuaranteeItemSchema = z
   })
   .optional();
 
+const uniqueUserIds = (items: { userId: string }[]) => {
+  const ids = items.map((item) => item.userId).filter(Boolean);
+  return new Set(ids).size === ids.length;
+};
+
 export const ContractUserRolesSchema = z.object({
-  draftingOfficer: z.object({
-    departmentId: z.string().nonempty({ error: 'Không được để trống' }),
-    userId: z.string().nonempty({ error: 'Không được để trống' }),
-  }),
-  manager: z.object({
-    departmentId: z.string().nonempty({ error: 'Không được để trống' }),
-    userId: z.string().nonempty({ error: 'Không được để trống' }),
-  }),
-  coordinator: z.object({
-    departmentId: z.string().nonempty({ error: 'Không được để trống' }),
-    userId: z.string().nonempty({ error: 'Không được để trống' }),
-  }),
-  receivingOfficer: z.object({
-    departmentId: z.string().nonempty({ error: 'Không được để trống' }),
-    userId: z.string().nonempty({ error: 'Không được để trống' }),
-  }),
+  draftingOfficer: z.array(
+    z.object({
+      departmentId: z.string().nonempty({ error: 'Không được để trống' }),
+      userId: z.string().nonempty({ error: 'Không được để trống' }),
+    })
+  ).refine(uniqueUserIds, { message: 'Cán bộ, nhân viên không được trùng nhau' }),
+  manager: z.array(
+    z.object({
+      departmentId: z.string().nonempty({ error: 'Không được để trống' }),
+      userId: z.string().nonempty({ error: 'Không được để trống' }),
+    })
+  ).refine(uniqueUserIds, { message: 'Cán bộ, nhân viên không được trùng nhau' }),
+  coordinator: z.array(
+    z.object({
+      departmentId: z.string().nonempty({ error: 'Không được để trống' }),
+      userId: z.string().nonempty({ error: 'Không được để trống' }),
+    })
+  ).refine(uniqueUserIds, { message: 'Cán bộ, nhân viên không được trùng nhau' }),
+  receivingOfficer: z.array(
+    z.object({
+      departmentId: z.string().nonempty({ error: 'Không được để trống' }),
+      userId: z.string().nonempty({ error: 'Không được để trống' }),
+    })
+  ).refine(uniqueUserIds, { message: 'Cán bộ, nhân viên không được trùng nhau' }),
 });
 
 export type ContractUserRolesValues = z.infer<typeof ContractUserRolesSchema>;
 
 export const ContractUserRolesDefault: ContractUserRolesValues = {
-  draftingOfficer: {
-    departmentId: '',
-    userId: '',
-  },
-  manager: {
-    departmentId: '',
-    userId: '',
-  },
-  coordinator: {
-    departmentId: '',
-    userId: '',
-  },
-  receivingOfficer: {
-    departmentId: '',
-    userId: '',
-  },
+  draftingOfficer: [{ departmentId: '', userId: '' }],
+  manager: [{ departmentId: '', userId: '' }],
+  coordinator: [{ departmentId: '', userId: '' }],
+  receivingOfficer: [{ departmentId: '', userId: '' }],
 };
 
 export const BasicInformationSchema = z

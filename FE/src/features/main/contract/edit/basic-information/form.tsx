@@ -9,6 +9,7 @@ import {
   FormGroupHeader,
   FormGroupLabel,
 } from '@/components/form/form-group';
+import { cn } from '@/lib/utils';
 import { FormInput } from '@/components/form/form-input';
 import { FormMonthYear } from '@/components/form/form-month-year';
 import { FormNumber } from '@/components/form/form-number';
@@ -235,6 +236,117 @@ function CreateMaterialDialog({
   );
 }
 
+interface RoleUserArrayInputProps {
+  role: 'draftingOfficer' | 'manager' | 'coordinator' | 'receivingOfficer';
+  label: string;
+  form: any;
+  departments: Department[];
+  users: User[];
+}
+
+function RoleUserArrayInput({
+  role,
+  label,
+  form,
+  departments,
+  users,
+}: RoleUserArrayInputProps) {
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: `contractUserRoles.${role}`,
+  });
+
+  const error = form.formState.errors.contractUserRoles?.[role];
+
+  return (
+    <div className='space-y-3 p-4 border rounded-lg bg-white shadow-sm'>
+      <div className='flex items-center justify-between border-b pb-2 mb-2'>
+        <div className='flex flex-col'>
+          <div className='text-sm font-semibold text-slate-800'>{label}</div>
+          {error?.message && (
+            <p className='text-xs font-medium text-destructive mt-0.5'>{error.message}</p>
+          )}
+        </div>
+        <Button
+          type='button'
+          size='sm'
+          variant='outline'
+          className='h-7 gap-1 px-2 text-xs'
+          onClick={() => append({ departmentId: '', userId: '' })}
+        >
+          <PlusIcon className='size-3.5' />
+          Thêm phòng ban/người
+        </Button>
+      </div>
+
+      {fields.length === 0 ? (
+        <p className='text-xs text-muted-foreground italic text-center py-2'>Chưa phân công cán bộ</p>
+      ) : (
+        <div className='space-y-3'>
+          {fields.map((field, index) => {
+            const watchedDeptId = form.watch(
+              `contractUserRoles.${role}.${index}.departmentId`
+            );
+
+            // Filter out userIds that have already been selected in other rows
+            const siblingValues = form.watch(`contractUserRoles.${role}`) || [];
+            const selectedUserIdsInOtherRows = siblingValues
+              .map((val: any, idx: number) => idx !== index ? val.userId : null)
+              .filter(Boolean);
+
+            const filteredUsers = users.filter(
+              (u) => u.departmentId === watchedDeptId && !selectedUserIdsInOtherRows.includes(u.id)
+            );
+
+            return (
+              <div key={field.id} className='flex items-end gap-3 flex-wrap lg:flex-nowrap'>
+                <div className='flex-1 grid grid-cols-1 lg:grid-cols-2 gap-3'>
+                  <FormSelect
+                    control={form.control}
+                    name={`contractUserRoles.${role}.${index}.departmentId`}
+                    label={index === 0 ? 'Phòng ban' : undefined}
+                    placeholder='Chọn phòng ban'
+                    options={departments.map((dept) => ({
+                      value: dept.id,
+                      label: dept.name,
+                    }))}
+                  />
+
+                  <FormSelect
+                    control={form.control}
+                    name={`contractUserRoles.${role}.${index}.userId`}
+                    label={index === 0 ? 'Cán bộ, nhân viên' : undefined}
+                    placeholder='Chọn cán bộ, nhân viên'
+                    disabled={!watchedDeptId}
+                    options={filteredUsers.map((u) => ({
+                      value: u.id,
+                      label: u.fullname,
+                    }))}
+                  />
+                </div>
+
+                <Button
+                  type='button'
+                  size='icon'
+                  variant='ghost'
+                  className={cn(
+                    'text-destructive hover:text-destructive shrink-0 size-10',
+                    index === 0 ? 'mt-6' : ''
+                  )}
+                  disabled={fields.length === 1}
+                  onClick={() => remove(index)}
+                >
+                  <Trash2Icon className='size-4' />
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ContractBasicInformationForm() {
   const { user } = useAuthContext();
   const { next: nextStep } = useStepperContext();
@@ -342,21 +454,22 @@ export function ContractBasicInformationForm() {
     if (isCatalogLoading) return;
     hasInitializedFromContract.current = true;
 
-    // Helper function to extract role data
-    const getContractUserRole = (roleId: number) => {
-      const roleUser = contract.contractUserRoles?.find(
+    // Helper function to extract role data list
+    const getContractUserRoles = (roleId: number) => {
+      const roleUsers = contract.contractUserRoles?.filter(
         (r) => r.role === roleId
-      );
-      if (!roleUser) {
-        return { userId: '', departmentId: '', positionId: '' };
+      ) || [];
+      if (roleUsers.length === 0) {
+        return [{ userId: '', departmentId: '' }];
       }
 
-      const user = users.find((u) => u.id === roleUser.userId);
-      return {
-        userId: roleUser.userId,
-        departmentId: user?.departmentId || '',
-        positionId: user?.positionId || '',
-      };
+      return roleUsers.map((roleUser) => {
+        const user = users.find((u) => u.id === roleUser.userId);
+        return {
+          userId: roleUser.userId,
+          departmentId: user?.departmentId || '',
+        };
+      });
     };
 
     const getContractGuarantee = (
@@ -413,10 +526,10 @@ export function ContractBasicInformationForm() {
         discountType: contract.discountType,
         discountValue: contract.discountValue,
         contractUserRoles: {
-          draftingOfficer: getContractUserRole(ContractRole.DraftingOfficer.id),
-          manager: getContractUserRole(ContractRole.Manager.id),
-          coordinator: getContractUserRole(ContractRole.Coordinator.id),
-          receivingOfficer: getContractUserRole(
+          draftingOfficer: getContractUserRoles(ContractRole.DraftingOfficer.id),
+          manager: getContractUserRoles(ContractRole.Manager.id),
+          coordinator: getContractUserRoles(ContractRole.Coordinator.id),
+          receivingOfficer: getContractUserRoles(
             ContractRole.ReceivingOfficer.id
           ),
         },
@@ -891,10 +1004,7 @@ export function ContractBasicInformationForm() {
               control={form.control}
               name='contractFieldId'
               placeholder='Chọn lĩnh vực hợp đồng'
-              options={[
-                { label: 'Không chọn', value: '' },
-                ...contractFields.map((f) => ({ value: f.id, label: f.name }))
-              ]}
+              options={contractFields.map((f) => ({ value: f.id, label: f.name }))}
             />
           </FormGroupContent>
         </FormGroup>
@@ -1696,45 +1806,16 @@ export function ContractBasicInformationForm() {
                   label: ContractRole.ReceivingOfficer.name,
                 },
               ] as const
-            ).map(({ role, label }) => {
-              const watchedDeptId = form.watch(
-                `contractUserRoles.${role}.departmentId`
-              );
-
-              const filteredUsers = users.filter(
-                (u) => u.departmentId === watchedDeptId
-              );
-
-              return (
-                <div key={role} className='space-y-2'>
-                  <div className='text-sm font-semibold underline-offset-4 decoration-primary/30'>
-                    {label}
-                  </div>
-                  <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
-                    <FormSelect
-                      control={form.control}
-                      name={`contractUserRoles.${role}.departmentId`}
-                      placeholder='Chọn phòng ban'
-                      options={departments.map((dept) => ({
-                        value: dept.id,
-                        label: dept.name,
-                      }))}
-                    />
-
-                    <FormSelect
-                      control={form.control}
-                      name={`contractUserRoles.${role}.userId`}
-                      placeholder='Chọn cán bộ, nhân viên'
-                      disabled={!watchedDeptId}
-                      options={filteredUsers.map((u) => ({
-                        value: u.id,
-                        label: u.fullname,
-                      }))}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+            ).map(({ role, label }) => (
+              <RoleUserArrayInput
+                key={role}
+                role={role}
+                label={label}
+                form={form}
+                departments={departments}
+                users={users}
+              />
+            ))}
           </FormGroupContent>
         </FormGroup>
 
