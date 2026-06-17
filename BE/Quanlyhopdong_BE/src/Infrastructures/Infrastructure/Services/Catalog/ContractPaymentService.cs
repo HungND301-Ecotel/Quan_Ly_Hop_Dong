@@ -26,6 +26,32 @@ public class ContractPaymentService(
     private readonly IWriteRepository<Contract> _contractRepo = unitOfWork.GetRepository<Contract>();
     private readonly IWriteRepository<PaymentSchedule> _scheduleRepo = unitOfWork.GetRepository<PaymentSchedule>();
     private readonly IWriteRepository<ContractApprovalHistory> _contractApprovalHistoryRepo = unitOfWork.GetRepository<ContractApprovalHistory>();
+    private readonly IWriteRepository<Domain.Entities.Identity.User> _userRepo = unitOfWork.GetRepository<Domain.Entities.Identity.User>();
+
+    private async Task ValidatePaymentPermissionAsync(Guid contractId)
+    {
+        var currentUserId = currentUser.UserId;
+        var user = await _userRepo.FindAsync(currentUserId);
+        var isAdmin = user?.Role == Domain.Common.Enums.UserRole.Admin;
+
+        if (isAdmin)
+        {
+            return;
+        }
+
+        var contract = await _contractRepo.GetFirstOrDefaultAsync(
+            predicate: c => c.Id == contractId,
+            include: c => c.Include(x => x.ContractUserRoles),
+            disableTracking: true)
+            ?? throw new NotFoundException($"Contract with ID {contractId} not found");
+
+        var isManager = contract.ContractUserRoles.Any(r => r.UserId == currentUserId && r.Role == Domain.Common.Enums.ContractRole.Manager);
+
+        if (!isManager)
+        {
+            throw new BadRequestException("Only the Direct Contract Manager is allowed to update payments and acceptance reports.");
+        }
+    }
 
     public async Task<ContractPaymentResponseDto> GetByContractIdAsync(Guid contractId)
     {
@@ -177,6 +203,8 @@ public class ContractPaymentService(
             {
                 throw new NotFoundException($"Contract with ID {request.ContractId} not found");
             }
+
+            await ValidatePaymentPermissionAsync(request.ContractId);
 
             var results = new List<UpdateContractPaymentBatchResult>();
             var addedCount = 0;
@@ -390,6 +418,8 @@ public class ContractPaymentService(
                 throw new NotFoundException($"Contract with ID {request.ContractId} not found");
             }
 
+            await ValidatePaymentPermissionAsync(request.ContractId);
+
             await unitOfWork.BeginTransactionAsync();
 
             try
@@ -460,6 +490,8 @@ public class ContractPaymentService(
             {
                 throw new NotFoundException($"Contract with ID {request.ContractId} not found");
             }
+
+            await ValidatePaymentPermissionAsync(request.ContractId);
 
             // Validate file extension
             var allowedExtensions = new[] { ".pdf", ".doc", ".docx", ".png", ".jpg", ".jpeg" };

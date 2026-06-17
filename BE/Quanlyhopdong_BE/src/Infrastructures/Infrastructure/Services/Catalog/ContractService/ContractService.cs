@@ -1111,8 +1111,19 @@ public partial class ContractService(
 
         if (onlyCurrentUserVisible)
         {
-            query = query.Where(x => x.CreatedBy == currentUserId
-                                || x.ContractUserRoles.Any(r => r.UserId == currentUserId));
+            var user = await _userRepo.FindAsync(currentUserId);
+            var isAdmin = user?.Role == UserRole.Admin;
+
+            if (!isAdmin)
+            {
+                query = query.Where(x => x.CreatedBy == currentUserId
+                                    || x.ContractUserRoles.Any(r => r.UserId == currentUserId && (
+                                        r.Role != ContractRole.Manager ||
+                                        (x.Status != ContractStatus.Draft &&
+                                         x.Status != ContractStatus.PendingApproval &&
+                                         x.Status != ContractStatus.RequiresRevision)
+                                    )));
+            }
         }
 
         if (!string.IsNullOrEmpty(search))
@@ -1288,6 +1299,25 @@ public partial class ContractService(
             .Include(x => x.ContractField)
             .FirstOrDefaultAsync(x => x.Id == id && x.DeletedOn == null)
             ?? throw new NotFoundException("Contract not found");
+
+        var currentUserEntity = await _userRepo.FindAsync(currentUser.UserId);
+        var isAdmin = currentUserEntity?.Role == UserRole.Admin;
+        if (!isAdmin && query.CreatedBy != currentUser.UserId)
+        {
+            var userRoles = query.ContractUserRoles.Where(r => r.UserId == currentUser.UserId).ToList();
+            var hasManagerRole = userRoles.Any(r => r.Role == ContractRole.Manager);
+            var hasDraftCapableRole = userRoles.Any(r => r.Role != ContractRole.Manager);
+
+            if (hasManagerRole && !hasDraftCapableRole)
+            {
+                if (query.Status == ContractStatus.Draft ||
+                    query.Status == ContractStatus.PendingApproval ||
+                    query.Status == ContractStatus.RequiresRevision)
+                {
+                    throw new BadRequestException("As the Direct Contract Manager, you can only view this contract after drafting and approval are completed.");
+                }
+            }
+        }
 
         var dto = query.Adapt<ContractDto>();
 

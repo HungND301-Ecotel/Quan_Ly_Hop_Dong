@@ -27,6 +27,7 @@ import { ProgressSectionNew } from './components/progress/FileFakeData/ProgressS
 import { useApi } from '@/hooks/use-api';
 import { DataTableEvent } from '@/components/data-table/types';
 import { contractService } from '@/services/contract';
+import { useAuthContext } from '@/features/context';
 import { DocumentSection } from './components/DocumentSection';
 
 export type EconomicContractDetailProps = {
@@ -45,12 +46,21 @@ export function EconomicContractDetail({
   const [tab, setTab] = useState('information');
   const [open, setOpen] = useState(false);
 
+  const { user } = useAuthContext();
+
   const detailService = useCallback(() => {
     if (!open) return;
     return contractService.getContractDetail(contract.id);
   }, [open, contract.id]);
 
   const detail = useApi({ service: detailService });
+
+  const isAdmin = user?.role === '0' || user?.role === 'Admin';
+  const contractUserRoles = detail.data?.contractUserRoles || contract.contractUserRoles || [];
+  const isManager = contractUserRoles.some(
+    (r) => r.userId === user?.id && r.role === 1
+  );
+  const canUpdateProgressOrPayment = isAdmin || isManager;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -118,6 +128,7 @@ export function EconomicContractDetail({
                   <ProgressSectionNew
                     contractId={contract.id}
                     contractValue={contract.contractValue}
+                    disabled={!canUpdateProgressOrPayment}
                   />
                 )}
               </TabsContent>
@@ -129,6 +140,7 @@ export function EconomicContractDetail({
                     contractValue={contract.contractValue}
                     onSaved={callback}
                     onNavigateToDocument={() => setTab('document')}
+                    disabled={!canUpdateProgressOrPayment}
                   />
                 )}
               </TabsContent>

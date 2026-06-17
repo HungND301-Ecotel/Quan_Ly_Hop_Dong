@@ -24,6 +24,32 @@ public class ContractProgressService(
     private readonly IWriteRepository<Contract> _contractRepo = unitOfWork.GetRepository<Contract>();
     private readonly IWriteRepository<ContractItem> _contractItemRepo = unitOfWork.GetRepository<ContractItem>();
     private readonly IWriteRepository<PaymentSchedule> _scheduleRepo = unitOfWork.GetRepository<PaymentSchedule>();
+    private readonly IWriteRepository<Domain.Entities.Identity.User> _userRepo = unitOfWork.GetRepository<Domain.Entities.Identity.User>();
+
+    private async Task ValidateProgressPermissionAsync(Guid contractId)
+    {
+        var currentUserId = currentUser.UserId;
+        var user = await _userRepo.FindAsync(currentUserId);
+        var isAdmin = user?.Role == Domain.Common.Enums.UserRole.Admin;
+
+        if (isAdmin)
+        {
+            return;
+        }
+
+        var contract = await _contractRepo.GetFirstOrDefaultAsync(
+            predicate: c => c.Id == contractId,
+            include: c => c.Include(x => x.ContractUserRoles),
+            disableTracking: true)
+            ?? throw new NotFoundException($"Contract with ID {contractId} not found");
+
+        var isManager = contract.ContractUserRoles.Any(r => r.UserId == currentUserId && r.Role == Domain.Common.Enums.ContractRole.Manager);
+
+        if (!isManager)
+        {
+            throw new BadRequestException("Only the Direct Contract Manager is allowed to update contract progress.");
+        }
+    }
 
     public async Task<ContractProgressDto> GetByIdAsync(Guid id)
     {
@@ -213,6 +239,8 @@ public class ContractProgressService(
                 throw new NotFoundException($"Contract with ID {request.ContractId} not found");
             }
 
+            await ValidateProgressPermissionAsync(request.ContractId);
+
             // Validate period
             if (request.PeriodStart >= request.PeriodEnd)
             {
@@ -332,6 +360,12 @@ public class ContractProgressService(
                 if (progresses.Count != progressIds.Count)
                 {
                     throw new NotFoundException("One or more ContractProgress records not found");
+                }
+
+                var contractIds = progresses.Select(p => p.ContractId).Distinct().ToList();
+                foreach (var contractId in contractIds)
+                {
+                    await ValidateProgressPermissionAsync(contractId);
                 }
 
                 // Get all contract item IDs
@@ -582,6 +616,11 @@ public class ContractProgressService(
 
                 var contractMap = contracts.ToDictionary(c => c.Id);
 
+                foreach (var contractId in contractIds)
+                {
+                    await ValidateProgressPermissionAsync(contractId);
+                }
+
                 foreach (var item in request.Items)
                 {
                     // Validate contract exists
@@ -688,6 +727,8 @@ public class ContractProgressService(
             {
                 throw new NotFoundException($"Contract with ID {request.ContractId} not found");
             }
+
+            await ValidateProgressPermissionAsync(request.ContractId);
 
             await unitOfWork.BeginTransactionAsync();
 
@@ -1339,6 +1380,8 @@ public class ContractProgressService(
                 throw new NotFoundException($"Contract with ID {request.ContractId} not found");
             }
 
+            await ValidateProgressPermissionAsync(request.ContractId);
+
             // Validate period
             if (request.PeriodStart >= request.PeriodEnd)
             {
@@ -1482,6 +1525,8 @@ public class ContractProgressService(
             {
                 throw new NotFoundException($"Contract with ID {request.ContractId} not found");
             }
+
+            await ValidateProgressPermissionAsync(request.ContractId);
 
             // Validate period
             if (request.PeriodStart >= request.PeriodEnd)
@@ -1838,6 +1883,8 @@ public class ContractProgressService(
                 throw new NotFoundException($"Contract progress item with ID {request.Id} not found");
             }
 
+            await ValidateProgressPermissionAsync(progressItem.ContractItem.ContractId);
+
             // Validate executed quantity
             if (request.ExecutedQuantity < 0)
             {
@@ -1897,12 +1944,15 @@ public class ContractProgressService(
         {
             var progressItem = await _progressItemRepo.GetFirstOrDefaultAsync(
                 predicate: pi => pi.Id == id,
+                include: pi => pi.Include(x => x.ContractItem),
                 disableTracking: false);
 
             if (progressItem == null)
             {
                 throw new NotFoundException($"Contract progress item with ID {id} not found");
             }
+
+            await ValidateProgressPermissionAsync(progressItem.ContractItem.ContractId);
 
             await unitOfWork.BeginTransactionAsync();
 

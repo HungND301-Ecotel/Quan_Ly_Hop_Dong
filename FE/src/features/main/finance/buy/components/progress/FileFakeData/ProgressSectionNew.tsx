@@ -164,11 +164,13 @@ function mapApiDetailToUi(detail: ApiContractProgressDetail): {
 type ProgressSectionProps = {
   contractId: string;
   contractValue: number;
+  disabled?: boolean;
 };
 
 export function ProgressSectionNew({
   contractId,
   contractValue,
+  disabled = false,
 }: ProgressSectionProps) {
   const { getContractProgressDetail, getYearlySummary, getWorkInProgress } =
     contractProgressService;
@@ -222,25 +224,29 @@ export function ProgressSectionNew({
             >
               <EyeIcon className='size-4' />
             </Button>
-            <Button
-              variant='ghost'
-              size='icon'
-              onClick={() => handleEdit(row.original, row.index)}
-            >
-              <EditIcon className='size-4' />
-            </Button>
-            <Button
-              variant='ghost'
-              size='icon'
-              onClick={() => handleDelete(row.original.id)}
-            >
-              <Trash2Icon className='size-4' />
-            </Button>
+            {!disabled && (
+              <>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  onClick={() => handleEdit(row.original, row.index)}
+                >
+                  <EditIcon className='size-4' />
+                </Button>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  onClick={() => handleDelete(row.original.id)}
+                >
+                  <Trash2Icon className='size-4' />
+                </Button>
+              </>
+            )}
           </div>
         ),
       },
     ],
-    []
+    [disabled]
   );
 
   const progressTable = useDataTable<ContractProgress>({
@@ -371,10 +377,12 @@ export function ProgressSectionNew({
 
           <DataTableContent />
 
-          <Button onClick={handleAdd} type='button' variant='default' size={'lg'} className='w-full shadow'>
-            <PlusIcon className='size-4' />
-            Thêm mới thời gian thực hiện
-          </Button>
+          {!disabled && (
+            <Button onClick={handleAdd} type='button' variant='default' size={'lg'} className='w-full shadow'>
+              <PlusIcon className='size-4' />
+              Thêm mới thời gian thực hiện
+            </Button>
+          )}
 
           <DataTableFooter>
             <DataTablePagination />
