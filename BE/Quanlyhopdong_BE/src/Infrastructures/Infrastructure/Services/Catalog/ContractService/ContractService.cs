@@ -1118,8 +1118,11 @@ public partial class ContractService(
             {
                 query = query.Where(x => x.CreatedBy == currentUserId
                                     || x.ContractUserRoles.Any(r => r.UserId == currentUserId && (
-                                        r.Role != ContractRole.Manager ||
-                                        (x.Status != ContractStatus.Draft &&
+                                        r.Role == ContractRole.Coordinator ||
+                                        r.Role == ContractRole.DraftingOfficer ||
+                                        r.Role == ContractRole.ReceivingOfficer ||
+                                        (r.Role == ContractRole.Manager &&
+                                         x.Status != ContractStatus.Draft &&
                                          x.Status != ContractStatus.PendingApproval &&
                                          x.Status != ContractStatus.RequiresRevision)
                                     )));
@@ -1306,9 +1309,11 @@ public partial class ContractService(
         {
             var userRoles = query.ContractUserRoles.Where(r => r.UserId == currentUser.UserId).ToList();
             var hasManagerRole = userRoles.Any(r => r.Role == ContractRole.Manager);
-            var hasDraftCapableRole = userRoles.Any(r => r.Role != ContractRole.Manager);
+            var hasCoordinatorRole = userRoles.Any(r => r.Role == ContractRole.Coordinator);
+            var hasDraftingOfficerRole = userRoles.Any(r => r.Role == ContractRole.DraftingOfficer);
+            var hasReceivingOfficerRole = userRoles.Any(r => r.Role == ContractRole.ReceivingOfficer);
 
-            if (hasManagerRole && !hasDraftCapableRole)
+            if (hasManagerRole && !hasCoordinatorRole && !hasDraftingOfficerRole && !hasReceivingOfficerRole)
             {
                 if (query.Status == ContractStatus.Draft ||
                     query.Status == ContractStatus.PendingApproval ||
