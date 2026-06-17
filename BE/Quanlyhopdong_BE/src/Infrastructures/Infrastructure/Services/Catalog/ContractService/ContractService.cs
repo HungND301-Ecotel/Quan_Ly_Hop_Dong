@@ -730,6 +730,9 @@ public partial class ContractService(
             PartnerId = contract.PartnerId,
             DepartmentId = contract.DepartmentId,
             ContractValue = contract.ContractValue,
+            VatPercentage = contract.VatPercentage,
+            VatAmount = contract.VatAmount,
+            ContractValueAfterVat = contract.ContractValueAfterVat,
             
             // Ngày cũ - chỉ để tham khảo, user phải chọn ngày mới
             OriginalStartDate = contract.StartDate,
@@ -810,6 +813,7 @@ public partial class ContractService(
                 contractRegisterId: dto.ContractRegisterId,
                 discountType: dto.DiscountType,
                 discountValue: dto.DiscountValue,
+                vatPercentage: dto.VatPercentage,
                 scheduleType: isEconomicContract ? dto.PaymentSchedules?.ScheduleType : null
             );
 
@@ -842,24 +846,21 @@ public partial class ContractService(
                 }
             }
 
-            if (dto.ContractValue == 0)
-            {
-                var materialIds = dto.ContractItems.Select(c => c.MaterialId).Distinct();
-                var materialMap = (await _materialRepo.GetAllAsync(predicate: m => materialIds.Contains(m.Id))).ToDictionary(m => m.Id, m => m.Price);
-                var contractItems = dto.ContractItems
-                    .Select(p =>
+            var materialIds = dto.ContractItems.Select(c => c.MaterialId).Distinct();
+            var materialMap = (await _materialRepo.GetAllAsync(predicate: m => materialIds.Contains(m.Id))).ToDictionary(m => m.Id, m => m.Price);
+            var contractItems = dto.ContractItems
+                .Select(p =>
+                {
+                    if (materialMap.TryGetValue(p.MaterialId, out var mPrice))
                     {
-                        if (materialMap.TryGetValue(p.MaterialId, out var mPrice))
-                        {
-                            return ContractItem.Create(p.MaterialId, p.Quantity, mPrice ?? 0);
-                        }
-                        else
-                        {
-                            return null;
-                        }
-                    }).Where(c => c != null).ToList();
-                entity.AddContractItem(contractItems);
-            }
+                        return ContractItem.Create(p.MaterialId, p.Quantity, mPrice ?? 0);
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }).Where(c => c != null).ToList();
+            entity.AddContractItem(contractItems);
 
             if (isEconomicContract && dto.ContractGuarantee != null)
             {
@@ -1182,10 +1183,6 @@ public partial class ContractService(
                 item.ContractStructureName = contract.ContractStructureCatalog?.Name ?? string.Empty;
                 item.Title = contract.SignedContent?.Title;
                 item.IsArchiveContract = contract.Status == ContractStatus.Archive;
-                if (item.ContractValue == null || item.ContractValue == 0)
-                {
-                    item.ContractValue = contract.GetContractItemTotalPrice();
-                }
             }
 
             if (signingFlowMap.TryGetValue(item.Id, out var flows))
@@ -1323,11 +1320,6 @@ public partial class ContractService(
             })
             .ToList();
 
-        if (!dto.ContractValue.HasValue || dto.ContractValue <= 0)
-        {
-            dto.ContractValue = query.GetContractItemTotalPrice();
-        }
-
         var isEconomicContract = dto.ContractFormat == ContractFormat.EconomicBuy || dto.ContractFormat == ContractFormat.EconomicSell;
         var paymentScheduleMap = query.PaymentSchedules.ToDictionary(p => p.Id, p => p);
         if (isEconomicContract)
@@ -1431,11 +1423,6 @@ public partial class ContractService(
             .OrderByDescending(x => x.CreatedOn)
             .ToListAsync();
         dto.Attachments = attachments.Adapt<List<ContractAttachmentDto>>();
-
-        if (!query.ContractValue.HasValue || query.ContractValue <= 0)
-        {
-            dto.ContractValue = query.GetContractItemTotalPrice();
-        }
 
         dto.ProcurementMethodCode = query.ProcurementMethod.Code;
         dto.ProcurementMethodName = query.ProcurementMethod.Name;
@@ -1768,6 +1755,7 @@ public partial class ContractService(
                 contractRegisterId: dto.ContractRegisterId,
                 paymentPlanType: PaymentPlanType.Monthly,
                 discountType: dto.DiscountType,
+                vatPercentage: dto.VatPercentage,
                 scheduleType: dto.PaymentSchedules?.ScheduleType,
                 discountValue: dto.DiscountValue
             );
@@ -2352,14 +2340,6 @@ public partial class ContractService(
                 item.ContractStructureName = mappedContract.ContractStructureCatalog?.Name ?? string.Empty;
             }
 
-            if (item.ContractValue == null || item.ContractValue == 0)
-            {
-                if (itemMap.TryGetValue(item.Id, out var contract))
-                {
-                    item.ContractValue = contract.GetContractItemTotalPrice();
-                }
-            }
-
             if (signingFlowMap.TryGetValue(item.Id, out var flows))
             {
                 item.SigningFlows = flows.Select(f => new ContractSigningFlowDto
@@ -2454,14 +2434,6 @@ public partial class ContractService(
                 item.ContractStructureName = mappedContract.ContractStructureCatalog?.Name ?? string.Empty;
             }
 
-            if (item.ContractValue == null || item.ContractValue == 0)
-            {
-                if (itemMap.TryGetValue(item.Id, out var contract))
-                {
-                    item.ContractValue = contract.GetContractItemTotalPrice();
-                }
-            }
-
             if (signingFlowMap.TryGetValue(item.Id, out var flows))
             {
                 item.SigningFlows = flows.Select(f => new ContractSigningFlowDto
@@ -2543,9 +2515,7 @@ public partial class ContractService(
             disableTracking: true)
             ?? throw new NotFoundException("Contract not found");
 
-        var effectiveContractValue = contract.ContractValue.HasValue && contract.ContractValue > 0
-            ? contract.ContractValue.Value
-            : contract.GetContractItemTotalPrice();
+        var effectiveContractValue = contract.ContractValue ?? 0;
 
         var result = new List<PaymentScheduleDto>();
 

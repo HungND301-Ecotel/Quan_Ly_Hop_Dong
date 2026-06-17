@@ -25,6 +25,15 @@ public class Contract : AuditableEntity<Guid>
     public Guid? PartnerId { get; protected set; }
     public Guid DepartmentId { get; protected set; }
     public decimal? ContractValue { get; protected set; }
+    public decimal? VatPercentage { get; protected set; }
+    [NotMapped]
+    public decimal? VatAmount => ContractValue.HasValue
+        ? ContractValue.Value * (VatPercentage ?? 0) / 100
+        : null;
+    [NotMapped]
+    public decimal? ContractValueAfterVat => ContractValue.HasValue
+        ? ContractValue.Value + (VatAmount ?? 0)
+        : null;
     public DateTimeOffset StartDate { get; protected set; }
     public DateTimeOffset EndDate { get; protected set; }
     public ContractStatus Status { get; protected set; } = ContractStatus.Draft;
@@ -129,6 +138,7 @@ public class Contract : AuditableEntity<Guid>
         Guid procurementMethodId,
         Guid contractRegisterId,
         decimal? contractValue,
+        decimal? vatPercentage,
         DateTimeOffset startDate,
         DateTimeOffset endDate,
         string? filePath,
@@ -153,6 +163,7 @@ public class Contract : AuditableEntity<Guid>
             PartnerId = partnerId,
             DepartmentId = departmentId,
             ContractValue = contractValue,
+            VatPercentage = NormalizeVatPercentage(vatPercentage),
             StartDate = startDate,
             EndDate = endDate,
             FilePath = filePath,
@@ -187,6 +198,7 @@ public class Contract : AuditableEntity<Guid>
         Guid procurementMethodId,
         Guid contractRegisterId,
         decimal? contractValue,
+        decimal? vatPercentage,
         DateTimeOffset startDate,
         DateTimeOffset endDate,
         string? filePath,
@@ -210,6 +222,7 @@ public class Contract : AuditableEntity<Guid>
         PartnerId = partnerId;
         DepartmentId = departmentId;
         ContractValue = contractValue;
+        VatPercentage = NormalizeVatPercentage(vatPercentage);
         StartDate = startDate;
         EndDate = endDate;
         FilePath = filePath;
@@ -245,6 +258,25 @@ public class Contract : AuditableEntity<Guid>
         };
 
         return totalAfterDiscount;
+    }
+
+    private static decimal? NormalizeVatPercentage(decimal? vatPercentage)
+    {
+        if (!vatPercentage.HasValue)
+        {
+            return null;
+        }
+
+        if (vatPercentage < 0)
+        {
+            throw new ArgumentException("VatPercentage cannot be negative");
+        }
+        if (vatPercentage > 100)
+        {
+            throw new ArgumentException("VatPercentage cannot exceed 100%");
+        }
+
+        return vatPercentage;
     }
 
     public void SetStatus(ContractStatus status) => Status = status;

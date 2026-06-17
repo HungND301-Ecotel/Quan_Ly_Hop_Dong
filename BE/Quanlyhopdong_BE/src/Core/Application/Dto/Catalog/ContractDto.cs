@@ -35,6 +35,9 @@ public class ShortContractDto
     public Guid DepartmentId { get; set; }
     public string DepartmentName { get; set; }
     public decimal? ContractValue { get; set; }
+    public decimal? VatPercentage { get; set; }
+    public decimal? VatAmount { get; set; }
+    public decimal? ContractValueAfterVat { get; set; }
     public DateTimeOffset? StartDate { get; set; }
     public DateTimeOffset? EndDate { get; set; }
     public string Status { get; set; }
@@ -85,6 +88,9 @@ public class ContractDto
     public Guid DepartmentId { get; set; }
     public string DepartmentName { get; set; }
     public decimal? ContractValue { get; set; }
+    public decimal? VatPercentage { get; set; }
+    public decimal? VatAmount { get; set; }
+    public decimal? ContractValueAfterVat { get; set; }
     public DateTimeOffset? StartDate { get; set; }
     public DateTimeOffset? EndDate { get; set; }
     public string Status { get; set; }
@@ -150,6 +156,7 @@ public class CreateContractDto
     public Guid? PartnerId { get; set; }
     public Guid DepartmentId { get; set; }
     public decimal? ContractValue { get; set; }
+    public decimal? VatPercentage { get; set; }
     public DateTimeOffset StartDate { get; set; }
     public DateTimeOffset EndDate { get; set; }
     public string? Notes { get; set; }
@@ -186,6 +193,7 @@ public class UpdateContractDto
     public Guid? PartnerId { get; set; }
     public Guid DepartmentId { get; set; }
     public decimal? ContractValue { get; set; }
+    public decimal? VatPercentage { get; set; }
     public DateTimeOffset StartDate { get; set; }
     public DateTimeOffset EndDate { get; set; }
     public string? Notes { get; set; }
@@ -358,6 +366,9 @@ public class PrepareExtensionDto
     public Guid? PartnerId { get; set; }
     public Guid DepartmentId { get; set; }
     public decimal? ContractValue { get; set; }
+    public decimal? VatPercentage { get; set; }
+    public decimal? VatAmount { get; set; }
+    public decimal? ContractValueAfterVat { get; set; }
     
     // Ngày cũ - chỉ để tham khảo, user phải chọn ngày mới
     public DateTimeOffset OriginalStartDate { get; set; }
