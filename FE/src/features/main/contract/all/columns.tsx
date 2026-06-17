@@ -1,4 +1,5 @@
 import { DataTableSelectColumn } from '@/components/data-table';
+import { useAuthContext } from '@/features/context';
 import { useDataTableContext } from '@/components/data-table/context';
 import { ContractStatus, ContractSubStatus } from '@/constants/contract-status';
 import { ContractEdit } from '@/features/main/contract/edit';
@@ -145,6 +146,7 @@ export const ContractColumns: ColumnDef<Contract>[] = [
       <span className='w-full flex items-center justify-center'>Hành động</span>
     ),
     cell: ({ table, row }) => {
+      const { user } = useAuthContext();
       const { refresh } = useDataTableContext<Contract>();
       const isArchive = row.original.isArchiveContract;
       const isDraft = row.original.status === 'Draft';
@@ -159,7 +161,11 @@ export const ContractColumns: ColumnDef<Contract>[] = [
       // ✅ Đang nghiệm thu: hiển thị nút chuyển sang lưu trữ
       const isLiquidatedDone = row.original.status === 'Liquidated'
         && row.original.subStatus === 'LiquidatedDone';
-      const canEdit = isDraft || isRejected;
+      const isAdmin = user?.role === '0' || user?.role === 'Admin';
+      const isDraftingOfficer = row.original.contractUserRoles?.some(
+        (r) => r.userId === user?.id && r.role === 0
+      );
+      const canEdit = (isDraft || isRejected) && (isAdmin || isDraftingOfficer);
 
       const isExpired = row.original.status === 'Expired';
       const isNearExpiry = row.original.subStatus === 'NearExpiry';

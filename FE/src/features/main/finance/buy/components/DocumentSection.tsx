@@ -67,9 +67,10 @@ type Payment = {
 
 type DocumentSectionProps = {
   contract: Contract;
+  disabled?: boolean;
 };
 
-export function DocumentSection({ contract }: DocumentSectionProps) {
+export function DocumentSection({ contract, disabled = false }: DocumentSectionProps) {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [showConnectionPicker, setShowConnectionPicker] = useState(false);
@@ -239,7 +240,7 @@ export function DocumentSection({ contract }: DocumentSectionProps) {
           size='sm'
           variant='default'
           onClick={() => setShowConnectionPicker(true)}
-          disabled={syncing || dataLoading}
+          disabled={disabled || syncing || dataLoading}
           className='gap-1.5 shrink-0'
         >
           <RefreshCwIcon className={cn('size-4', syncing && 'animate-spin')} />

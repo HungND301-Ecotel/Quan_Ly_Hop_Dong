@@ -512,10 +512,10 @@ export function ContractReviewForm() {
         signingFlows: signFlowsWithPositions,
         parentContractId: undefined,
         contractUserRoles: {
-          draftingOfficerUserId: basicInformation?.contractUserRoles.draftingOfficer.userId,
-          managerUserId: basicInformation?.contractUserRoles.manager.userId,
-          coordinatorUserId: basicInformation?.contractUserRoles.coordinator.userId,
-          receivingOfficerUserId: basicInformation?.contractUserRoles.receivingOfficer.userId,
+          draftingOfficerUserIds: basicInformation?.contractUserRoles.draftingOfficer.map((x: any) => x.userId).filter(Boolean),
+          managerUserIds: basicInformation?.contractUserRoles.manager.map((x: any) => x.userId).filter(Boolean),
+          coordinatorUserIds: basicInformation?.contractUserRoles.coordinator.map((x: any) => x.userId).filter(Boolean),
+          receivingOfficerUserIds: basicInformation?.contractUserRoles.receivingOfficer.map((x: any) => x.userId).filter(Boolean),
         },
         contractItems: allContractItems,
         contractOtherItems: undefined,
@@ -756,22 +756,21 @@ export function ContractReviewForm() {
                 {[
                   {
                     label: 'Cán bộ soạn thảo',
-                    userId: basicInformation?.contractUserRoles?.draftingOfficer?.userId,
+                    usersList: basicInformation?.contractUserRoles?.draftingOfficer || [],
                   },
                   {
                     label: 'Người quản lý',
-                    userId: basicInformation?.contractUserRoles?.manager?.userId,
+                    usersList: basicInformation?.contractUserRoles?.manager || [],
                   },
                   {
                     label: 'Người điều phối',
-                    userId: basicInformation?.contractUserRoles?.coordinator?.userId,
+                    usersList: basicInformation?.contractUserRoles?.coordinator || [],
                   },
                   {
                     label: 'Cán bộ tiếp nhận',
-                    userId: basicInformation?.contractUserRoles?.receivingOfficer?.userId,
+                    usersList: basicInformation?.contractUserRoles?.receivingOfficer || [],
                   },
-                ].map(({ label, userId }) => {
-                  const user = userMap.get(userId || '');
+                ].map(({ label, usersList }) => {
                   return (
                     <div
                       key={label}
@@ -784,17 +783,28 @@ export function ContractReviewForm() {
                       </div>
                       {loading ? (
                         <Skeleton className='h-10 w-full' />
+                      ) : usersList.length === 0 || usersList.every((x: any) => !x.userId) ? (
+                        <div className='text-sm font-semibold text-muted-foreground italic'>
+                          Chưa phân công
+                        </div>
                       ) : (
-                        <div className='space-y-1'>
-                          <div className='text-sm font-semibold'>
-                            {user?.fullname || 'Chưa phân công'}
-                          </div>
-                          {user && (
-                            <div className='text-xs text-muted-foreground'>
-                              {user.departmentName}
-                              {user.positionName ? ` / ${user.positionName}` : ''}
-                            </div>
-                          )}
+                        <div className='space-y-3 divide-y divide-slate-100'>
+                          {usersList.map((item: any, idx: number) => {
+                            const user = userMap.get(item.userId || '');
+                            return (
+                              <div key={idx} className={idx > 0 ? 'pt-2' : ''}>
+                                <div className='text-sm font-semibold'>
+                                  {user?.fullname || 'Chưa phân công'}
+                                </div>
+                                {user && (
+                                  <div className='text-xs text-muted-foreground'>
+                                    {user.departmentName}
+                                    {user.positionName ? ` / ${user.positionName}` : ''}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>

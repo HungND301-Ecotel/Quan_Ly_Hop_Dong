@@ -412,10 +412,10 @@ export function ContractRenewReviewForm() {
         signingFlows: signFlowsWithPositions,
         parentContractId: undefined,
         contractUserRoles: {
-          draftingOfficerUserId: basicInformation?.contractUserRoles.draftingOfficer.userId,
-          managerUserId: basicInformation?.contractUserRoles.manager.userId,
-          coordinatorUserId: basicInformation?.contractUserRoles.coordinator.userId,
-          receivingOfficerUserId: basicInformation?.contractUserRoles.receivingOfficer.userId,
+          draftingOfficerUserIds: basicInformation?.contractUserRoles.draftingOfficer.map((x: any) => x.userId).filter(Boolean),
+          managerUserIds: basicInformation?.contractUserRoles.manager.map((x: any) => x.userId).filter(Boolean),
+          coordinatorUserIds: basicInformation?.contractUserRoles.coordinator.map((x: any) => x.userId).filter(Boolean),
+          receivingOfficerUserIds: basicInformation?.contractUserRoles.receivingOfficer.map((x: any) => x.userId).filter(Boolean),
         },
         contractItems: allContractItems,
         contractOtherItems: undefined,
@@ -571,22 +571,33 @@ export function ContractRenewReviewForm() {
             <Section title='Phân công quản lý' icon={Users}>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 {[
-                  { label: 'Cán bộ soạn thảo', userId: basicInformation?.contractUserRoles?.draftingOfficer?.userId },
-                  { label: 'Người quản lý', userId: basicInformation?.contractUserRoles?.manager?.userId },
-                  { label: 'Người điều phối', userId: basicInformation?.contractUserRoles?.coordinator?.userId },
-                  { label: 'Cán bộ tiếp nhận', userId: basicInformation?.contractUserRoles?.receivingOfficer?.userId },
-                ].map(({ label, userId }) => {
-                  const user = userMap.get(userId || '');
+                  { label: 'Cán bộ soạn thảo', usersList: basicInformation?.contractUserRoles?.draftingOfficer },
+                  { label: 'Người quản lý', usersList: basicInformation?.contractUserRoles?.manager },
+                  { label: 'Người điều phối', usersList: basicInformation?.contractUserRoles?.coordinator },
+                  { label: 'Cán bộ tiếp nhận', usersList: basicInformation?.contractUserRoles?.receivingOfficer },
+                ].map(({ label, usersList }) => {
+                  const assigned = (usersList || []).filter((u: any) => u.userId);
                   return (
                     <div key={label} className='p-4 rounded-lg border bg-white space-y-2'>
                       <div className='flex items-center gap-2'>
                         <span className='text-xs font-medium text-muted-foreground'>{label}</span>
                       </div>
-                      {loading ? <Skeleton className='h-10 w-full' /> : (
-                        <div className='space-y-1'>
-                          <div className='text-sm font-semibold'>{user?.fullname || 'Chưa phân công'}</div>
-                          {user && <div className='text-xs text-muted-foreground'>{user.departmentName}{user.positionName ? ` / ${user.positionName}` : ''}</div>}
+                      {loading ? (
+                        <Skeleton className='h-10 w-full' />
+                      ) : assigned.length > 0 ? (
+                        <div className='space-y-2'>
+                          {assigned.map((item: any, idx: number) => {
+                            const user = userMap.get(item.userId || '');
+                            return (
+                              <div key={idx} className='text-sm border-b last:border-0 pb-1.5 last:pb-0'>
+                                <div className='font-semibold text-foreground'>{user?.fullname || 'Chưa rõ'}</div>
+                                {user && <div className='text-xs text-muted-foreground'>{user.departmentName}{user.positionName ? ` / ${user.positionName}` : ''}</div>}
+                              </div>
+                            );
+                          })}
                         </div>
+                      ) : (
+                        <div className='text-sm text-muted-foreground italic'>Chưa phân công</div>
                       )}
                     </div>
                   );

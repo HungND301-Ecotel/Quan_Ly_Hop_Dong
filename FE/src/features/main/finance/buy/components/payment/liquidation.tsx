@@ -16,12 +16,14 @@ type LiquidationSectionProps = {
   onSave: (file: File) => Promise<void>;
   onDelete: () => Promise<void>;
   onSuccess?: () => void;
+  disabled?: boolean;
 };
 
 export function LiquidationSection({
   contractId,
   initialFile,
   onSuccess,
+  disabled = false,
 }: LiquidationSectionProps) {
   const [file, setFile] = useState<string | undefined>(initialFile);
 
@@ -38,20 +40,26 @@ export function LiquidationSection({
 
       <div className='flex items-center gap-4 w-full'>
         {!file ? (
-          // ✅ Dùng ContractLiquidation dialog thay vì input inline
-          <ContractLiquidation
-            contractId={contractId}
-            callback={(filePath) => {
-              setFile(filePath); // ✅ cập nhật hiển thị ngay
-              onSuccess?.();
-            }}
-            trigger={
-              <Button variant='destructive' type='button' size='lg' className='w-full'>
-                <HistoryIcon className='size-4' />
-                Thanh lý hợp đồng
-              </Button>
-            }
-          />
+          disabled ? (
+            <Button variant='destructive' type='button' size='lg' className='w-full' disabled>
+              <HistoryIcon className='size-4' />
+              Thanh lý hợp đồng
+            </Button>
+          ) : (
+            <ContractLiquidation
+              contractId={contractId}
+              callback={(filePath) => {
+                setFile(filePath); // ✅ cập nhật hiển thị ngay
+                onSuccess?.();
+              }}
+              trigger={
+                <Button variant='destructive' type='button' size='lg' className='w-full'>
+                  <HistoryIcon className='size-4' />
+                  Thanh lý hợp đồng
+                </Button>
+              }
+            />
+          )
         ) : (
           <div className='w-full'>
             <Item variant='outline' className='bg-background shadow-xs'>

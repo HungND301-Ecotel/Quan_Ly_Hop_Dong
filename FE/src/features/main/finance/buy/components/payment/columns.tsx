@@ -155,6 +155,7 @@ type CreateColumnsOptions = {
   onSaved?: () => void;
   onNavigateToProgress?: () => void;
   onNavigateToDocument?: () => void;
+  disabled?: boolean;
 };
 
 export const createColumns = ({
@@ -162,6 +163,7 @@ export const createColumns = ({
   onSaved,
   onNavigateToProgress,
   onNavigateToDocument,
+  disabled,
 }: CreateColumnsOptions): ColumnDef<PaymentInstallment>[] => {
   return [
     // Kỳ — số thứ tự
@@ -282,6 +284,7 @@ export const createColumns = ({
           contractId={contractId}
           onSaved={onSaved}
           onNavigateToDocument={onNavigateToDocument} // ← thêm
+          disabled={disabled}
         />
       ),
     },

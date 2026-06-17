@@ -339,10 +339,10 @@ export function ContractArchiveReviewForm() {
       });
 
       const mappedUserRoles = {
-        draftingOfficerUserId: basicInformation?.contractUserRoles.draftingOfficer.userId || '',
-        managerUserId: basicInformation?.contractUserRoles.manager.userId || '',
-        coordinatorUserId: basicInformation?.contractUserRoles.coordinator.userId || '',
-        receivingOfficerUserId: basicInformation?.contractUserRoles.receivingOfficer.userId || '',
+        draftingOfficerUserIds: basicInformation?.contractUserRoles.draftingOfficer.map((x: any) => x.userId).filter(Boolean),
+        managerUserIds: basicInformation?.contractUserRoles.manager.map((x: any) => x.userId).filter(Boolean),
+        coordinatorUserIds: basicInformation?.contractUserRoles.coordinator.map((x: any) => x.userId).filter(Boolean),
+        receivingOfficerUserIds: basicInformation?.contractUserRoles.receivingOfficer.map((x: any) => x.userId).filter(Boolean),
       };
 
       const allContractItems = [
@@ -599,8 +599,7 @@ export function ContractArchiveReviewForm() {
                     { role: 'receivingOfficer' as const, label: 'Cán bộ tiếp nhận' },
                   ]
                 ).map(({ role, label }) => {
-                  const roleData = basicInformation?.contractUserRoles?.[role];
-                  const user = userMap.get(roleData?.userId || '');
+                  const assigned = (basicInformation?.contractUserRoles?.[role] || []).filter((u: any) => u.userId);
                   return (
                     <div
                       key={role}
@@ -611,18 +610,20 @@ export function ContractArchiveReviewForm() {
                       </div>
                       {loading ? (
                         <Skeleton className='h-10 w-full' />
-                      ) : (
-                        <div className='space-y-1'>
-                          <div className='text-sm font-semibold'>
-                            {user?.fullname || 'Chưa phân công'}
-                          </div>
-                          {user && (
-                            <div className='text-xs text-muted-foreground'>
-                              {user.departmentName}
-                              {user.positionName ? ` / ${user.positionName}` : ''}
-                            </div>
-                          )}
+                      ) : assigned.length > 0 ? (
+                        <div className='space-y-2'>
+                          {assigned.map((item: any, idx: number) => {
+                            const user = userMap.get(item.userId || '');
+                            return (
+                              <div key={idx} className='text-sm border-b last:border-0 pb-1.5 last:pb-0'>
+                                <div className='font-semibold text-foreground'>{user?.fullname || 'Chưa rõ'}</div>
+                                {user && <div className='text-xs text-muted-foreground'>{user.departmentName}{user.positionName ? ` / ${user.positionName}` : ''}</div>}
+                              </div>
+                            );
+                          })}
                         </div>
+                      ) : (
+                        <div className='text-sm text-muted-foreground italic'>Chưa phân công</div>
                       )}
                     </div>
                   );

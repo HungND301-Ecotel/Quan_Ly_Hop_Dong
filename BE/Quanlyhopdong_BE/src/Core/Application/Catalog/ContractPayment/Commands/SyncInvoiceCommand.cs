@@ -1,4 +1,5 @@
 using Application.Common.Exceptions;
+using Application.Common.Interfaces;
 using Application.Common.Repositories;
 using Application.Common.UnitOfWork;
 using Application.Dto.Catalog;
@@ -12,7 +13,8 @@ public record SyncInvoiceCommand(SyncInvoiceByContractRequest Request) : IReques
 
 public class SyncInvoiceCommandHandler(
     IUnitOfWork unitOfWork,
-    IInvoiceSyncSourceService sourceService) : IRequestHandler<SyncInvoiceCommand, SyncInvoiceResultDto>
+    IInvoiceSyncSourceService sourceService,
+    ICurrentUser currentUser) : IRequestHandler<SyncInvoiceCommand, SyncInvoiceResultDto>
 {
     private readonly IWriteRepository<Domain.Entities.Catalog.Contract> _contractRepo = unitOfWork.GetRepository<Domain.Entities.Catalog.Contract>();
     private readonly IWriteRepository<Domain.Entities.Catalog.ContractPayment> _paymentRepo = unitOfWork.GetRepository<Domain.Entities.Catalog.ContractPayment>();
@@ -26,11 +28,28 @@ public class SyncInvoiceCommandHandler(
 
         var contract = await _contractRepo.GetFirstOrDefaultAsync(
             predicate: x => x.ContractNumber == request.Request.ContractNumber,
+            include: x => x.Include(c => c.ContractUserRoles),
             disableTracking: true);
 
         if (contract == null)
         {
             throw new NotFoundException($"Contract with number {request.Request.ContractNumber} not found");
+        }
+
+        var currentUserId = currentUser.UserId;
+        var userRepo = unitOfWork.GetRepository<Domain.Entities.Identity.User>();
+        var user = await userRepo.FindAsync(currentUserId);
+        var isAdmin = user?.Role == Domain.Common.Enums.UserRole.Admin;
+
+        if (!isAdmin)
+        {
+            var isAuthorized = contract.ContractUserRoles.Any(r => r.UserId == currentUserId &&
+                r.Role == Domain.Common.Enums.ContractRole.ReceivingOfficer);
+
+            if (!isAuthorized)
+            {
+                throw new BadRequestException("Only the Receiving Officer is allowed to sync invoices for this contract.");
+            }
         }
 
         var sourceRows = await sourceService.GetInvoicesAsync(

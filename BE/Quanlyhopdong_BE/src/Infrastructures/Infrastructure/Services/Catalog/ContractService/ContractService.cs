@@ -1111,8 +1111,21 @@ public partial class ContractService(
 
         if (onlyCurrentUserVisible)
         {
-            query = query.Where(x => x.CreatedBy == currentUserId
-                                || x.ContractUserRoles.Any(r => r.UserId == currentUserId));
+            var user = await _userRepo.FindAsync(currentUserId);
+            var isAdmin = user?.Role == UserRole.Admin;
+
+            if (!isAdmin)
+            {
+                query = query.Where(x => x.CreatedBy == currentUserId
+                                    || x.ContractUserRoles.Any(r => r.UserId == currentUserId && (
+                                        r.Role == ContractRole.Coordinator ||
+                                        r.Role == ContractRole.DraftingOfficer ||
+                                        ((r.Role == ContractRole.Manager || r.Role == ContractRole.ReceivingOfficer) &&
+                                         x.Status != ContractStatus.Draft &&
+                                         x.Status != ContractStatus.PendingApproval &&
+                                         x.Status != ContractStatus.RequiresRevision)
+                                    )));
+            }
         }
 
         if (!string.IsNullOrEmpty(search))
@@ -1288,6 +1301,27 @@ public partial class ContractService(
             .Include(x => x.ContractField)
             .FirstOrDefaultAsync(x => x.Id == id && x.DeletedOn == null)
             ?? throw new NotFoundException("Contract not found");
+
+        var currentUserEntity = await _userRepo.FindAsync(currentUser.UserId);
+        var isAdmin = currentUserEntity?.Role == UserRole.Admin;
+        if (!isAdmin && query.CreatedBy != currentUser.UserId)
+        {
+            var userRoles = query.ContractUserRoles.Where(r => r.UserId == currentUser.UserId).ToList();
+            var hasManagerRole = userRoles.Any(r => r.Role == ContractRole.Manager);
+            var hasCoordinatorRole = userRoles.Any(r => r.Role == ContractRole.Coordinator);
+            var hasDraftingOfficerRole = userRoles.Any(r => r.Role == ContractRole.DraftingOfficer);
+            var hasReceivingOfficerRole = userRoles.Any(r => r.Role == ContractRole.ReceivingOfficer);
+
+            if ((hasManagerRole || hasReceivingOfficerRole) && !hasCoordinatorRole && !hasDraftingOfficerRole)
+            {
+                if (query.Status == ContractStatus.Draft ||
+                    query.Status == ContractStatus.PendingApproval ||
+                    query.Status == ContractStatus.RequiresRevision)
+                {
+                    throw new BadRequestException("You can only view this contract after drafting and approval are completed.");
+                }
+            }
+        }
 
         var dto = query.Adapt<ContractDto>();
 
@@ -1695,6 +1729,15 @@ public partial class ContractService(
         if (entity.Status != ContractStatus.Draft)
         {
             throw new BadRequestException("Only draft contracts can be edited. Current status: " + entity.Status);
+        }
+
+        var user = await _userRepo.FindAsync(currentUser.UserId);
+        var isDraftingOfficer = entity.ContractUserRoles.Any(r => r.UserId == currentUser.UserId && r.Role == ContractRole.DraftingOfficer);
+        var isAdmin = user?.Role == UserRole.Admin;
+
+        if (!isAdmin && !isDraftingOfficer)
+        {
+            throw new BadRequestException("Only the direct negotiator and contract drafter (Drafting Officer) is allowed to edit this contract.");
         }
 
         var newFlows = dto.SigningFlows ?? new List<UpdateContractSigningFlowDto>();

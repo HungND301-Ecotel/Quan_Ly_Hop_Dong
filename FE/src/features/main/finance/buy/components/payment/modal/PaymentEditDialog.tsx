@@ -217,6 +217,7 @@ export type PaymentEditDialogProps = {
   contractId: string;
   onSaved?: () => void;
   onNavigateToDocument?: () => void; // ← thêm
+  disabled?: boolean;
 };
 
 export function PaymentEditDialog({
@@ -224,6 +225,7 @@ export function PaymentEditDialog({
   contractId,
   onSaved,
   onNavigateToDocument,
+  disabled = false,
 }: PaymentEditDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -305,6 +307,7 @@ export function PaymentEditDialog({
           variant='ghost'
           className='size-7 text-muted-foreground hover:text-foreground'
           title='Cập nhật thanh toán'
+          disabled={disabled}
         >
           <PencilIcon className='size-3.5' />
         </Button>

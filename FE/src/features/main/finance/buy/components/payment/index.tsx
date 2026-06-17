@@ -21,6 +21,7 @@ export type PaymentSectionProps = {
   contractValue: number;
   onSaved?: () => void;
   onNavigateToDocument?: () => void;
+  disabled?: boolean;
 };
 
 const ensureUniqueFilePaths = (paths: string[]) =>
@@ -123,7 +124,12 @@ const mapSchedulesToInstallments = (
   });
 };
 
-export function PaymentSection({ contractId, onSaved, onNavigateToDocument }: PaymentSectionProps) {
+export function PaymentSection({
+  contractId,
+  onSaved,
+  onNavigateToDocument,
+  disabled = false,
+}: PaymentSectionProps) {
   const [liquidationFile, setLiquidationFile] = useState<string | undefined>();
 
   const fetchService = useCallback(async () => {
@@ -152,8 +158,9 @@ export function PaymentSection({ contractId, onSaved, onNavigateToDocument }: Pa
           onSaved?.();
         },
         onNavigateToDocument, // ← thêm
+        disabled,
       }),
-    [contractId, onNavigateToDocument]
+    [contractId, onNavigateToDocument, disabled]
   );
 
   const table = useDataTable<PaymentInstallment>({
@@ -180,6 +187,7 @@ export function PaymentSection({ contractId, onSaved, onNavigateToDocument }: Pa
         contractId={contractId}
         initialFile={liquidationFile}
         onSuccess={onSaved}
+        disabled={disabled}
         onSave={async (file: File) => {
           try {
             const response = await contractPaymentService.uploadPaymentFile(
