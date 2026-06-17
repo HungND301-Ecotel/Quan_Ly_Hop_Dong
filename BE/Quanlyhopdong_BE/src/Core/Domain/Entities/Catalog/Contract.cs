@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using Domain.Common.Contracts;
 using Domain.Common.Enums;
 using Domain.Entities.Category;
@@ -15,6 +15,9 @@ public class Contract : AuditableEntity<Guid>
     public Guid? SignedContentId { get; protected set; }
     public string ContractNumber { get; protected set; } = string.Empty;
     public string AppendixNumber { get; protected set; } = string.Empty;
+    // New catalog references (keep legacy string fields for compatibility)
+    public Guid? ContractNumberId { get; protected set; }
+    public Guid? ContractAppendixId { get; protected set; }
     public Guid? ContractStructureId { get; protected set; }
     public ScheduleType? ScheduleType { get; set; }
     public Guid ProcurementMethodId { get; protected set; }
@@ -78,6 +81,12 @@ public class Contract : AuditableEntity<Guid>
 
     [ForeignKey("ContractFieldId")]
     public virtual ContractField? ContractField { get; protected set; }
+
+    [ForeignKey("ContractNumberId")]
+    public virtual Domain.Entities.Category.ContractNumber? ContractNumberCatalog { get; protected set; }
+
+    [ForeignKey("ContractAppendixId")]
+    public virtual Domain.Entities.Category.ContractAppendix? ContractAppendixCatalog { get; protected set; }
 
     private IList<ContractAttachment> _contractAttachments = new List<ContractAttachment>();
     public virtual IReadOnlyCollection<ContractAttachment> ContractAttachments => _contractAttachments.AsReadOnly();
