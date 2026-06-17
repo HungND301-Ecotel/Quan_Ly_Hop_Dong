@@ -1697,6 +1697,15 @@ public partial class ContractService(
             throw new BadRequestException("Only draft contracts can be edited. Current status: " + entity.Status);
         }
 
+        var user = await _userRepo.FindAsync(currentUser.UserId);
+        var isDraftingOfficer = entity.ContractUserRoles.Any(r => r.UserId == currentUser.UserId && r.Role == ContractRole.DraftingOfficer);
+        var isAdmin = user?.Role == UserRole.Admin;
+
+        if (!isAdmin && !isDraftingOfficer)
+        {
+            throw new BadRequestException("Only the direct negotiator and contract drafter (Drafting Officer) is allowed to edit this contract.");
+        }
+
         var newFlows = dto.SigningFlows ?? new List<UpdateContractSigningFlowDto>();
         var newFlowMap = newFlows.Where(f => f.Id != Guid.Empty).ToDictionary(f => f.Id, f => f);
 
