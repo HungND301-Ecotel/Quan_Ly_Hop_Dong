@@ -1496,17 +1496,36 @@ public partial class ContractService(
         }
 
         var s3Tasks = new List<Task>();
+        string[]? contractPresignedUrls = null;
+        string[]? contractFileNames = null;
+
         if (!string.IsNullOrEmpty(dto.FilePath))
         {
-            dto.ContractName = Path.GetFileName(dto.FilePath);
-            s3Tasks.Add(awsS3Service.GetPresignedDownloadUrl(dto.FilePath, BucketType.SourceDefault)
-                .ContinueWith(t => dto.FilePath = t.Result));
+            var paths = dto.FilePath.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            contractPresignedUrls = new string[paths.Length];
+            contractFileNames = new string[paths.Length];
+            for (int i = 0; i < paths.Length; i++)
+            {
+                var index = i;
+                var path = paths[index];
+                contractFileNames[index] = Path.GetFileName(path);
+                s3Tasks.Add(awsS3Service.GetPresignedDownloadUrl(path, BucketType.SourceDefault)
+                    .ContinueWith(t => contractPresignedUrls[index] = t.Result));
+            }
         }
 
+        string[]? signedPresignedUrls = null;
         if (!string.IsNullOrEmpty(dto.SignedFilePath))
         {
-            s3Tasks.Add(awsS3Service.GetPresignedDownloadUrl(dto.SignedFilePath, BucketType.SourceDefault)
-                .ContinueWith(t => dto.SignedFilePath = t.Result));
+            var paths = dto.SignedFilePath.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            signedPresignedUrls = new string[paths.Length];
+            for (int i = 0; i < paths.Length; i++)
+            {
+                var index = i;
+                var path = paths[index];
+                s3Tasks.Add(awsS3Service.GetPresignedDownloadUrl(path, BucketType.SourceDefault)
+                    .ContinueWith(t => signedPresignedUrls[index] = t.Result));
+            }
         }
 
         if (dto.Attachments != null && dto.Attachments.Any())
@@ -1523,6 +1542,17 @@ public partial class ContractService(
         if (s3Tasks.Any())
         {
             await Task.WhenAll(s3Tasks);
+        }
+
+        if (contractPresignedUrls != null)
+        {
+            dto.FilePath = string.Join(";", contractPresignedUrls);
+            dto.ContractName = string.Join(";", contractFileNames!);
+        }
+
+        if (signedPresignedUrls != null)
+        {
+            dto.SignedFilePath = string.Join(";", signedPresignedUrls);
         }
 
         return dto;
@@ -2075,43 +2105,51 @@ public partial class ContractService(
         return attachmentFiles;
     }
 
-    public async Task<string> UploadContract(IFormFile ContractFile, string ContractNumber)
+    public async Task<string> UploadContract(List<IFormFile> ContractFile, string ContractNumber)
     {
-        if (ContractFile != null)
+        if (ContractFile != null && ContractFile.Any())
         {
-            if (!string.Equals(ContractFile.ContentType, "application/pdf",
-                StringComparison.OrdinalIgnoreCase))
+            foreach (var file in ContractFile)
             {
-                throw new BadRequestException("Contract file must be PDF format");
-            }
+                if (!string.Equals(file.ContentType, "application/pdf",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new BadRequestException("Contract file must be PDF format");
+                }
 
-            // Validate file size (e.g., max 10MB)
-            const long maxFileSize = 200 * 1024 * 1024; // 10MB
-            if (ContractFile.Length > maxFileSize)
-            {
-                throw new BadRequestException("Contract file size must not exceed 10MB");
+                // Validate file size (e.g., max 200MB)
+                const long maxFileSize = 200 * 1024 * 1024;
+                if (file.Length > maxFileSize)
+                {
+                    throw new BadRequestException("Contract file size must not exceed 200MB");
+                }
             }
         }
 
-        string? contractFilePath = "";
-
+        var contractFilePaths = new List<string>();
         var uploadTasks = new List<Task>();
-        //upload contract
-        if (ContractFile != null)
+
+        if (ContractFile != null && ContractFile.Any())
         {
-            var inputModel = new AwsInputModel
+            var listPathTask = ContractFile.Select(async file =>
             {
-                FileId = Guid.NewGuid(),
-                FileName = ContractFile.FileName,
-                BucketType = Application.Dto.Cloud.AWS.BucketType.SourceDefault,
-                Module = $"contracts/{ContractNumber}/origins",
-                ContentType = ContractFile.ContentType,
-                IsExpires = true
-            };
+                var inputModel = new AwsInputModel
+                {
+                    FileId = Guid.NewGuid(),
+                    FileName = file.FileName,
+                    BucketType = Application.Dto.Cloud.AWS.BucketType.SourceDefault,
+                    Module = $"contracts/{ContractNumber}/origins",
+                    ContentType = file.ContentType,
+                    IsExpires = true
+                };
+
+                var resultModel = await awsS3Service.UploadFileAsync(file, inputModel);
+                return resultModel.Path;
+            }).ToList();
+
             uploadTasks.Add(Task.Run(async () =>
             {
-                var resultModel = await awsS3Service.UploadFileAsync(ContractFile, inputModel);
-                contractFilePath = resultModel.Path;
+                contractFilePaths = (await Task.WhenAll(listPathTask)).ToList();
             }));
         }
 
@@ -2120,7 +2158,7 @@ public partial class ContractService(
             await Task.WhenAll(uploadTasks);
         }
 
-        return contractFilePath;
+        return string.Join(";", contractFilePaths);
     }
 
     private async Task TrackContractChangesAsync(Guid contractId, Contract oldEntity, Contract newEntity)

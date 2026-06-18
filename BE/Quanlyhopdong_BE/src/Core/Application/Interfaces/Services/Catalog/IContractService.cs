@@ -1,4 +1,4 @@
-﻿using Application.Dto.Catalog;
+using Application.Dto.Catalog;
 using Domain.Common.Enums;
 using Microsoft.AspNetCore.Http;
 
@@ -22,7 +22,7 @@ public interface IContractService
     Task<List<ContractDto>> GetPendingApprovalContractsAsync(ContractStatus? status = null, ContractSubStatus? subStatus = null);
     Task<List<ContractDto>> GetCurrentUserContractApprovalHistory();
 
-    Task<string> UploadContract(IFormFile ContractFile, string ConrtactNumber);
+    Task<string> UploadContract(List<IFormFile> ContractFile, string ConrtactNumber);
     Task<IList<CreateContractAttachmentDto>> UploadAttachmentFile(List<IFormFile> AttachmentFiles, string ConrtactNumber);
     Task<List<ContractItemDto>> GetContractItemsByContractIdAsync(Guid contractId);
     Task<List<ShortContractDto>> GetAllSoonExpiredContractsAsync(ContractFormat? contractFormat);

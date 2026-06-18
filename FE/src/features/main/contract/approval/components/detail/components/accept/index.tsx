@@ -1,5 +1,6 @@
 import { PdfViewer } from '@/components/pdf-viewer';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogClose,
@@ -49,15 +50,18 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
     width: number;
     height: number;
   }>();
-  const [file, setFile] = useState<File>();
-  const [signedFile, setSignedFile] = useState<File>();
+  const [files, setFiles] = useState<File[]>([]);
+  const [signedFiles, setSignedFiles] = useState<File[]>([]);
+  const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [submiting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!contract) return;
-    const contractFile = contract.signedFilePath || contract.filePath;
-    fileService.getFile(contractFile).then((f) => setFile(f));
-  }, [contract]);
+    if (!contract || !open) return;
+    const paths = (contract.signedFilePath || contract.filePath || '').split(';').filter(Boolean);
+    Promise.all(paths.map((path) => fileService.getFile(path))).then((downloadedFiles) =>
+      setFiles(downloadedFiles)
+    );
+  }, [contract, open]);
 
   const userFlow = useMemo(() => {
     return contract?.signingFlows?.find(
@@ -78,7 +82,9 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
     if (!newOpen) {
       setPosition(undefined);
       setCurrentPage(1);
-      setSignedFile(undefined);
+      setFiles([]);
+      setSignedFiles([]);
+      setSelectedFileIndex(0);
       setStep('confirm');
     }
   };
@@ -112,8 +118,10 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
       const detail = await contractService.getContractDetail(contract.id);
       const signedPath = detail?.signedFilePath || detail?.filePath;
       if (signedPath) {
-        const signed = await fileService.getFile(signedPath);
-        setSignedFile(signed);
+        const paths = signedPath.split(';').filter(Boolean);
+        const signed = await Promise.all(paths.map((path) => fileService.getFile(path)));
+        setSignedFiles(signed);
+        setSelectedFileIndex(0); // reset selected file index for preview
         setStep('preview'); // ✅ chuyển sang preview, KHÔNG đóng dialog
       } else {
         // Không có file thì đóng luôn
@@ -163,7 +171,7 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
         </DialogHeader>
 
         {/* ── STEP: preview sau khi ký ── */}
-        {resolvedStep === 'preview' && signedFile && (
+        {resolvedStep === 'preview' && signedFiles.length > 0 && (
           <div className='flex-1 overflow-hidden flex flex-col'>
             <div className='bg-green-50 border-y border-green-200 px-6 py-2 flex items-center gap-3'>
               <CheckIcon className='text-green-600 size-5 shrink-0' />
@@ -171,9 +179,29 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
                 Hợp đồng đã được ký thành công. Dưới đây là bản hợp đồng có chữ ký của bạn.
               </p>
             </div>
+            {signedFiles.length > 1 && (
+              <div className='px-6 pt-2'>
+                <Tabs value={String(selectedFileIndex)} onValueChange={(val) => {
+                  setSelectedFileIndex(Number(val));
+                  setCurrentPage(1);
+                }} className='w-full'>
+                  <TabsList className='w-full justify-start overflow-x-auto flex-wrap h-auto p-1 bg-muted/50 rounded-lg border'>
+                    {signedFiles.map((f, idx) => (
+                      <TabsTrigger
+                        key={idx}
+                        value={String(idx)}
+                        className='py-2 px-4 text-sm font-medium transition-all rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm'
+                      >
+                        {f.name}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              </div>
+            )}
             <div className='flex-1 overflow-auto p-6'>
               <PdfViewer
-                file={signedFile}
+                file={signedFiles[selectedFileIndex]}
                 currentPage={currentPage}
                 onPageChange={setCurrentPage}
                 zoom={zoom}
@@ -184,7 +212,7 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
         )}
 
         {/* ── STEP: chọn vị trí ký ── */}
-        {resolvedStep === 'signing' && (
+        {resolvedStep === 'signing' && files.length > 0 && (
           <div className='flex-1 overflow-hidden flex flex-col'>
             <div className='bg-amber-50 border-y border-amber-200 px-6 py-2 flex items-center gap-3'>
               <CircleAlert className='text-amber-600 size-5 shrink-0' />
@@ -192,52 +220,79 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
                 Vui lòng chọn vị trí ký trên hợp đồng.
               </p>
             </div>
+            {files.length > 1 && (
+              <div className='px-6 pt-2'>
+                <Tabs value={String(selectedFileIndex)} onValueChange={(val) => {
+                  setSelectedFileIndex(Number(val));
+                  setCurrentPage(1);
+                }} className='w-full'>
+                  <TabsList className='w-full justify-start overflow-x-auto flex-wrap h-auto p-1 bg-muted/50 rounded-lg border'>
+                    {files.map((f, idx) => (
+                      <TabsTrigger
+                        key={idx}
+                        value={String(idx)}
+                        className='py-2 px-4 text-sm font-medium transition-all rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm'
+                      >
+                        {f.name}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              </div>
+            )}
             <div className='flex-1 overflow-auto p-6'>
-              {file && (
-                <PdfViewer
-                  file={file}
-                  onPageClick={(event) => {
-                    if (position) return;
-                    const { page, ref: canvas } = event;
-                    if (!canvas) return;
-                    const rect = canvas.getBoundingClientRect();
-                    setPosition({
-                      positionX: (event.clientX - rect.left) / zoom,
-                      positionY: (event.clientY - rect.top) / zoom,
-                      pageNumber: page,
-                      width: 200 / zoom,
-                      height: 80 / zoom,
-                    });
-                  }}
-                  onSignButtonClick={(clickPos) => {
-                    if (position) return;
-                    setPosition({
-                      positionX: clickPos.positionX / zoom,
-                      positionY: clickPos.positionY / zoom,
-                      pageNumber: clickPos.pageNumber,
-                      width: 200 / zoom,
-                      height: 80 / zoom,
-                    });
-                  }}
-                  signBoxes={
-                    position && user && userFlow ? (
-                      <SignBox
-                        userId={user.id}
-                        signatureType={Number(userFlow.signatureType)}
-                        signerName={user.fullname}
-                        positionX={position.positionX}
-                        positionY={position.positionY}
-                        pageNumber={position.pageNumber}
-                        width={position.width}
-                        height={position.height}
-                        currentPage={currentPage}
-                        onRemove={() => setPosition(undefined)}
-                        onPositionChange={(x, y) =>
-                          setPosition((p) => p && { ...p, positionX: x, positionY: y })
-                        }
-                        onSizeChange={(w, h, x, y) =>
-                          setPosition(
-                            (p) =>
+              <PdfViewer
+                file={files[selectedFileIndex]}
+                onPageClick={(event) => {
+                  if (selectedFileIndex !== 0) {
+                    toast.warning('Chữ ký chỉ được cấu hình trên file hợp đồng chính (file đầu tiên)');
+                    return;
+                  }
+                  if (position) return;
+                  const { page, ref: canvas } = event;
+                  if (!canvas) return;
+                  const rect = canvas.getBoundingClientRect();
+                  setPosition({
+                    positionX: (event.clientX - rect.left) / zoom,
+                    positionY: (event.clientY - rect.top) / zoom,
+                    pageNumber: page,
+                    width: 200 / zoom,
+                    height: 80 / zoom,
+                  });
+                }}
+                onSignButtonClick={(clickPos) => {
+                  if (selectedFileIndex !== 0) {
+                    toast.warning('Chữ ký chỉ được cấu hình trên file hợp đồng chính (file đầu tiên)');
+                    return;
+                  }
+                  if (position) return;
+                  setPosition({
+                    positionX: clickPos.positionX / zoom,
+                    positionY: clickPos.positionY / zoom,
+                    pageNumber: clickPos.pageNumber,
+                    width: 200 / zoom,
+                    height: 80 / zoom,
+                  });
+                }}
+                signBoxes={
+                  selectedFileIndex === 0 && position && user && userFlow ? (
+                    <SignBox
+                      userId={user.id}
+                      signatureType={Number(userFlow.signatureType)}
+                      signerName={user.fullname}
+                      positionX={position.positionX}
+                      positionY={position.positionY}
+                      pageNumber={position.pageNumber}
+                      width={position.width}
+                      height={position.height}
+                      currentPage={currentPage}
+                      onRemove={() => setPosition(undefined)}
+                      onPositionChange={(x, y) =>
+                        setPosition((p) => p && { ...p, positionX: x, positionY: y })
+                      }
+                      onSizeChange={(w, h, x, y) =>
+                        setPosition(
+                          (p) =>
                               p && {
                                 ...p,
                                 width: w,
@@ -245,18 +300,17 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
                                 ...(x !== undefined && { positionX: x }),
                                 ...(y !== undefined && { positionY: y }),
                               }
-                          )
-                        }
-                        zoom={zoom}
-                      />
-                    ) : null
-                  }
-                  onPageChange={setCurrentPage}
-                  zoom={zoom}
-                  onZoomChange={setZoom}
-                  currentPage={currentPage}
-                />
-              )}
+                        )
+                      }
+                      zoom={zoom}
+                    />
+                  ) : null
+                }
+                onPageChange={setCurrentPage}
+                zoom={zoom}
+                onZoomChange={setZoom}
+                currentPage={currentPage}
+              />
             </div>
           </div>
         )}

@@ -79,7 +79,7 @@ export const BasicInformationSchema = z
     startDate: z.iso.date({ error: 'Ngày không hợp lệ' }),
     endDate: z.iso.date({ error: 'Ngày không hợp lệ' }),
 
-    contractFile: z.file().nonoptional({ error: 'Không được để trống' }),
+    contractFile: z.array(z.file()).nonempty({ error: 'Không được để trống' }),
     attachmentFiles: z.array(z.file()).optional().nullable(),
 
     discountType: z.coerce
@@ -211,7 +211,7 @@ export const BasicInformationDefault: BasicInformationValues = {
   startDate: '',
   endDate: '',
 
-  contractFile: '' as unknown as File,
+  contractFile: [] as unknown as File[],
   attachmentFiles: undefined,
 
   discountType: '' as unknown as number,

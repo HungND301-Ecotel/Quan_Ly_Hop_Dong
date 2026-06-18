@@ -3,6 +3,8 @@ import { PdfViewer } from '@/components/pdf-viewer';
 import { StepperPrev } from '@/components/stepper';
 import { useStepperContext } from '@/components/stepper/context';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -58,6 +60,7 @@ export function ContractSignPostionsForm() {
   const { next } = useStepperContext();
 
   const [open, setOpen] = useState(false);
+  const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
   const [clickPosition, setClickPosition] = useState<ClickPosition | null>(
     null
@@ -232,9 +235,36 @@ export function ContractSignPostionsForm() {
       onSubmit={handleSubmit}
       className='flex flex-col gap-4'
     >
+      {Array.isArray(basicInformation?.contractFile) && basicInformation.contractFile.length > 1 && (
+        <Tabs value={String(selectedFileIndex)} onValueChange={(val) => {
+          setSelectedFileIndex(Number(val));
+          setCurrentPage(1);
+        }} className='w-full'>
+          <TabsList className='w-full justify-start overflow-x-auto flex-wrap h-auto p-1 bg-muted/50 rounded-lg border'>
+            {basicInformation.contractFile.map((file, idx) => (
+              <TabsTrigger
+                key={idx}
+                value={String(idx)}
+                className='py-2 px-4 text-sm font-medium transition-all rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm'
+              >
+                {file.name}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      )}
+
       <PdfViewer
-        file={basicInformation?.contractFile}
+        file={
+          Array.isArray(basicInformation?.contractFile)
+            ? basicInformation.contractFile[selectedFileIndex]
+            : basicInformation?.contractFile
+        }
         onPageClick={(event) => {
+          if (selectedFileIndex !== 0) {
+            toast.warning('Chữ ký chỉ được cấu hình trên file hợp đồng chính (file đầu tiên)');
+            return;
+          }
           const { page, ref: canvas } = event;
           if (!canvas) return;
 
@@ -266,10 +296,14 @@ export function ContractSignPostionsForm() {
           setCurrentPage(page);
           setOpen(true);
         }}
-        signBoxes={signBoxes}
+        signBoxes={selectedFileIndex === 0 ? signBoxes : []}
         currentPage={currentPage}
         onPageChange={setCurrentPage}
         onSignButtonClick={(position) => {
+          if (selectedFileIndex !== 0) {
+            toast.warning('Chữ ký chỉ được cấu hình trên file hợp đồng chính (file đầu tiên)');
+            return;
+          }
           if (availableSigners.length === 1) {
             const { user, signerIndex } = availableSigners[0];
             if (user) {

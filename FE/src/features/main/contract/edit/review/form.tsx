@@ -191,6 +191,7 @@ export function ContractReviewForm() {
   } = useContractEditContext();
 
   const [loading, setLoading] = useState(true);
+  const [selectedFileIndex, setSelectedFileIndex] = useState(0);
 
   // Hợp đồng phê duyệt: luôn hiển thị checkbox, mặc định true
   const [isAutoLiquidated, setIsAutoLiquidated] = useState(true);
@@ -1156,10 +1157,33 @@ export function ContractReviewForm() {
                 description='Hợp đồng với vị trí chữ ký đã đánh dấu'
                 icon={FileText}
               />
+              {Array.isArray(basicInformation?.contractFile) && basicInformation.contractFile.length > 1 && (
+                <Tabs value={String(selectedFileIndex)} onValueChange={(val) => {
+                  setSelectedFileIndex(Number(val));
+                  setCurrentPage(1);
+                }} className='w-full'>
+                  <TabsList className='w-full justify-start overflow-x-auto flex-wrap h-auto p-1 bg-muted/50 rounded-lg border'>
+                    {basicInformation.contractFile.map((file, idx) => (
+                      <TabsTrigger
+                        key={idx}
+                        value={String(idx)}
+                        className='py-2 px-4 text-sm font-medium transition-all rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm'
+                      >
+                        {file.name}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              )}
+
               {basicInformation?.contractFile && (
                 <PdfViewer
-                  file={basicInformation.contractFile}
-                  signBoxes={signBoxes}
+                  file={
+                    Array.isArray(basicInformation.contractFile)
+                      ? basicInformation.contractFile[selectedFileIndex]
+                      : basicInformation.contractFile
+                  }
+                  signBoxes={selectedFileIndex === 0 ? signBoxes : []}
                   onPageChange={setCurrentPage}
                 />
               )}

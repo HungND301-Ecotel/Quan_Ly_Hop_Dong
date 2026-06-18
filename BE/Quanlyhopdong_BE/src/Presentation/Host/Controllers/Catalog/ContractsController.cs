@@ -1,4 +1,4 @@
-﻿using Application.Catalog.Contracts.Commands;
+using Application.Catalog.Contracts.Commands;
 using Application.Catalog.Contracts.Queries;
 using Application.Dto.Catalog;
 using Domain.Common.Enums;
@@ -48,7 +48,7 @@ public class ContractsController : BaseAuthController
     }
 
     [HttpPost("upload-contract")]
-    public async Task<IActionResult> UploadContractAsync([FromForm] IFormFile ContractFile, [FromForm] string ContractNumber)
+    public async Task<IActionResult> UploadContractAsync([FromForm] List<IFormFile> ContractFile, [FromForm] string ContractNumber)
     {
         var result = await Mediator.Send(new UploadContractCommand(ContractFile, ContractNumber));
         return Ok(result, MessageCommon.CreateSuccess);
