@@ -312,7 +312,7 @@ public partial class ContractService(
 
         var oldStatus = contract.Status;
         var oldSubStatus = contract.SubStatus;
-        var targetSubStatus = contract.StartDate.Date > DateTimeOffset.UtcNow.Date
+        var targetSubStatus = contract.EffectiveDate.Date > DateTimeOffset.UtcNow.Date
             ? ContractSubStatus.NotStarted
             : ContractSubStatus.InProgress;
 
@@ -735,8 +735,10 @@ public partial class ContractService(
             ContractValueAfterVat = contract.ContractValueAfterVat,
             
             // Ngày cũ - chỉ để tham khảo, user phải chọn ngày mới
-            OriginalStartDate = contract.StartDate,
-            OriginalEndDate = contract.EndDate,
+            OriginalSigningDate = contract.SigningDate,
+            OriginalEffectiveDate = contract.EffectiveDate,
+            OriginalCompletionDate = contract.CompletionDate,
+            OriginalWarrantyExpirationDate = contract.WarrantyExpirationDate,
             
             Notes = contract.Notes,
             DiscountType = contract.DiscountType,
@@ -798,8 +800,10 @@ public partial class ContractService(
                 partnerId: dto.PartnerId,
                 departmentId: dto.DepartmentId,
                 contractValue: dto.ContractValue,
-                startDate: dto.StartDate,
-                endDate: dto.EndDate,
+                signingDate: dto.SigningDate,
+                effectiveDate: dto.EffectiveDate,
+                completionDate: dto.CompletionDate,
+                warrantyExpirationDate: dto.WarrantyExpirationDate,
                 filePath: dto.ContractFilePath,
                 notes: dto.Notes,
                 contractFormat: dto.ContractFormat,
@@ -825,7 +829,7 @@ public partial class ContractService(
             else if (dto.SigningFlows == null || !dto.SigningFlows.Any())
             {
                 // Không có luồng ký → tự động Active
-                var targetSubStatus = entity.StartDate.Date > DateTimeOffset.UtcNow.Date
+                var targetSubStatus = entity.EffectiveDate.Date > DateTimeOffset.UtcNow.Date
                     ? ContractSubStatus.NotStarted
                     : ContractSubStatus.InProgress;
 
@@ -1155,12 +1159,12 @@ public partial class ContractService(
 
         if (startDate.HasValue)
         {
-            query = query.Where(x => x.StartDate >= startDate.Value);
+            query = query.Where(x => x.EffectiveDate >= startDate.Value);
         }
 
         if (endDate.HasValue)
         {
-            query = query.Where(x => x.EndDate <= endDate.Value);
+            query = query.Where(x => x.CompletionDate <= endDate.Value);
         }
 
         if (formats != null && formats.Any())
@@ -1813,8 +1817,10 @@ public partial class ContractService(
                 partnerId: dto.PartnerId,
                 departmentId: dto.DepartmentId,
                 contractValue: dto.ContractValue,
-                startDate: dto.StartDate,
-                endDate: dto.EndDate,
+                signingDate: dto.SigningDate,
+                effectiveDate: dto.EffectiveDate,
+                completionDate: dto.CompletionDate,
+                warrantyExpirationDate: dto.WarrantyExpirationDate,
                 filePath: dto.ContractFilePath,
                 notes: dto.Notes,
                 contractFormat: dto.ContractFormat,
@@ -2402,9 +2408,9 @@ public partial class ContractService(
             .Where(x => (x.ContractFormat == contractFormat || contractFormat == null) &&
                        x.Status == ContractStatus.Active &&
                        x.DeletedOn == null &&
-                       x.EndDate >= today &&
-                       x.EndDate <= expirationThresholdDate)
-            .OrderBy(x => x.EndDate);
+                       x.CompletionDate >= today &&
+                       x.CompletionDate <= expirationThresholdDate)
+            .OrderBy(x => x.CompletionDate);
 
         var signingFlowMap = query.ToDictionary(x => x.Id, x => x.ContractSigningFlows);
         var contractUserRoleMap = query.ToDictionary(x => x.Id, x => x.ContractUserRoles);
@@ -2801,8 +2807,8 @@ public partial class ContractService(
                 RepresentativeName = contract.Partner?.ContactPerson,
 
                 // 4. TIME & PAYMENT
-                SigningDate = contract.StartDate.DateTime, // Not available in current entity
-                ExpiryDate = contract.EndDate.DateTime,
+                SigningDate = contract.SigningDate.DateTime,
+                ExpiryDate = contract.CompletionDate.DateTime,
                 PaymentTerm = contract.ScheduleType?.ToString(),
 
                 // 5. CONTRACT VALUE
@@ -2843,7 +2849,7 @@ public partial class ContractService(
     {
         var reportYear = contract.ContractProgresses.Any()
             ? contract.ContractProgresses.Max(x => x.PeriodStart.Year)
-            : contract.StartDate.Year;
+            : contract.EffectiveDate.Year;
 
         var monthlyData = contract.ContractProgresses
             .Where(x => x.PeriodStart.Year == reportYear || x.PeriodEnd.Year == reportYear)
@@ -2936,11 +2942,11 @@ public partial class ContractService(
                     && (!partnerId.HasValue || c.PartnerId == partnerId.Value)
                     && (string.IsNullOrWhiteSpace(normalizedPartnerName)
                         || (c.Partner != null && c.Partner.Name.ToLower().Contains(normalizedPartnerName.ToLower())))
-                    && (!startDateFrom.HasValue || c.StartDate >= startDateFrom.Value)
-                    && (!startDateTo.HasValue || c.StartDate <= startDateTo.Value)
-                    && (!endDateFrom.HasValue || c.EndDate >= endDateFrom.Value)
-                    && (!endDateTo.HasValue || c.EndDate <= endDateTo.Value)
-                    && (!endDate.HasValue || c.EndDate.Date == endDate.Value.Date)
+                    && (!startDateFrom.HasValue || c.EffectiveDate >= startDateFrom.Value)
+                    && (!startDateTo.HasValue || c.EffectiveDate <= startDateTo.Value)
+                    && (!endDateFrom.HasValue || c.CompletionDate >= endDateFrom.Value)
+                    && (!endDateTo.HasValue || c.CompletionDate <= endDateTo.Value)
+                    && (!endDate.HasValue || c.CompletionDate.Date == endDate.Value.Date)
                     && (!isAutoLiquidated.HasValue || c.IsAutoLiquidated == isAutoLiquidated.Value)
                     && (!isLiquidated.HasValue || (c.Status == ContractStatus.Liquidated) == isLiquidated.Value),
                 include: c => c
@@ -2994,8 +3000,8 @@ public partial class ContractService(
                     RepresentativeName = contract.Partner?.ContactPerson,
 
                     // 4. TIME & PAYMENT
-                    SigningDate = contract.StartDate.DateTime,
-                    ExpiryDate = contract.EndDate.DateTime,
+                    SigningDate = contract.SigningDate.DateTime,
+                    ExpiryDate = contract.CompletionDate.DateTime,
                     PaymentTerm = contract.ScheduleType?.ToString(),
 
                     // 5. CONTRACT VALUE
@@ -3063,11 +3069,11 @@ public partial class ContractService(
                     && (!partnerId.HasValue || c.PartnerId == partnerId.Value)
                     && (string.IsNullOrWhiteSpace(normalizedPartnerName)
                         || (c.Partner != null && c.Partner.Name.ToLower().Contains(normalizedPartnerName.ToLower())))
-                    && (!startDateFrom.HasValue || c.StartDate >= startDateFrom.Value)
-                    && (!startDateTo.HasValue || c.StartDate <= startDateTo.Value)
-                    && (!endDateFrom.HasValue || c.EndDate >= endDateFrom.Value)
-                    && (!endDateTo.HasValue || c.EndDate <= endDateTo.Value)
-                    && (!endDate.HasValue || c.EndDate.Date == endDate.Value.Date)
+                    && (!startDateFrom.HasValue || c.EffectiveDate >= startDateFrom.Value)
+                    && (!startDateTo.HasValue || c.EffectiveDate <= startDateTo.Value)
+                    && (!endDateFrom.HasValue || c.CompletionDate >= endDateFrom.Value)
+                    && (!endDateTo.HasValue || c.CompletionDate <= endDateTo.Value)
+                    && (!endDate.HasValue || c.CompletionDate.Date == endDate.Value.Date)
                     && (!isAutoLiquidated.HasValue || c.IsAutoLiquidated == isAutoLiquidated.Value)
                     && (!isLiquidated.HasValue || (c.Status == ContractStatus.Liquidated) == isLiquidated.Value),
                 include: c => c
@@ -3079,7 +3085,7 @@ public partial class ContractService(
                 disableTracking: true);
 
             var reportsByYear = contracts
-                .GroupBy(contract => contract.StartDate.Year)
+                .GroupBy(contract => contract.EffectiveDate.Year)
                 .OrderBy(group => group.Key)
                 .Select(group => new ContractMaterialUnitPriceReportByYearDto
                 {

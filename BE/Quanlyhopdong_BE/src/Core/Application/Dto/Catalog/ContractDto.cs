@@ -37,9 +37,10 @@ public class ShortContractDto
     public decimal? ContractValue { get; set; }
     public decimal? VatPercentage { get; set; }
     public decimal? VatAmount { get; set; }
-    public decimal? ContractValueAfterVat { get; set; }
-    public DateTimeOffset? StartDate { get; set; }
-    public DateTimeOffset? EndDate { get; set; }
+    public DateTimeOffset? SigningDate { get; set; }
+    public DateTimeOffset? EffectiveDate { get; set; }
+    public DateTimeOffset? CompletionDate { get; set; }
+    public DateTimeOffset? WarrantyExpirationDate { get; set; }
     public string Status { get; set; }
     public string? SubStatus { get; set; }
     public string? FilePath { get; set; }
@@ -89,10 +90,11 @@ public class ContractDto
     public string DepartmentName { get; set; }
     public decimal? ContractValue { get; set; }
     public decimal? VatPercentage { get; set; }
-    public decimal? VatAmount { get; set; }
     public decimal? ContractValueAfterVat { get; set; }
-    public DateTimeOffset? StartDate { get; set; }
-    public DateTimeOffset? EndDate { get; set; }
+    public DateTimeOffset? SigningDate { get; set; }
+    public DateTimeOffset? EffectiveDate { get; set; }
+    public DateTimeOffset? CompletionDate { get; set; }
+    public DateTimeOffset? WarrantyExpirationDate { get; set; }
     public string Status { get; set; }
     public string? SubStatus { get; set; }
     public string? ContractName { get; set; }
@@ -157,8 +159,10 @@ public class CreateContractDto
     public Guid DepartmentId { get; set; }
     public decimal? ContractValue { get; set; }
     public decimal? VatPercentage { get; set; }
-    public DateTimeOffset StartDate { get; set; }
-    public DateTimeOffset EndDate { get; set; }
+    public DateTimeOffset SigningDate { get; set; }
+    public DateTimeOffset EffectiveDate { get; set; }
+    public DateTimeOffset CompletionDate { get; set; }
+    public DateTimeOffset? WarrantyExpirationDate { get; set; }
     public string? Notes { get; set; }
     public string ContractFilePath { get; set; }
 
@@ -194,8 +198,10 @@ public class UpdateContractDto
     public Guid DepartmentId { get; set; }
     public decimal? ContractValue { get; set; }
     public decimal? VatPercentage { get; set; }
-    public DateTimeOffset StartDate { get; set; }
-    public DateTimeOffset EndDate { get; set; }
+    public DateTimeOffset SigningDate { get; set; }
+    public DateTimeOffset EffectiveDate { get; set; }
+    public DateTimeOffset CompletionDate { get; set; }
+    public DateTimeOffset? WarrantyExpirationDate { get; set; }
     public string? Notes { get; set; }
     public string ContractFilePath { get; set; }
 
@@ -395,8 +401,10 @@ public class PrepareExtensionDto
     public decimal? ContractValueAfterVat { get; set; }
     
     // Ngày cũ - chỉ để tham khảo, user phải chọn ngày mới
-    public DateTimeOffset OriginalStartDate { get; set; }
-    public DateTimeOffset OriginalEndDate { get; set; }
+    public DateTimeOffset OriginalSigningDate { get; set; }
+    public DateTimeOffset OriginalEffectiveDate { get; set; }
+    public DateTimeOffset OriginalCompletionDate { get; set; }
+    public DateTimeOffset? OriginalWarrantyExpirationDate { get; set; }
     
     public string? Notes { get; set; }
     public Domain.Common.Enums.ValueType DiscountType { get; set; }

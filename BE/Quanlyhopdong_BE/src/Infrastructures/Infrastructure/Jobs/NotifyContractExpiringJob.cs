@@ -1,4 +1,4 @@
-﻿using Application.Common.Repositories;
+using Application.Common.Repositories;
 using Application.Common.UnitOfWork;
 using Application.Interfaces.Services.Catalog;
 using Domain.Common.Enums;
@@ -43,7 +43,7 @@ public class NotifyContractExpiringJob(
 
             // 3. Lấy danh sách hợp đồng sắp hết hạn
             var expiringContracts = await _contractRepo.GetAllAsync(
-                predicate: c => c.EndDate.Date == targetDate && c.Status == ContractStatus.Active,
+                predicate: c => c.CompletionDate.Date == targetDate && c.Status == ContractStatus.Active,
                 disableTracking: true);
 
             logger.LogInformation($"Found {expiringContracts.Count} contracts expiring on {targetDate}");

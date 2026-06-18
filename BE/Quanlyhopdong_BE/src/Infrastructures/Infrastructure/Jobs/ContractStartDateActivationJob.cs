@@ -31,7 +31,7 @@ public class ContractStartDateActivationJob(
             var contractsToActivate = await _contractRepo.GetAllAsync(
                 predicate: c => c.Status == ContractStatus.Active
                                 && c.SubStatus == ContractSubStatus.NotStarted
-                                && c.StartDate.Date <= today,
+                                && c.EffectiveDate.Date <= today,
                 disableTracking: false);
 
             logger.LogInformation("Found {Count} contracts to activate by start date", contractsToActivate.Count);

@@ -1,4 +1,4 @@
-﻿namespace Shared.Constants;
+namespace Shared.Constants;
 
 public static class CustomResponseMessage
 {
@@ -39,6 +39,7 @@ public static class CustomResponseMessage
     public const string MaterialCodeAlreadyExists = "MATERIAL_CODE_ALREADY_EXISTS";
     public const string MaterialNotFound = "MATERIAL_NOT_FOUND";
     public const string StartDateMustBeEarlierThanEndDate = "START_DATE_MUST_BE_EARLIER_THAN_END_DATE";
+    public const string EffectiveDateMustBeEarlierThanCompletionDate = "EFFECTIVE_DATE_MUST_BE_EARLIER_THAN_COMPLETION_DATE";
     public const string UnsupportedCostType = "UNSUPPORTED_COST_TYPE";
     public const string CostsCannotBeEmpty = "COSTS_CANNOT_BE_EMPTY";
     public const string ProcessGroupIdCannotBeEmpty = "PROCESS_GROUP_ID_CANNOT_BE_EMPTY";

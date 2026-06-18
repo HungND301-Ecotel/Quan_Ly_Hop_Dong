@@ -1,4 +1,4 @@
-﻿using Application.Common.Interfaces;
+using Application.Common.Interfaces;
 using Application.Common.Repositories;
 using Application.Common.UnitOfWork;
 using Application.Dto.Catalog.Notification;
@@ -242,7 +242,7 @@ public class NotificationService(IUnitOfWork unitOfWork, ICurrentUser currentUse
         var listNotification = new List<Notification>();
         foreach (var userId in userIds)
         {
-            var notification = Notification.Create(userId, $"Hợp đồng sắp hết hạn (còn {daysBefore} ngày)", $"Hợp đồng {contract.ContractNumber} - {contractTitle} sắp hết hiệu lực vào {contract.EndDate:dd/MM/yyyy}", NotificationType.ContractExpiring, "Contract", contractId, NotificationPriority.Normal, false);
+            var notification = Notification.Create(userId, $"Hợp đồng sắp hết hạn (còn {daysBefore} ngày)", $"Hợp đồng {contract.ContractNumber} - {contractTitle} sắp hết hiệu lực vào {contract.CompletionDate:dd/MM/yyyy}", NotificationType.ContractExpiring, "Contract", contractId, NotificationPriority.Normal, false);
             listNotification.Add(notification);
         }
         await _notificationRepo.InsertAsync(listNotification);
