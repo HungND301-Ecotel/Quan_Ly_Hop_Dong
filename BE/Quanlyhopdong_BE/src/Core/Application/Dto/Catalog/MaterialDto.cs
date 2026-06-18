@@ -4,6 +4,7 @@ public class MaterialDto
 {
     public Guid Id { get; set; }
     public bool IsOtherMaterial { get; set; } = false;
+    public bool IsSynced { get; set; } = false;
     public string MaterialCode { get; set; }
     public string Name { get; set; }
     public Guid? MaterialGroupId { get; set; }

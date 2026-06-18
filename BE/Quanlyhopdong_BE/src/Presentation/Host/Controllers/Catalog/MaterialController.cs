@@ -1,4 +1,4 @@
-﻿using Application.Catalog.Material.Commands;
+using Application.Catalog.Material.Commands;
 using Application.Catalog.Material.Queries;
 using Application.Dto.Catalog;
 using Host.Controllers.Base;
@@ -10,9 +10,13 @@ namespace Host.Controllers.Catalog;
 public class MaterialController : BaseAuthController
 {
     [HttpGet]
-    public async Task<IActionResult> GetAllMaterialAsync([FromQuery] bool IsOtherMaterial = false)
+    public async Task<IActionResult> GetAllMaterialAsync(
+        [FromQuery] bool IsOtherMaterial = false,
+        [FromQuery] int? pageNumber = null,
+        [FromQuery] int? pageSize = null,
+        [FromQuery] string? keyword = null)
     {
-        var result = await Mediator.Send(new GetAllMaterialQuery(IsOtherMaterial));
+        var result = await Mediator.Send(new GetAllMaterialQuery(IsOtherMaterial, pageNumber, pageSize, keyword));
         return Ok(result, MessageCommon.GetDataSuccess);
     }
 

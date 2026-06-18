@@ -21,10 +21,17 @@ export type UseDataTableReturn<TData> = ReturnType<typeof useDataTable<TData>>;
 export type UseDataTableProps<TData> = {
   keys: string[];
   columns: ColumnDef<TData>[];
-  service: () => Promise<TData[] | undefined> | TData[] | undefined;
+  service: () => Promise<any> | any;
   form?: UseFormReturn;
   meta?: Record<string, any>;
   data?: TData[];
+  pagination?: {
+    pageIndex: number;
+    pageSize: number;
+    onPageChange: (pageIndex: number) => void;
+    onPageSizeChange: (pageSize: number) => void;
+    onKeywordChange?: (keyword: string) => void;
+  };
 };
 
 export function useDataTable<TData>({
@@ -34,6 +41,7 @@ export function useDataTable<TData>({
   form,
   meta,
   data: dataProp,
+  pagination,
 }: UseDataTableProps<TData>) {
   const [globalFilter, setGlobalFilter] = useState('');
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -51,10 +59,29 @@ export function useDataTable<TData>({
     queryFn: service,
   });
 
-  const data = useMemo(
-    () => dataProp || queryData || [],
-    [dataProp, queryData]
-  );
+  const data = useMemo<TData[]>(() => {
+    if (dataProp) return dataProp;
+    if (!queryData) return [];
+    if (Array.isArray(queryData)) return queryData as TData[];
+    if (queryData && typeof queryData === 'object' && Array.isArray((queryData as any).data)) {
+      return (queryData as any).data as TData[];
+    }
+    return [];
+  }, [dataProp, queryData]);
+
+  const pageCount = useMemo(() => {
+    if (queryData && typeof queryData === 'object' && 'totalPages' in queryData) {
+      return (queryData as any).totalPages;
+    }
+    return 0;
+  }, [queryData]);
+
+  const totalCount = useMemo(() => {
+    if (queryData && typeof queryData === 'object' && 'totalCount' in queryData) {
+      return (queryData as any).totalCount;
+    }
+    return data.length;
+  }, [queryData, data]);
 
   const columnVisibility = columns.reduce(
     (acc, col) => {
@@ -72,6 +99,16 @@ export function useDataTable<TData>({
     await refetch();
   }, [refetch]);
 
+  const paginationState = useMemo(() => {
+    if (pagination) {
+      return {
+        pageIndex: pagination.pageIndex,
+        pageSize: pagination.pageSize,
+      };
+    }
+    return undefined;
+  }, [pagination]);
+
   const table = useReactTable({
     data,
     columns,
@@ -79,11 +116,33 @@ export function useDataTable<TData>({
     autoResetExpanded: false,
     autoResetAll: false,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: pagination ? undefined : getPaginationRowModel(),
+    getFilteredRowModel: pagination?.onKeywordChange ? undefined : getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
     globalFilterFn: 'includesString',
-    onGlobalFilterChange: setGlobalFilter,
+    onGlobalFilterChange: (updater) => {
+      const nextFilter = typeof updater === 'function' ? updater(globalFilter) : updater;
+      setGlobalFilter(nextFilter);
+      if (pagination?.onKeywordChange) {
+        pagination.onKeywordChange(nextFilter);
+      }
+    },
+    manualPagination: !!pagination,
+    pageCount: pagination ? pageCount : undefined,
+    manualFiltering: !!pagination?.onKeywordChange,
+    onPaginationChange: (updater) => {
+      if (pagination) {
+        const nextState = typeof updater === 'function' 
+          ? updater({ pageIndex: pagination.pageIndex, pageSize: pagination.pageSize })
+          : updater;
+        if (nextState.pageIndex !== pagination.pageIndex) {
+          pagination.onPageChange(nextState.pageIndex);
+        }
+        if (nextState.pageSize !== pagination.pageSize) {
+          pagination.onPageSizeChange(nextState.pageSize);
+        }
+      }
+    },
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onRowSelectionChange: setRowSelection,
@@ -119,6 +178,7 @@ export function useDataTable<TData>({
       rowSelection,
       columnVisibility,
       expanded,
+      ...(paginationState && { pagination: paginationState }),
     },
     meta: {
       refresh,
@@ -126,6 +186,7 @@ export function useDataTable<TData>({
       isEdit,
       setIsEdit,
       form,
+      totalCount: pagination ? totalCount : data.length,
       ...meta,
     },
   });

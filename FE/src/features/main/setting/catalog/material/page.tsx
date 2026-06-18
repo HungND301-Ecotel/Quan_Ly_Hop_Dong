@@ -23,7 +23,8 @@ import { Database, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
 import { useExternalSyncConnections } from '@/hooks/useExternalSyncConnections';
-// import { ExternalSyncConnection } from '@/services/server';
+import { EditMaterialAction } from './edit/page';
+import { MaterialDelete } from './delete/page';
 
 export function MaterialManagementPage() {
   const { setAction } = useMainLayoutContext();
@@ -33,6 +34,10 @@ export function MaterialManagementPage() {
 
   const { connections, loading: loadingConnections, loadConnections } =
     useExternalSyncConnections();
+
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [keyword, setKeyword] = useState('');
 
   // Load danh sách kết nối khi mở modal chọn
   useEffect(() => {
@@ -45,7 +50,7 @@ export function MaterialManagementPage() {
     setShowConnectionPicker(true);
   };
 
-  const handleSelectConnection = async () => {
+  const handleSelectConnection = async (connectionId: string) => {
     setShowConnectionPicker(false);
     setSyncing(true);
     setProgress(0);
@@ -61,12 +66,13 @@ export function MaterialManagementPage() {
     }, 300);
 
     try {
-      await materialService.syncMaterial(); // truyền id kết nối nếu API cần
+      await materialService.syncMaterial({ sourceConnectionId: connectionId });
       clearInterval(interval);
       setProgress(100);
       setTimeout(() => {
         setSyncing(false);
         toast.success('Đồng bộ thành công');
+        dataTable.refresh(); // Refresh table after sync
       }, 500);
     } catch {
       clearInterval(interval);
@@ -76,9 +82,24 @@ export function MaterialManagementPage() {
   };
 
   const dataTable = useDataTable({
-    keys: ['material'],
-    service: materialService.getMaterialList,
+    keys: ['material', String(pageIndex), String(pageSize), keyword],
+    service: () =>
+      materialService.getMaterialList({
+        pageNumber: pageIndex + 1,
+        pageSize: pageSize,
+        keyword: keyword || undefined,
+      }),
     columns: MATERIAL_COLUMNS,
+    pagination: {
+      pageIndex,
+      pageSize,
+      onPageChange: setPageIndex,
+      onPageSizeChange: setPageSize,
+      onKeywordChange: (kw) => {
+        setKeyword(kw);
+        setPageIndex(0); // Reset page index when searching
+      },
+    },
   });
 
   useEffect(() => {
@@ -122,7 +143,7 @@ export function MaterialManagementPage() {
               connections.map((conn) => (
                 <button
                   key={conn.id}
-                  onClick={() => handleSelectConnection()}
+                  onClick={() => conn.id && handleSelectConnection(conn.id)}
                   disabled={!conn.isActive}
                   className="w-full text-left p-4 rounded-lg border hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -145,9 +166,9 @@ export function MaterialManagementPage() {
                     </div>
                     <span
                       className={`px-2.5 py-1 text-xs rounded-full font-semibold ${conn.isActive
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-500'
-                        }`}
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-gray-100 text-gray-500'
+                      }`}
                     >
                       {conn.isActive ? 'Hoạt động' : 'Không hoạt động'}
                     </span>
@@ -180,6 +201,8 @@ export function MaterialManagementPage() {
       {/* Table */}
       <DataTable dataTable={dataTable}>
         <DataTableHeader>
+          <MaterialDelete table={dataTable.table} />
+          <EditMaterialAction table={dataTable.table} />
           <DataTableSearch />
         </DataTableHeader>
         <DataTableContent />

@@ -20,6 +20,7 @@ import { api } from '@/lib/api';
 import { format } from '@/lib/format';
 import { contractProgressService } from '@/services/contract-progress';
 import {
+  ContractItem,
   ContractProgressDetail,
   WorkInProgress,
   YearlySummary,
@@ -644,7 +645,7 @@ function ProgressItemTable({
     }
   };
 
-  const progressItemTable = useDataTable({
+  const progressItemTable = useDataTable<ContractItem>({
     keys: ['progress-item', contractId, contractProgressId],
     service: async () => {
       const detail = await getContractProgressDetail(contractId);

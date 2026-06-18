@@ -25,7 +25,8 @@ export function MaterialDelete({ row, table }: DataTableEvent<Material>) {
 
   const selectedIds = table
     .getSelectedRowModel()
-    .rows.map((row) => row.original.id);
+    .rows.filter((row) => !row.original.isSynced)
+    .map((row) => row.original.id);
 
   const idsToDelete = row ? [row.original.id] : selectedIds;
   const isBulk = !row;

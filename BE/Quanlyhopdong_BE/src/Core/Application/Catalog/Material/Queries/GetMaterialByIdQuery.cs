@@ -19,6 +19,7 @@ public class GetMaterialByIdQueryHandler(IUnitOfWork unitOfWork) : IRequestHandl
                    {
                        Id = m.Id,
                        IsOtherMaterial = m.IsOtherMaterial,
+                       IsSynced = m.IsSynced,
                        MaterialCode = m.MaterialCode,
                        Name = m.Name,
                        MaterialGroupId = m.MaterialGroupId,
