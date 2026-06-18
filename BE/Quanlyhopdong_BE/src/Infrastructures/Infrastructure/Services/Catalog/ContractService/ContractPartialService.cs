@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Json;
+using System.Net.Http.Json;
 using Application.Common.Exceptions;
 using Application.Dto.Catalog;
 using Application.Dto.Cloud.AWS;
@@ -71,12 +71,21 @@ public partial class ContractService
             filePath = contract.SignedFilePath;
         }
 
-        var awsFileDownloadPath = await awsS3Service.GetPresignedDownloadUrl(filePath, Application.Dto.Cloud.AWS.BucketType.SourceDefault);
-
         if (string.IsNullOrEmpty(filePath))
         {
             throw new NotFoundException("Không tìm thấy file hợp đồng");
         }
+
+        var filePaths = filePath.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        if (filePaths.Length == 0)
+        {
+            throw new NotFoundException("Không tìm thấy file hợp đồng");
+        }
+
+        // We sign the first file path
+        string mainFilePath = filePaths[0];
+
+        var awsFileDownloadPath = await awsS3Service.GetPresignedDownloadUrl(mainFilePath, Application.Dto.Cloud.AWS.BucketType.SourceDefault);
 
         var pdfBytes = await fileStorageService.GetFileBytesFromPresignedUrlAsync(awsFileDownloadPath);
 
@@ -117,8 +126,12 @@ public partial class ContractService
         var signedFilePath = await SaveSignedPdfAsync(signedPdfBytes, contract.ContractNumber, userId);
 
 
+        // Update the list of paths
+        filePaths[0] = signedFilePath;
+        var newSignedFilePath = string.Join(";", filePaths);
+
         // 6. Update contract
-        contract.SetSignedFilePath($"{signedFilePath}");
+        contract.SetSignedFilePath(newSignedFilePath);
         _contractRepo.Update(contract);
 
         // 7. Update flow

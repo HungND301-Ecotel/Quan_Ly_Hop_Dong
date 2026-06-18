@@ -1,7 +1,6 @@
 import { Form } from '@/components/form/form';
 import { FormDate } from '@/components/form/form-date';
 import { FormDates } from '@/components/form/form-dates';
-import { FormFile } from '@/components/form/form-file';
 import { FormFiles } from '@/components/form/form-files';
 import {
   FormGroup,
@@ -489,14 +488,15 @@ export function ContractBasicInformationForm() {
       };
     };
 
+    const filePaths = contract.filePath ? contract.filePath.split(';').filter(Boolean) : [];
+    const attachmentPaths = contract.attachments?.map((attachment) => attachment.filePath) || [];
+
     const promises = Promise.all([
-      fileService.getFile(contract.filePath),
-      ...(contract.attachments?.map((attachment) =>
-        fileService.getFile(attachment.filePath)
-      ) || []),
+      Promise.all(filePaths.map((path) => fileService.getFile(path))),
+      Promise.all(attachmentPaths.map((path) => fileService.getFile(path))),
     ]);
 
-    promises.then(([file, ...attachments]) => {
+    promises.then(([files, attachments]) => {
       console.log('contract.paymentSchedules:', contract.paymentSchedules);
       isResettingForm.current = true;
       if (contract.level1CodeId) {
@@ -521,7 +521,7 @@ export function ContractBasicInformationForm() {
         partnerId: contract.partnerId,
         startDate: contract.startDate.slice(0, 10),
         endDate: contract.endDate.slice(0, 10),
-        contractFile: file,
+        contractFile: files,
         attachmentFiles: attachments.length > 0 ? attachments : null,
         discountType: contract.discountType,
         discountValue: contract.discountValue,
@@ -1838,12 +1838,12 @@ export function ContractBasicInformationForm() {
           </FormGroupHeader>
           <FormGroupContent>
             <FormRow className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <FormFile
+              <FormFiles
+                accept='.pdf'
                 control={form.control}
                 name='contractFile'
                 label='File hợp đồng'
                 placeholder='Chọn file hợp đồng (Chỉ PDF)'
-                accept='.pdf'
               />
 
               <FormFiles

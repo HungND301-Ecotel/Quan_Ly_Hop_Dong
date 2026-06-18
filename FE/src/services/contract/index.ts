@@ -41,12 +41,18 @@ async function createContract(body: unknown) {
 }
 
 async function uploadContract(body: {
-  contractFile: File;
+  contractFile: File | File[];
   contractNumber: string;
 }) {
   const contractUploadReq = new FormData();
 
-  contractUploadReq.append('ContractFile', body.contractFile);
+  if (Array.isArray(body.contractFile)) {
+    body.contractFile.forEach((file) => {
+      contractUploadReq.append('ContractFile', file);
+    });
+  } else {
+    contractUploadReq.append('ContractFile', body.contractFile);
+  }
 
   contractUploadReq.append('ContractNumber', body.contractNumber);
 

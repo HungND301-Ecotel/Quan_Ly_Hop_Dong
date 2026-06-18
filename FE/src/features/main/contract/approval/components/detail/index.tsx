@@ -153,13 +153,14 @@ export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
               <ContractDocuments
                 loading={detail.loading}
                 documents={[
-                  {
-                    name: detail.data?.contractName || '',
-                    url:
-                      detail.data?.signedFilePath ||
-                      detail.data?.filePath ||
-                      '',
-                  },
+                  ...(() => {
+                    const contractUrls = (detail.data?.signedFilePath || detail.data?.filePath || '').split(';').filter(Boolean);
+                    const contractNames = (detail.data?.contractName || '').split(';').filter(Boolean);
+                    return contractUrls.map((url, i) => ({
+                      name: contractNames[i] || `File hợp đồng ${i + 1}`,
+                      url,
+                    }));
+                  })(),
                   ...(detail.data?.attachments || []).map((attachment) => ({
                     name: attachment.fileName,
                     url: attachment.filePath,
