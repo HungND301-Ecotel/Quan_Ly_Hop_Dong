@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using Domain.Common.Contracts;
 
 namespace Domain.Entities.Catalog;
@@ -28,4 +28,12 @@ public class ContractAttachment : AuditableEntity<Guid>
             Description = description
         };
     }
+
+    public void UpdateSignedAttachment(string filePath, string fileName)
+    {
+        FilePath = filePath;
+        FileName = fileName;
+        FileType = ".pdf";
+    }
 }
+
