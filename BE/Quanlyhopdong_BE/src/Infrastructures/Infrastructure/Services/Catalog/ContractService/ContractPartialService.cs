@@ -82,60 +82,159 @@ public partial class ContractService
             throw new NotFoundException("Không tìm thấy file hợp đồng");
         }
 
-        // We sign the first file path
-        string mainFilePath = filePaths[0];
-
-        var awsFileDownloadPath = await awsS3Service.GetPresignedDownloadUrl(mainFilePath, Application.Dto.Cloud.AWS.BucketType.SourceDefault);
-
-        var pdfBytes = await fileStorageService.GetFileBytesFromPresignedUrlAsync(awsFileDownloadPath);
-
         var x = (float)(flow.PositionX ?? 100);
         var y = (float)(flow.PositionY ?? 100);
         var width = (float)(flow.Width ?? DEFAULT_WIDTH);
         var height = (float)(flow.Height ?? DEFAULT_HEIGHT);
         var pageNumber = flow.PageNumber ?? 1;
-
-        // 4. Sign based on type
-        byte[] signedPdfBytes;
-        string signatureHash;
         var signatureType = flow.SignatureType;
 
-        switch (signatureType)
+        var signedFilePaths = new List<string>();
+        string mainSignedFilePath = "";
+        string lastSignatureHash = "";
+
+        // 1. Sign main contract files
+        for (int i = 0; i < filePaths.Length; i++)
         {
-            case SignatureType.Handwritten:
-            case SignatureType.Normal:
-                // Cả 2 đều yêu cầu userSignatureId
-                if (!userSignatureId.HasValue)
+            string currentPath = filePaths[i];
+            if (currentPath.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            {
+                // Download from S3
+                var awsFileDownloadPath = await awsS3Service.GetPresignedDownloadUrl(currentPath, Application.Dto.Cloud.AWS.BucketType.SourceDefault);
+                var pdfBytes = await fileStorageService.GetFileBytesFromPresignedUrlAsync(awsFileDownloadPath);
+
+                // Adjust page count
+                int adjustedPageNumber = pageNumber;
+                try
                 {
-                    throw new ConflictException("Vui lòng chọn chữ ký trong profile của bạn");
+                    using var tempMs = new MemoryStream(pdfBytes);
+                    using var tempReader = new PdfReader(tempMs);
+                    using var tempPdfDoc = new PdfDocument(tempReader);
+                    int totalPages = tempPdfDoc.GetNumberOfPages();
+                    if (adjustedPageNumber > totalPages)
+                    {
+                        adjustedPageNumber = totalPages;
+                    }
+                    if (adjustedPageNumber < 1)
+                    {
+                        adjustedPageNumber = 1;
+                    }
+                }
+                catch
+                {
+                    // Fallback
                 }
 
-                (signedPdfBytes, signatureHash) = await SignWithImageAsync(
-                    pdfBytes, (Guid)userSignatureId, userId, x, y, width, height, pageNumber);
-                break;
+                // Sign the PDF
+                byte[] signedPdfBytes;
+                string signatureHash;
+                if (signatureType == SignatureType.Digital)
+                {
+                    (signedPdfBytes, signatureHash) = await SignWithDigitalCAAsync(
+                        pdfBytes, certificateUuid, pin, userId, x, y, width, height, adjustedPageNumber);
+                }
+                else
+                {
+                    if (!userSignatureId.HasValue)
+                    {
+                        throw new ConflictException("Vui lòng chọn chữ ký trong profile của bạn");
+                    }
+                    (signedPdfBytes, signatureHash) = await SignWithImageAsync(
+                        pdfBytes, (Guid)userSignatureId, userId, x, y, width, height, adjustedPageNumber);
+                }
 
-            case SignatureType.Digital:
-                (signedPdfBytes, signatureHash) = await SignWithDigitalCAAsync(
-                    pdfBytes, certificateUuid, pin, userId, x, y, width, height, pageNumber);
-                break;
+                // Save signed file
+                string originalFileName = System.IO.Path.GetFileName(currentPath);
+                var signedFilePath = await SaveSignedPdfAsync(signedPdfBytes, contract.ContractNumber, originalFileName, userId);
+                signedFilePaths.Add(signedFilePath);
 
-            default:
-                throw new BadRequestException("Loại chữ ký không hợp lệ");
+                if (i == 0)
+                {
+                    mainSignedFilePath = signedFilePath;
+                }
+                lastSignatureHash = signatureHash;
+            }
+            else
+            {
+                // Keep non-PDF as they are
+                signedFilePaths.Add(currentPath);
+            }
         }
 
-        var signedFilePath = await SaveSignedPdfAsync(signedPdfBytes, contract.ContractNumber, userId);
+        var newSignedFilePath = string.Join(";", signedFilePaths);
 
+        // 2. Sign attachments
+        var attachments = await _contractAttachmentRepo.GetAllAsync(predicate: a => a.ContractId == contract.Id, disableTracking: false);
+        foreach (var attachment in attachments)
+        {
+            if (attachment.FilePath.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) || 
+                (attachment.FileType != null && attachment.FileType.Equals(".pdf", StringComparison.OrdinalIgnoreCase)))
+            {
+                // Download from S3
+                var awsFileDownloadPath = await awsS3Service.GetPresignedDownloadUrl(attachment.FilePath, Application.Dto.Cloud.AWS.BucketType.SourceDefault);
+                var pdfBytes = await fileStorageService.GetFileBytesFromPresignedUrlAsync(awsFileDownloadPath);
 
-        // Update the list of paths
-        filePaths[0] = signedFilePath;
-        var newSignedFilePath = string.Join(";", filePaths);
+                // Adjust page count
+                int adjustedPageNumber = pageNumber;
+                try
+                {
+                    using var tempMs = new MemoryStream(pdfBytes);
+                    using var tempReader = new PdfReader(tempMs);
+                    using var tempPdfDoc = new PdfDocument(tempReader);
+                    int totalPages = tempPdfDoc.GetNumberOfPages();
+                    if (adjustedPageNumber > totalPages)
+                    {
+                        adjustedPageNumber = totalPages;
+                    }
+                    if (adjustedPageNumber < 1)
+                    {
+                        adjustedPageNumber = 1;
+                    }
+                }
+                catch
+                {
+                    // Fallback
+                }
+
+                // Sign the PDF
+                byte[] signedPdfBytes;
+                string signatureHash;
+                if (signatureType == SignatureType.Digital)
+                {
+                    (signedPdfBytes, signatureHash) = await SignWithDigitalCAAsync(
+                        pdfBytes, certificateUuid, pin, userId, x, y, width, height, adjustedPageNumber);
+                }
+                else
+                {
+                    if (!userSignatureId.HasValue)
+                    {
+                        throw new ConflictException("Vui lòng chọn chữ ký trong profile của bạn");
+                    }
+                    (signedPdfBytes, signatureHash) = await SignWithImageAsync(
+                        pdfBytes, (Guid)userSignatureId, userId, x, y, width, height, adjustedPageNumber);
+                }
+
+                // Save signed file
+                var signedFilePath = await SaveSignedPdfAsync(signedPdfBytes, contract.ContractNumber, attachment.FileName, userId);
+
+                // Update attachment entity path & name
+                string newFileName = attachment.FileName;
+                if (!newFileName.EndsWith("_signed.pdf", StringComparison.OrdinalIgnoreCase))
+                {
+                    string baseName = System.IO.Path.GetFileNameWithoutExtension(newFileName);
+                    newFileName = $"{baseName}_signed.pdf";
+                }
+                attachment.UpdateSignedAttachment(signedFilePath, newFileName);
+                _contractAttachmentRepo.Update(attachment);
+            }
+        }
 
         // 6. Update contract
         contract.SetSignedFilePath(newSignedFilePath);
         _contractRepo.Update(contract);
 
         // 7. Update flow
-        flow.Sign(signedFilePath, signatureHash);
+        flow.Sign(mainSignedFilePath, lastSignatureHash);
         _contractSigningFlowRepo.Update(flow);
 
         // 8. Create signing history
@@ -149,8 +248,8 @@ public partial class ContractService
         {
             Success = true,
             Message = "Ký hợp đồng thành công",
-            SignedFilePath = signedFilePath,
-            SignatureHash = signatureHash,
+            SignedFilePath = mainSignedFilePath,
+            SignatureHash = lastSignatureHash,
             SignedAt = DateTime.UtcNow
         };
     }
@@ -536,9 +635,20 @@ public partial class ContractService
                bytes[3] == 0x46;   // F
     }
 
-    private async Task<string> SaveSignedPdfAsync(byte[] pdfBytes, string contractNumber, Guid userId)
+    private async Task<string> SaveSignedPdfAsync(byte[] pdfBytes, string contractNumber, string originalFileName, Guid userId)
     {
-        var fileName = $"{contractNumber}_signed.pdf";
+        string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(originalFileName);
+        // Clean originalFileName if it contains folder structures
+        if (fileNameWithoutExtension.Contains("/"))
+        {
+            fileNameWithoutExtension = fileNameWithoutExtension.Substring(fileNameWithoutExtension.LastIndexOf("/") + 1);
+        }
+        if (fileNameWithoutExtension.Contains("\\"))
+        {
+            fileNameWithoutExtension = fileNameWithoutExtension.Substring(fileNameWithoutExtension.LastIndexOf("\\") + 1);
+        }
+
+        var fileName = $"{fileNameWithoutExtension}_signed.pdf";
 
         var inputModel = new AwsInputModel
         {
