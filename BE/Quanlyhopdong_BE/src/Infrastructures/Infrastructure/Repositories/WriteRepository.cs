@@ -370,10 +370,14 @@ public class WriteRepository<TEntity> : RepositoryBase<TEntity>, IWriteRepositor
 
         if (orderBy != null)
         {
-            return await orderBy(query).Select(selector).ToListAsync(cancellationToken);
+            query = orderBy(query);
         }
 
-        return await query.Select(selector).ToListAsync(cancellationToken);
+        return await query
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .Select(selector)
+            .ToListAsync(cancellationToken);
     }
 
     /// <summary>

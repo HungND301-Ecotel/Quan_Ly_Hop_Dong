@@ -1,3 +1,5 @@
+using Application.Catalog.MaterialGroup.Commands;
+using Application.Catalog.UnitOfMeasures.Commands;
 using Application.Common.Repositories;
 using Application.Common.UnitOfWork;
 using Application.Dto.Catalog;
@@ -10,7 +12,8 @@ public record class SyncMaterialCommand(Guid SourceConnectionId) : IRequest<Sync
 
 public class SyncMaterialCommandHandler(
     IUnitOfWork unitOfWork,
-    IMaterialSyncSourceService sourceService) : IRequestHandler<SyncMaterialCommand, SyncMaterialResultDto>
+    IMaterialSyncSourceService sourceService,
+    ISender mediator) : IRequestHandler<SyncMaterialCommand, SyncMaterialResultDto>
 {
     private readonly IWriteRepository<Domain.Entities.Category.Material> _materialRepo = unitOfWork.GetRepository<Domain.Entities.Category.Material>();
     private readonly IWriteRepository<Domain.Entities.Category.UnitOfMeasure> _unitOfMeasureRepo = unitOfWork.GetRepository<Domain.Entities.Category.UnitOfMeasure>();
@@ -18,6 +21,9 @@ public class SyncMaterialCommandHandler(
 
     public async Task<SyncMaterialResultDto> Handle(SyncMaterialCommand request, CancellationToken cancellationToken)
     {
+        await mediator.Send(new SyncUnitOfMeasureCommand(request.SourceConnectionId), cancellationToken);
+        await mediator.Send(new SyncMaterialGroupCommand(request.SourceConnectionId), cancellationToken);
+
         var sourceRows = await sourceService.GetMaterialsAsync(request.SourceConnectionId, cancellationToken);
 
         var sourceByCode = new Dictionary<string, ExternalMaterialSyncItemDto>(StringComparer.OrdinalIgnoreCase);
@@ -133,7 +139,8 @@ public class SyncMaterialCommandHandler(
                         source.Price,
                         source.IsOtherMaterial,
                         "",
-                        materialGroupId);
+                        materialGroupId,
+                        true);
 
                     _materialRepo.Update(existing);
                     updatedCount++;
@@ -149,7 +156,8 @@ public class SyncMaterialCommandHandler(
                 source.Price,
                 source.IsOtherMaterial,
                 "",
-                materialGroupId);
+                materialGroupId,
+                true);
 
             toCreate.Add(newMaterial);
             createdCount++;

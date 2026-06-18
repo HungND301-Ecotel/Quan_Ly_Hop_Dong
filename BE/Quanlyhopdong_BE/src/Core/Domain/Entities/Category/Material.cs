@@ -6,6 +6,7 @@ namespace Domain.Entities.Category;
 public class Material : AuditableEntity
 {
     public bool IsOtherMaterial { get; set; } = false;
+    public bool IsSynced { get; set; } = false;
     public string MaterialCode { get; protected set; } = string.Empty;
     public string Name { get; protected set; }
     public Guid? MaterialGroupId { get; protected set; }
@@ -20,7 +21,7 @@ public class Material : AuditableEntity
     public virtual IReadOnlyCollection<ContractItem> ContractItems => _contractItems.AsReadOnly();
 
     //Constructor
-    public static Material Create(string materialCode, string name, Guid? unitOfMeasureId, decimal? price, bool isOtherMaterial = false, string description = "", Guid? materialGroupId = null)
+    public static Material Create(string materialCode, string name, Guid? unitOfMeasureId, decimal? price, bool isOtherMaterial = false, string description = "", Guid? materialGroupId = null, bool isSynced = false)
     {
         if (price.HasValue && price.Value < 0)
         {
@@ -35,11 +36,12 @@ public class Material : AuditableEntity
             UnitOfMeasureId = unitOfMeasureId == Guid.Empty ? null : unitOfMeasureId,
             Description = description,
             Price = price,
-            IsOtherMaterial = isOtherMaterial
+            IsOtherMaterial = isOtherMaterial,
+            IsSynced = isSynced
         };
     }
 
-    public void Update(string materialCode, string name, Guid? unitOfMeasureId, decimal? price, bool isOtherMaterial = false, string description = "", Guid? materialGroupId = null)
+    public void Update(string materialCode, string name, Guid? unitOfMeasureId, decimal? price, bool isOtherMaterial = false, string description = "", Guid? materialGroupId = null, bool isSynced = false)
     {
         if (price.HasValue && price.Value < 0)
         {
@@ -53,5 +55,6 @@ public class Material : AuditableEntity
         UnitOfMeasureId = unitOfMeasureId == Guid.Empty ? null : unitOfMeasureId;
         Description = description;
         Price = price;
+        IsSynced = isSynced;
     }
 }

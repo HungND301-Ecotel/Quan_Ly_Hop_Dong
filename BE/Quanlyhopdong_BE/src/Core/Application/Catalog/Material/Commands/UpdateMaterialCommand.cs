@@ -1,4 +1,4 @@
-﻿using Application.Common.Exceptions;
+using Application.Common.Exceptions;
 using Application.Common.Repositories;
 using Application.Common.UnitOfWork;
 using Application.Dto.Catalog;
@@ -14,7 +14,7 @@ public class UpdateMaterialCommandHandler(IUnitOfWork _unitOfWork) : IRequestHan
     public async Task<bool> Handle(UpdateMaterialCommand request, CancellationToken cancellationToken)
     {
         var entity = await repo.GetFirstOrDefaultAsync(predicate: p => p.Id == request.UpdateModel.Id) ?? throw new BadRequestException("Invalid Id");
-        entity.Update(request.UpdateModel.MaterialCode, request.UpdateModel.Name, request.UpdateModel.UnitOfMeasureId, request.UpdateModel.Price, request.UpdateModel.IsOtherMaterial, "", request.UpdateModel.MaterialGroupId);
+        entity.Update(request.UpdateModel.MaterialCode, request.UpdateModel.Name, request.UpdateModel.UnitOfMeasureId, request.UpdateModel.Price, request.UpdateModel.IsOtherMaterial, "", request.UpdateModel.MaterialGroupId, entity.IsSynced);
         repo.Update(entity);
         await _unitOfWork.SaveChangesAsync();
         return true;

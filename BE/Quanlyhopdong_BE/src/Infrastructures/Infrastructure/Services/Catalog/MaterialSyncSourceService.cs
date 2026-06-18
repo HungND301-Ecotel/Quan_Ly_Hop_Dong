@@ -8,12 +8,12 @@ public class MaterialSyncSourceService(
     IExternalSyncConnectionResolver connectionResolver) : IMaterialSyncSourceService
 {
     private const string MaterialSelectQuery = @"
-SELECT
+SELECT TOP 1000
     dmvt.MA_VTHH AS MaterialCode,
     dmvt.TEN_VTHH AS Name,
     dmvt.MA_DVT AS UnitOfMeasureCode,
     dmvt.MA_NHOM_VTHH AS MaterialGroupCode,
-    dmvt.MA_DON_VI AS DonVi,       -- lấy từ DM_VTHH, đúng rồi
+    dmvt.MA_DON_VI AS DonVi,
     COALESCE((
         SELECT TOP 1 vc.GIA_GOC
         FROM dbo.VTHH_CT vc

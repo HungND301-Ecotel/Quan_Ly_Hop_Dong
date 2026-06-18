@@ -10,6 +10,7 @@ declare module '@tanstack/react-table' {
     isEdit?: boolean;
     setIsEdit?: (value: boolean) => void;
     form?: UseFormReturn;
+    totalCount?: number;
   }
 
   interface ColumnMeta<TData extends RowData, TValue> {

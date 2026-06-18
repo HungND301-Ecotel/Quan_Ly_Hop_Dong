@@ -6,6 +6,7 @@ export type Material = {
   unitOfMeasureName: string | null;
   price: number | null;
   isOtherMaterial?: boolean;
+  isSynced?: boolean;
 };
 
 export type CreateMaterialReq = {
