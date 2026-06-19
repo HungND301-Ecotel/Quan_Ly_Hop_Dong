@@ -49,6 +49,7 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
   }));
 
   useEffect(() => {
+    if (!open) return;
     const fetchData = async () => {
       try {
         const [posRes, bankRes] = await Promise.all([
@@ -62,7 +63,7 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
       }
     };
     fetchData();
-  }, []);
+  }, [open]);
 
   const onRefresh = () => {
     table.options.meta?.refresh();

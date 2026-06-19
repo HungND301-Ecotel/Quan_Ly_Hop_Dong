@@ -220,7 +220,7 @@ export function ContractSignPostionsForm() {
   const signBoxes = useMemo(() => {
     return watchedPositions
       .map((position, index) => ({ position, index })) // giữ index gốc
-      .filter(({ position }) => position.fileIndex === selectedFileIndex)
+      .filter(({ position }) => (position.fileIndex ?? 0) === selectedFileIndex)
       .map(({ position, index }) => { // index ở đây là index gốc trong watchedPositions
         const user = users.find((u) => u.id === position.userId);
         const signatureFile = user?.signatures.find(
@@ -253,7 +253,7 @@ export function ContractSignPostionsForm() {
   const availableSigners = useMemo(() => {
     const addedUserIds = new Set(
       watchedPositions
-        .filter((p) => p.fileIndex === selectedFileIndex) // chỉ check file đang xem
+        .filter((p) => (p.fileIndex ?? 0) === selectedFileIndex)
         .map((p) => p.userId)
     );
     return signersWithUsers.filter(

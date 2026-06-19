@@ -32,9 +32,12 @@ export function ContractAppendixDetail({
   const [open, setOpen] = useState(false);
 
   // Lấy danh sách Số hợp đồng cho FormSelect
-  const contractNumbers = useApi({
-    service: contractNumberService.getContractNumberList,
-  });
+  const contractNumbersService = useCallback(() => {
+    if (!open) return;
+    return contractNumberService.getContractNumberList();
+  }, [open]);
+
+  const contractNumbers = useApi({ service: contractNumbersService });
 
   const detailService = useCallback(() => {
     if (!row || !open) return;

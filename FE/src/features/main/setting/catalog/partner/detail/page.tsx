@@ -29,6 +29,7 @@ export function PartnerDetail({ row }: DataTableEvent<Partner>) {
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
 
   useEffect(() => {
+    if (!open) return;
     const fetchData = async () => {
       const [posRes, bankRes] = await Promise.all([
         positionService.getPositionList(),
@@ -38,7 +39,7 @@ export function PartnerDetail({ row }: DataTableEvent<Partner>) {
       setBankAccounts(bankRes || []);
     };
     fetchData();
-  }, []);
+  }, [open]);
 
   const detailService = useCallback(() => {
     if (!row || !open) return;

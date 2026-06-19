@@ -548,6 +548,12 @@ export function ContractBasicInformationForm() {
         contractRegisterId: contract.contractRegisterId,
         contractNumber: contract.contractNumber,
         appendixNumber: contract.appendixNumber,
+        contractNumberId: contractNumbers.find(
+          (f) => f.number === contract.contractNumber
+        )?.id ?? '',
+        appendixNumberId: contractAppendixs.find(
+          (f) => f.appendixNumber === contract.appendixNumber
+        )?.id ?? '',
         partnerId: contract.partnerId,
         signingDate: contract.signingDate ? contract.signingDate.slice(0, 10) : '',
         effectiveDate: contract.effectiveDate ? contract.effectiveDate.slice(0, 10) : '',
@@ -698,19 +704,33 @@ export function ContractBasicInformationForm() {
     'paymentSchedules.scheduleType'
   );
 
-  const watchedContractNumberId = form.watch('contractNumber');
   const watchedEffectiveDate = form.watch('effectiveDate');
   const watchedCompletionDurationDays = form.watch('completionDurationDays');
   const watchedCompletionDate = form.watch('completionDate');
   const watchedWarrantyDurationDays = form.watch('warrantyDurationDays');
+
+  const watchedContractNumberId = form.watch('contractNumberId');
+  const watchedAppendixNumberId = form.watch('appendixNumberId');
   const filteredAppendixs = contractAppendixs.filter(
     appendix => appendix.contractNumberId === watchedContractNumberId
   );
-
+  // Sync contractNumber string khi chọn từ catalog
   useEffect(() => {
     if (isResettingForm.current) return;
+    const found = contractNumbers.find((f) => f.id === watchedContractNumberId);
+    form.setValue('contractNumber', found?.number ?? '');
+    // Reset appendix khi đổi contract
+    form.setValue('appendixNumberId', '');
     form.setValue('appendixNumber', '');
   }, [watchedContractNumberId]);
+
+  // Sync appendixNumber string khi chọn từ catalog
+  useEffect(() => {
+    if (isResettingForm.current) return;
+    const found = filteredAppendixs.find((f) => f.id === watchedAppendixNumberId);
+    form.setValue('appendixNumber', found?.appendixNumber ?? '');
+  }, [watchedAppendixNumberId]);
+
 
   // Ngày hoàn thành hợp đồng = Ngày hiệu lực + Thời gian thực hiện
   useEffect(() => {
@@ -1509,16 +1529,14 @@ export function ContractBasicInformationForm() {
             <FormRow className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
               <FormSelect
                 control={form.control}
-                name='contractNumber'
+                name='contractNumberId'
                 label='Số ký hiệu hợp đồng'
                 placeholder='Số ký hiệu hợp đồng'
-                options={[
-                  ...contractNumbers.map((f) => ({ value: f.id, label: f.number })),
-                ]}
+                options={contractNumbers.map((f) => ({ value: f.id, label: f.number }))}
               />
               <FormSelect
                 control={form.control}
-                name='appendixNumber'
+                name='appendixNumberId'
                 label='Số ký hiệu phụ lục hợp đồng'
                 placeholder='Số ký hiệu phụ lục hợp đồng'
                 options={filteredAppendixs.map((f) => ({

@@ -1004,7 +1004,7 @@ export function ContractReviewForm() {
             </Section >
 
             {/* 4. Thông tin tài chính */}
-            < Section title='Thông tin tài chính' icon={DollarSignIcon} >
+            <Section title='Thông tin tài chính' icon={DollarSignIcon}>
               {!isRuleContract && (
                 <div className='p-4 rounded-md bg-white from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20'>
                   <div className='text-sm font-medium text-muted-foreground mb-2'>
@@ -1346,7 +1346,7 @@ export function ContractReviewForm() {
           </TabsContent >
 
           {/* ── Tab: Luồng ký duyệt ── */}
-          < TabsContent value='flows' className='mt-4' >
+          <TabsContent value='flows' className='mt-4'>
             <div className='p-6 rounded-lg border bg-card space-y-4'>
               <SectionHeader
                 title='Luồng ký duyệt'
@@ -1386,7 +1386,7 @@ export function ContractReviewForm() {
           </TabsContent >
 
           {/* ── Tab: Tài liệu ── */}
-          < TabsContent value='documents' className='mt-4' >
+          <TabsContent value='documents' className='mt-4'>
             <div className='p-6 rounded-lg border bg-card space-y-4'>
               <SectionHeader
                 title='Xem trước tài liệu'
