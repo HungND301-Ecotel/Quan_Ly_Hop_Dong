@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using Domain.Common.Contracts;
 using Domain.Common.Enums;
 using Domain.Entities.Category;
@@ -37,8 +37,10 @@ public class Contract : AuditableEntity<Guid>
     public decimal? ContractValueAfterVat => ContractValue.HasValue
         ? ContractValue.Value + (VatAmount ?? 0)
         : null;
-    public DateTimeOffset StartDate { get; protected set; }
-    public DateTimeOffset EndDate { get; protected set; }
+    public DateTimeOffset SigningDate { get; protected set; }
+    public DateTimeOffset EffectiveDate { get; protected set; }
+    public DateTimeOffset CompletionDate { get; protected set; }
+    public DateTimeOffset? WarrantyExpirationDate { get; protected set; }
     public ContractStatus Status { get; protected set; } = ContractStatus.Draft;
     public ContractSubStatus? SubStatus { get; protected set; } = ContractSubStatus.SavedDraft;
     public string? FilePath { get; protected set; }
@@ -148,8 +150,10 @@ public class Contract : AuditableEntity<Guid>
         Guid contractRegisterId,
         decimal? contractValue,
         decimal? vatPercentage,
-        DateTimeOffset startDate,
-        DateTimeOffset endDate,
+        DateTimeOffset signingDate,
+        DateTimeOffset effectiveDate,
+        DateTimeOffset completionDate,
+        DateTimeOffset? warrantyExpirationDate,
         string? filePath,
         string? notes,
         ContractFormat contractFormat,
@@ -158,9 +162,9 @@ public class Contract : AuditableEntity<Guid>
         decimal discountValue = 0,
         string appendixNumber = "")
     {
-        if (startDate.Date > endDate.Date)
+        if (effectiveDate.Date > completionDate.Date)
         {
-            throw new ArgumentException("StartDate cannot higher than EndDate");
+            throw new ArgumentException("EffectiveDate cannot be higher than CompletionDate");
         }
 
         return new Contract
@@ -173,8 +177,10 @@ public class Contract : AuditableEntity<Guid>
             DepartmentId = departmentId,
             ContractValue = contractValue,
             VatPercentage = NormalizeVatPercentage(vatPercentage),
-            StartDate = startDate,
-            EndDate = endDate,
+            SigningDate = signingDate,
+            EffectiveDate = effectiveDate,
+            CompletionDate = completionDate,
+            WarrantyExpirationDate = warrantyExpirationDate,
             FilePath = filePath,
             Notes = notes,
             ContractFormat = contractFormat,
@@ -208,8 +214,10 @@ public class Contract : AuditableEntity<Guid>
         Guid contractRegisterId,
         decimal? contractValue,
         decimal? vatPercentage,
-        DateTimeOffset startDate,
-        DateTimeOffset endDate,
+        DateTimeOffset signingDate,
+        DateTimeOffset effectiveDate,
+        DateTimeOffset completionDate,
+        DateTimeOffset? warrantyExpirationDate,
         string? filePath,
         string? notes,
         ContractFormat contractFormat,
@@ -219,9 +227,9 @@ public class Contract : AuditableEntity<Guid>
         decimal discountValue = 0,
         string appendixNumber = "")
     {
-        if (startDate.Date > endDate.Date)
+        if (effectiveDate.Date > completionDate.Date)
         {
-            throw new ArgumentException("StartDate cannot higher than EndDate");
+            throw new ArgumentException("EffectiveDate cannot be higher than CompletionDate");
         }
 
         IsDebtTrackingEnabled = isDebtTrackingEndable;
@@ -232,8 +240,10 @@ public class Contract : AuditableEntity<Guid>
         DepartmentId = departmentId;
         ContractValue = contractValue;
         VatPercentage = NormalizeVatPercentage(vatPercentage);
-        StartDate = startDate;
-        EndDate = endDate;
+        SigningDate = signingDate;
+        EffectiveDate = effectiveDate;
+        CompletionDate = completionDate;
+        WarrantyExpirationDate = warrantyExpirationDate;
         FilePath = filePath;
         Notes = notes;
         ContractFormat = contractFormat;

@@ -64,7 +64,7 @@ public class ContractExpiryCheckerService(
 
         // Lấy tất cả hợp đồng Active đã quá hạn
         var overdueContracts = await _contractRepo.GetAllAsync(
-            predicate: c => c.EndDate.Date < today && c.Status == ContractStatus.Active,
+            predicate: c => c.CompletionDate.Date < today && c.Status == ContractStatus.Active,
             include: q => q
                 .Include(c => c.PaymentSchedules)
                 .ThenInclude(ps => ps.ContractPayments)
@@ -103,7 +103,7 @@ public class ContractExpiryCheckerService(
                 logger.LogWarning(
                     "🔴 UPDATING: Contract {ContractNumber} ({Id}): {OldStatus}/{OldSubStatus} -> {NewStatus}/{NewSubStatus} (EndDate: {EndDate})",
                     contract.ContractNumber, contract.Id, oldStatus, oldSubStatus, 
-                    contract.Status.ToString(), contract.SubStatus?.ToString() ?? "null", contract.EndDate.Date);
+                    contract.Status.ToString(), contract.SubStatus?.ToString() ?? "null", contract.CompletionDate.Date);
 
                 // Ghi lịch sử thay đổi Status
                 var statusHistory = ContractEditHistory.Create(
