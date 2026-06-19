@@ -19,7 +19,11 @@ import { Check, ChevronsUpDown, PlusIcon, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm, Control, Path, UseFormSetValue } from 'react-hook-form';
 import { BasicInformationValues } from '../../features/main/contract/edit/basic-information/schema';
-import { BankAccountSchema, BankAccountValues, BankAccountDefault } from '@/features/main/setting/catalog/bank-account/edit/schema';
+import {
+  BankAccountSchema,
+  BankAccountValues,
+  BankAccountDefault,
+} from '@/features/main/setting/catalog/bank-account/edit/schema';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
@@ -39,8 +43,15 @@ import {
 } from '@/components/ui/popover';
 
 // Dialog tạo mới tài khoản ngân hàng inline
-function CreateBankAccountDialog({ onSuccess }: { onSuccess: () => void }) {
-  const [open, setOpen] = useState(false);
+export function CreateBankAccountDialog({
+  onSuccess,
+  onOpenChange,
+  open: openProp,
+}: {
+  onSuccess: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
   const [loading, setLoading] = useState(false);
 
   const form = useForm<BankAccountValues>({
@@ -48,6 +59,11 @@ function CreateBankAccountDialog({ onSuccess }: { onSuccess: () => void }) {
     defaultValues: BankAccountDefault,
     mode: 'onSubmit',
   });
+
+  const [openInternal, setOpenInternal] = useState(false);
+
+  const open = openProp !== undefined ? openProp : openInternal;
+  const setOpen = onOpenChange ?? setOpenInternal;
 
   useEffect(() => {
     if (!open) form.reset(BankAccountDefault);
@@ -69,27 +85,57 @@ function CreateBankAccountDialog({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button type='button' variant='outline' size='icon-lg' className='shrink-0 mt-8'>
-          <PlusIcon className='h-4 w-4' />
-        </Button>
-      </DialogTrigger>
+      {!onOpenChange && (
+        <DialogTrigger asChild>
+          <Button
+            type='button'
+            variant='outline'
+            size='icon-lg'
+            className='shrink-0 mt-8'
+          >
+            <PlusIcon className='h-4 w-4' />
+          </Button>
+        </DialogTrigger>
+      )}
 
       <DialogContent className='flex flex-col gap-0 w-full md:min-w-2xl px-0 overflow-hidden'>
         <DialogHeader className='gap-1 p-6 pt-0 border-b'>
-          <DialogTitle className='text-2xl font-semibold'>Tạo mới tài khoản ngân hàng</DialogTitle>
-          <DialogDescription>Nhập thông tin tài khoản ngân hàng mới</DialogDescription>
+          <DialogTitle className='text-2xl font-semibold'>
+            Tạo mới tài khoản ngân hàng
+          </DialogTitle>
+          <DialogDescription>
+            Nhập thông tin tài khoản ngân hàng mới
+          </DialogDescription>
         </DialogHeader>
-        <Form context={form} onSubmit={onSubmit} className='flex flex-col overflow-hidden'>
+        <Form
+          context={form}
+          onSubmit={onSubmit}
+          className='flex flex-col overflow-hidden'
+        >
           <div className='flex-1 p-6 flex flex-col gap-4'>
             <FormRow>
-              <FormInput control={form.control} name='bankName' label='Tên ngân hàng' placeholder='VD: Vietcombank, BIDV...' />
+              <FormInput
+                control={form.control}
+                name='bankName'
+                label='Tên ngân hàng'
+                placeholder='VD: Vietcombank, BIDV...'
+              />
             </FormRow>
             <FormRow>
-              <FormInput control={form.control} name='accountNumber' label='Số tài khoản' placeholder='Nhập số tài khoản' />
+              <FormInput
+                control={form.control}
+                name='accountNumber'
+                label='Số tài khoản'
+                placeholder='Nhập số tài khoản'
+              />
             </FormRow>
             <FormRow>
-              <FormInput control={form.control} name='accountHolder' label='Chủ tài khoản' placeholder='Nhập tên chủ tài khoản' />
+              <FormInput
+                control={form.control}
+                name='accountHolder'
+                label='Chủ tài khoản'
+                placeholder='Nhập tên chủ tài khoản'
+              />
             </FormRow>
             <FormRow>
               <div className='flex items-center gap-3'>
@@ -103,8 +149,18 @@ function CreateBankAccountDialog({ onSuccess }: { onSuccess: () => void }) {
             </FormRow>
           </div>
           <div className='flex justify-end items-center gap-3 p-4 px-6 pb-0 border-t'>
-            <Button variant='outline' type='button' onClick={() => setOpen(false)}>Hủy</Button>
-            <Button type='submit' disabled={loading} className='min-w-32 bg-blue-600 hover:bg-blue-700'>
+            <Button
+              variant='outline'
+              type='button'
+              onClick={() => setOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button
+              type='submit'
+              disabled={loading}
+              className='min-w-32 bg-blue-600 hover:bg-blue-700'
+            >
               <Save className='w-4 h-4 mr-2' />
               {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
             </Button>
@@ -126,9 +182,9 @@ type BankAccountSelectProps = {
 
 export function BankAccountSelect({
   setValue,
-  bankAccountIdField,  // ← chỉ còn 1 field
+  bankAccountIdField,
   label = 'Tài khoản ngân hàng',
-  currentId
+  currentId,
 }: BankAccountSelectProps) {
   const [open, setOpen] = useState(false);
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
@@ -177,11 +233,17 @@ export function BankAccountSelect({
             >
               {selected ? (
                 <span className='flex flex-col items-start text-left'>
-                  <span className='font-medium text-sm'>{selected.accountNumber} — {selected.bankName}</span>
-                  <span className='text-xs text-muted-foreground'>{selected.accountHolder}</span>
+                  <span className='font-medium text-sm'>
+                    {selected.accountNumber} — {selected.bankName}
+                  </span>
+                  <span className='text-xs text-muted-foreground'>
+                    {selected.accountHolder}
+                  </span>
                 </span>
               ) : (
-                <span className='text-muted-foreground'>Tìm kiếm theo số TK, chủ TK, ngân hàng...</span>
+                <span className='text-muted-foreground'>
+                  Tìm kiếm theo số TK, chủ TK, ngân hàng...
+                </span>
               )}
               <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
             </Button>
@@ -201,12 +263,18 @@ export function BankAccountSelect({
                       <Check
                         className={cn(
                           'mr-2 h-4 w-4',
-                          selected?.id === account.id ? 'opacity-100' : 'opacity-0'
+                          selected?.id === account.id
+                            ? 'opacity-100'
+                            : 'opacity-0'
                         )}
                       />
                       <div className='flex flex-col'>
-                        <span className='font-medium'>{account.accountNumber} — {account.bankName}</span>
-                        <span className='text-xs text-muted-foreground'>{account.accountHolder}</span>
+                        <span className='font-medium'>
+                          {account.accountNumber} — {account.bankName}
+                        </span>
+                        <span className='text-xs text-muted-foreground'>
+                          {account.accountHolder}
+                        </span>
                       </div>
                     </CommandItem>
                   ))}
@@ -219,7 +287,13 @@ export function BankAccountSelect({
 
       {/* Nút xóa chọn */}
       {selected && (
-        <Button type='button' variant='ghost' size='icon-lg' onClick={handleClear} className='shrink-0'>
+        <Button
+          type='button'
+          variant='ghost'
+          size='icon-lg'
+          onClick={handleClear}
+          className='shrink-0'
+        >
           ✕
         </Button>
       )}

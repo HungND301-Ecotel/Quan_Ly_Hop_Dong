@@ -699,18 +699,18 @@ export function ContractArchiveReviewForm() {
               )}
             </Section>
 
-            {/* 5. Thành phần hợp đồng khác */}
+            {/* 5. dịch vụ khác */}
             {((basicInformation?.contractOthersValue && basicInformation.contractOthersValue > 0) ||
               (basicInformation?.contractOtherItems &&
                 basicInformation.contractOtherItems.length > 0 &&
                 otherMaterials.length > 0)) && (
-                <Section title='Thành phần hợp đồng khác' icon={Layers}>
+                <Section title='Dịch vụ khác' icon={Layers}>
                   {basicInformation?.contractOtherItems &&
                     basicInformation.contractOtherItems.length > 0 &&
                     otherMaterials.length > 0 ? (
                     <div>
                       <div className='text-sm font-medium mb-3'>
-                        Danh sách thành phần hợp đồng khác ({basicInformation.contractOtherItems.length} mục)
+                        Danh sách dịch vụ khác ({basicInformation.contractOtherItems.length} mục)
                       </div>
                       <div className='space-y-2'>
                         <div className='grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 rounded-lg text-xs font-medium text-muted-foreground'>

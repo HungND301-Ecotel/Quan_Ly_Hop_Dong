@@ -20,7 +20,6 @@ import { CreateUserDialog } from './components/create/create-user-dialog';
 import { DeleteUserDialog } from './components/delete/delete-user-dialog';
 import { AccountFilterDepartment } from './filter-department';
 import { AccountFilterPosition } from './filter-position';
-import { AccountFilterRole } from './filter-role';
 
 export function AccountManagementPage() {
   const [positions, setPositions] = useState<Position[]>([]);
@@ -93,7 +92,6 @@ export function AccountManagementPage() {
         <DataTableSearch />
 
         <div className='flex items-center gap-2'>
-          <AccountFilterRole />
           <AccountFilterPosition positions={positions} />
           <AccountFilterDepartment departments={departments} />
         </div>

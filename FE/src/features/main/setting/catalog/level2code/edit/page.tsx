@@ -144,8 +144,8 @@ export function EditLevel2CodeAction({ row, table }: DataTableEvent<Level2Code>)
             <FormInput
               control={form.control}
               name='description'
-              label='Mô tả'
-              placeholder='Nhập mô tả'
+              label='Ghi chú'
+              placeholder='Nhập ghi chú'
             />
           </div>
 

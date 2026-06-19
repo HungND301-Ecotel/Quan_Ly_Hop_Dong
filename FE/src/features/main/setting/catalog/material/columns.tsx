@@ -33,11 +33,11 @@ export const MATERIAL_COLUMNS: ColumnDef<Material>[] = [
   },
   {
     accessorKey: 'materialCode',
-    header: 'Mã thành phần hợp đồng',
+    header: 'Mã vật tư, tài sản',
   },
   {
     accessorKey: 'name',
-    header: 'Tên thành phần hợp đồng',
+    header: 'Tên vật tư, tài sản',
   },
   {
     accessorKey: 'unitOfMeasureName',
@@ -45,7 +45,7 @@ export const MATERIAL_COLUMNS: ColumnDef<Material>[] = [
   },
   {
     accessorKey: 'price',
-    header: 'Đơn giá',
+    header: 'Đơn giá vật tư',
     cell: ({ row }) => format.number(row.original.price),
   },
   {

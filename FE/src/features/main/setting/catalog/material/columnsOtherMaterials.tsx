@@ -1,5 +1,4 @@
 import { DataTableSelectColumn } from '@/components/data-table';
-import { format } from '@/lib/format';
 import { Material } from '@/services/material/type';
 import { ColumnDef } from '@tanstack/react-table';
 import { MaterialDelete } from './delete/page';
@@ -9,20 +8,11 @@ export const OTHER_MATERIAL_COLUMNS: ColumnDef<Material>[] = [
   DataTableSelectColumn as ColumnDef<Material>,
   {
     accessorKey: 'materialCode',
-    header: 'Mã thành phần hợp đồng khác',
+    header: 'Mã dịch vụ khác',
   },
   {
     accessorKey: 'name',
-    header: 'Tên thành phần hợp đồng khác',
-  },
-  {
-    accessorKey: 'unitOfMeasureName',
-    header: 'Đơn vị tính',
-  },
-  {
-    accessorKey: 'price',
-    header: 'Đơn giá',
-    cell: ({ row }) => format.number(row.original.price),
+    header: 'Tên dịch vụ khác',
   },
   {
     id: 'action',

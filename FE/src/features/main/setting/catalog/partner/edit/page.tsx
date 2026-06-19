@@ -24,10 +24,45 @@ import {
   PartnerInformationValues,
   PartnerSchema,
 } from './schema';
+import { FormSelect } from '@/components/form/form-select';
+import { Position } from '@/services/postion/type';
+import { positionService } from '@/services/postion';
+import { BankAccount } from '@/services/bank-account/type';
+import { BankAccountService } from '@/services/bank-account';
+import { CreateBankAccountDialog } from '@/components/form/bank-form';
 
 export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [openBankDialog, setOpenBankDialog] = useState(false);
+
+  const positionOptions = positions.map((p) => ({
+    value: p.id,
+    label: p.name,
+  }));
+
+  const bankAccountOptions = bankAccounts.map((b) => ({
+    value: b.id,
+    label: `${b.accountHolder} - ${b.bankName}`,
+  }));
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [posRes, bankRes] = await Promise.all([
+          positionService.getPositionList(),
+          BankAccountService.getBankAccountList(),
+        ]);
+        setPositions(posRes || []);
+        setBankAccounts(bankRes || []);
+      } catch (error) {
+        console.error('Failed to fetch filter data', error);
+      }
+    };
+    fetchData();
+  }, []);
 
   const onRefresh = () => {
     table.options.meta?.refresh();
@@ -54,7 +89,9 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
       address: detail.data.address,
       contactPerson: detail.data.contactPerson,
       phone: detail.data.phone,
-      email: detail.data.email,
+      fax: detail.data.fax,
+      positionId: detail.data.positionId,
+      bankId: detail.data.bankId,
     });
   }, [detail.data, form]);
 
@@ -74,7 +111,6 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
       } else {
         await partnerService.createPartner(values);
       }
-
       toast.success('Cập nhật thông tin đối tác thành công');
       setOpen(false);
       onRefresh();
@@ -87,103 +123,148 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {row ? (
-          <Button variant={'ghost'} size={'icon'}>
-            <EditIcon />
-          </Button>
-        ) : (
-          <Button variant={'default'} size={'lg'}>
-            <PlusIcon />
-            <span>Tạo mới</span>
-          </Button>
-        )}
-      </DialogTrigger>
-
-      <DialogContent className='flex flex-col gap-0 w-full md:min-w-2xl lg:min-w-4xl px-0 overflow-hidden'>
-        <DialogHeader className='gap-1 p-6 pt-0 border-b'>
-          <DialogTitle className='text-2xl font-semibold'>
-            {row ? 'Chỉnh sửa' : 'Tạo mới'} đối tác
-          </DialogTitle>
-          <DialogDescription>
-            {row ? 'Chỉnh sửa' : 'Tạo mới'} thông tin đối tác
-          </DialogDescription>
-        </DialogHeader>
-        <Form
-          context={form}
-          onSubmit={onSubmit}
-          className='flex flex-col overflow-hidden'
-        >
-          <div className='flex-1 p-6 flex flex-col gap-6'>
-            <FormRow>
-              <FormInput
-                control={form.control}
-                name='name'
-                label='Tên đối tác'
-                placeholder='Nhập tên đối tác'
-              />
-              <FormInput
-                control={form.control}
-                name='taxCode'
-                label='Mã số thuế'
-                placeholder='Nhập mã số thuế'
-              />
-            </FormRow>
-
-            <FormRow>
-              <FormInput
-                control={form.control}
-                name='address'
-                label='Địa chỉ'
-                placeholder='Nhập địa chỉ trụ sở'
-              />
-            </FormRow>
-
-            <FormRow>
-              <FormInput
-                control={form.control}
-                name='contactPerson'
-                label='Người đại diện'
-                placeholder='Nhập tên người đại diện'
-              />
-              <FormInput
-                control={form.control}
-                name='phone'
-                label='Số điện thoại'
-                placeholder='Nhập số điện thoại'
-              />
-            </FormRow>
-
-            <FormRow>
-              <FormInput
-                control={form.control}
-                name='email'
-                label='Email liên hệ'
-                placeholder='Nhập địa chỉ email'
-              />
-            </FormRow>
-          </div>
-
-          <div className='flex justify-end items-center gap-3 p-4 px-6 pb-0 border-t'>
-            <Button
-              variant='outline'
-              type='button'
-              onClick={() => setOpen(false)}
-            >
-              Hủy
+    <>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          {row ? (
+            <Button variant={'ghost'} size={'icon'}>
+              <EditIcon />
             </Button>
-            <Button
-              type='submit'
-              disabled={loading}
-              className='min-w-32 bg-blue-600 hover:bg-blue-700'
-            >
-              <Save className='w-4 h-4 mr-2' />
-              {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+          ) : (
+            <Button variant={'default'} size={'lg'}>
+              <PlusIcon />
+              <span>Tạo mới</span>
             </Button>
-          </div>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          )}
+        </DialogTrigger>
+
+        <DialogContent className='flex flex-col gap-0 w-full md:min-w-2xl lg:min-w-4xl px-0 overflow-hidden'>
+          <DialogHeader className='gap-1 p-6 pt-0 border-b'>
+            <DialogTitle className='text-2xl font-semibold'>
+              {row ? 'Chỉnh sửa' : 'Tạo mới'} đối tác
+            </DialogTitle>
+            <DialogDescription>
+              {row ? 'Chỉnh sửa' : 'Tạo mới'} thông tin đối tác
+            </DialogDescription>
+          </DialogHeader>
+          <Form
+            context={form}
+            onSubmit={onSubmit}
+            className='flex flex-col overflow-hidden'
+          >
+            <div className='flex-1 p-6 flex flex-col gap-6'>
+              <FormRow>
+                <FormInput
+                  control={form.control}
+                  name='name'
+                  label='Đối tác hợp đồng'
+                  placeholder='Nhập tên đối tác'
+                />
+              </FormRow>
+
+              <FormRow>
+                <FormInput
+                  control={form.control}
+                  name='address'
+                  label='Địa chỉ'
+                  placeholder='Nhập địa chỉ trụ sở'
+                />
+              </FormRow>
+
+              <FormRow>
+                <div className='flex items-end gap-2 w-full'>
+                  <div className='flex-1'>
+                    <FormSelect
+                      control={form.control}
+                      name='bankId'
+                      label='Tài khoản ngân hàng'
+                      placeholder='Chọn tài khoản ngân hàng'
+                      options={bankAccountOptions}
+                    />
+                  </div>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='icon'
+                    className='mt-6 shrink-0'
+                    onClick={() => setOpenBankDialog(true)}
+                  >
+                    <PlusIcon className='h-4 w-4' />
+                  </Button>
+                </div>
+              </FormRow>
+
+              <FormRow>
+                <FormInput
+                  control={form.control}
+                  name='taxCode'
+                  label='Mã số thuế'
+                  placeholder='Nhập mã số thuế'
+                />
+              </FormRow>
+
+              <FormRow>
+                <FormInput
+                  control={form.control}
+                  name='phone'
+                  label='Điện thoại'
+                  placeholder='Nhập số điện thoại'
+                />
+                <FormInput
+                  control={form.control}
+                  name='fax'
+                  label='Fax'
+                  placeholder='Nhập số Fax'
+                />
+              </FormRow>
+
+              <FormRow>
+                <FormInput
+                  control={form.control}
+                  name='contactPerson'
+                  label='Người đại diện'
+                  placeholder='Nhập tên người đại diện'
+                />
+                <FormSelect
+                  control={form.control}
+                  name='positionId'
+                  label='Chức vụ'
+                  placeholder='Chọn chức vụ'
+                  options={positionOptions}
+                />
+              </FormRow>
+            </div>
+
+            <div className='flex justify-end items-center gap-3 p-4 px-6 pb-0 border-t'>
+              <Button
+                variant='outline'
+                type='button'
+                onClick={() => setOpen(false)}
+              >
+                Hủy
+              </Button>
+              <Button
+                type='submit'
+                disabled={loading}
+                className='min-w-32 bg-blue-600 hover:bg-blue-700'
+              >
+                <Save className='w-4 h-4 mr-2' />
+                {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+              </Button>
+            </div>
+          </Form>
+        </DialogContent>
+      </Dialog>
+      {/* Dialog */}
+      <CreateBankAccountDialog
+        open={openBankDialog}
+        onOpenChange={setOpenBankDialog}
+        onSuccess={() => {
+          BankAccountService.getBankAccountList().then((data) => {
+            setBankAccounts((data || []).filter((a) => a.isActive));
+          });
+        }}
+      />
+    </>
   );
 }

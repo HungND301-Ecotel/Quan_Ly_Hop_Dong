@@ -79,8 +79,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { BankAccountSelect } from '@/components/form/bank-form';
-import { useApi } from '@/hooks/use-api';
-import { unitOfMeasureService } from '@/services/unit';
 import { Level1Code } from '@/services/level1code/type';
 import { Level2CodeLookup } from '@/services/level2code/type';
 import { Level3Code } from '@/services/level3code/type';
@@ -92,6 +90,8 @@ import { MaterialImportDialog } from '../../all/components/Materialimportdialog'
 import { ContractStructureCatalog } from '@/services/structure/type';
 import { contractStructureCatalogService } from '@/services/structure';
 import { VirtualMaterialSelect } from '../../all/components/VirtualSelect';
+import { ContractAppendix, contractAppendixService } from '@/services/contract-appendix';
+import { ContractNumber, contractNumberService } from '@/services/contract-number';
 
 // Component tạo mới vật tư inline
 function CreateMaterialDialog({
@@ -103,10 +103,6 @@ function CreateMaterialDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const unitOfMeasures = useApi({
-    service: unitOfMeasureService.getUnitOfMeasureList,
-  });
 
   const form = useForm<MaterialInformationValues>({
     resolver: zodResolver(MaterialSchema),
@@ -126,18 +122,23 @@ function CreateMaterialDialog({
       const payload = {
         ...values,
         unitOfMeasureId: values.unitOfMeasureId || null,
-        price: values.price === undefined || values.price === null || String(values.price) === '' ? null : Number(values.price),
+        price:
+          values.price === undefined ||
+            values.price === null ||
+            String(values.price) === ''
+            ? null
+            : Number(values.price),
         ...(isOtherMaterial && { isOtherMaterial: true }),
       };
       await materialService.createMaterial(payload);
       toast.success(
-        `Tạo mới ${isOtherMaterial ? 'thành phần hợp đồng khác' : 'vật tư'} thành công`
+        `Tạo mới ${isOtherMaterial ? 'dịch vụ khác' : 'vật tư, tài sản'} thành công`
       );
       setOpen(false);
       onSuccess();
     } catch {
       toast.error(
-        `Lỗi khi tạo mới ${isOtherMaterial ? 'thành phần hợp đồng khác' : 'vật tư'}`
+        `Lỗi khi tạo mới ${isOtherMaterial ? 'dịch vụ khác' : 'vật tư, tài sản'}`
       );
     } finally {
       setLoading(false);
@@ -154,18 +155,20 @@ function CreateMaterialDialog({
           className='shrink-0'
         >
           <PlusIcon className='h-4 w-4' />
-          <span>Tạo mới {isOtherMaterial ? 'thành phần hợp đồng khác' : 'vật tư'}</span>
+          <span>
+            Tạo mới {isOtherMaterial ? 'dịch vụ khác' : 'vật tư, tài sản'}
+          </span>
         </Button>
       </DialogTrigger>
 
       <DialogContent className='flex flex-col gap-0 w-full md:min-w-2xl lg:min-w-4xl px-0 overflow-hidden'>
         <DialogHeader className='gap-1 p-6 pt-0 border-b'>
           <DialogTitle className='text-2xl font-semibold'>
-            Tạo mới {isOtherMaterial ? 'thành phần hợp đồng khác' : 'vật tư'}
+            Tạo mới {isOtherMaterial ? 'dịch vụ khác' : 'vật tư, tài sản'}
           </DialogTitle>
           <DialogDescription>
             Tạo mới thông tin{' '}
-            {isOtherMaterial ? 'thành phần hợp đồng khác' : 'vật tư'}
+            {isOtherMaterial ? 'dịch vụ khác' : 'vật tư, tài sản'}
           </DialogDescription>
         </DialogHeader>
         <Form
@@ -178,36 +181,14 @@ function CreateMaterialDialog({
               <FormInput
                 control={form.control}
                 name='materialCode'
-                label={`Mã ${isOtherMaterial ? 'thành phần hợp đồng khác' : 'vật tư'}`}
-                placeholder={`Nhập mã ${isOtherMaterial ? 'thành phần hợp đồng khác' : 'vật tư'}`}
+                label={`Mã ${isOtherMaterial ? 'dịch vụ khác' : 'vật tư, tài sản'}`}
+                placeholder={`Nhập mã ${isOtherMaterial ? 'dịch vụ khác' : 'vật tư, tài sản'}`}
               />
               <FormInput
                 control={form.control}
                 name='name'
-                label={`Tên ${isOtherMaterial ? 'thành phần hợp đồng khác' : 'vật tư'}`}
-                placeholder={`Nhập tên ${isOtherMaterial ? 'thành phần hợp đồng khác' : 'vật tư'}`}
-              />
-            </FormRow>
-
-            <FormRow>
-              <FormSelect
-                control={form.control}
-                name='unitOfMeasureId'
-                label='Đơn vị tính'
-                placeholder='Chọn đơn vị tính'
-                options={[
-                  { label: 'Không chọn', value: '' },
-                  ...(unitOfMeasures.data?.map((u) => ({
-                    label: u.name,
-                    value: u.id,
-                  })) ?? [])
-                ]}
-              />
-              <FormNumber
-                control={form.control}
-                name='price'
-                label='Đơn giá'
-                placeholder='Nhập đơn giá'
+                label={`Tên ${isOtherMaterial ? 'dịch vụ khác' : 'vật tư, tài sản'}`}
+                placeholder={`Nhập tên ${isOtherMaterial ? 'dịch vụ khác' : 'vật tư, tài sản'}`}
               />
             </FormRow>
           </div>
@@ -346,17 +327,41 @@ function RoleUserArrayInput({
   );
 }
 
+const addDays = (dateStr: string | null | undefined, days: number | null | undefined): string => {
+  if (!dateStr || days === null || days === undefined || isNaN(Number(days))) return '';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return '';
+  date.setDate(date.getDate() + Number(days));
+  return date.toISOString().slice(0, 10);
+};
+
+const diffDays = (fromStr: string | null | undefined, toStr: string | null | undefined): number | undefined => {
+  if (!fromStr || !toStr) return undefined;
+  const from = new Date(fromStr);
+  const to = new Date(toStr);
+  if (isNaN(from.getTime()) || isNaN(to.getTime())) return undefined;
+  return Math.round((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
+};
+
 export function ContractBasicInformationForm() {
   const { user } = useAuthContext();
   const { next: nextStep } = useStepperContext();
-  const { setBasicInformation, contractFormat, isUpdate, contract, loading, basicInformation } =
-    useContractEditContext();
+  const {
+    setBasicInformation,
+    contractFormat,
+    isUpdate,
+    contract,
+    loading,
+    basicInformation,
+  } = useContractEditContext();
 
   const isResettingForm = useRef(false);
   const hasInitializedFromContract = useRef(false);
 
   const [contractTypes, setContractTypes] = useState<ContractType[]>([]);
   const [contractFields, setContractFields] = useState<ContractField[]>([]);
+  const [contractAppendixs, setContractAppendixs] = useState<ContractAppendix[]>([]);
+  const [contractNumbers, setContractNumbers] = useState<ContractNumber[]>([]);
   const [contractRegisters, setContractRegisters] = useState<
     ContractRegister[]
   >([]);
@@ -373,12 +378,13 @@ export function ContractBasicInformationForm() {
   const [isLevel2Loading, setIsLevel2Loading] = useState(false);
   const [level3Codes, setLevel3Codes] = useState<Level3Code[]>([]);
   const [isLevel3Loading, setIsLevel3Loading] = useState(false);
-  const [contractStructures, setContractStructures] = useState<ContractStructureCatalog[]>([]);
+  const [contractStructures, setContractStructures] = useState<
+    ContractStructureCatalog[]
+  >([]);
 
   const [isCatalogLoading, setIsCatalogLoading] = useState(true);
 
   const form = useForm<BasicInformationValues>({
-
     mode: 'onSubmit',
     resolver: zodResolver(BasicInformationSchema),
     defaultValues: {
@@ -408,17 +414,34 @@ export function ContractBasicInformationForm() {
   useEffect(() => {
     if (isUpdate || !basicInformation) return;
 
+    isResettingForm.current = true;
+
     form.reset({
       ...basicInformation,
-      // Chỉ xóa file/số ký hiệu/ngày nếu user chưa điền (tức là quay lại từ step trước thì giữ nguyên)
-      contractFile: basicInformation.contractFile instanceof File
-        ? basicInformation.contractFile
-        : undefined,
+      contractFile: basicInformation.contractFile ?? undefined,
       attachmentFiles: basicInformation.attachmentFiles ?? null,
       contractNumber: basicInformation.contractNumber || '',
-      startDate: basicInformation.startDate || '',
-      endDate: basicInformation.endDate || '',
+      signingDate: basicInformation.signingDate || '',
+      effectiveDate: basicInformation.effectiveDate || '',
+      completionDurationDays: basicInformation.completionDurationDays,
+      completionDate: basicInformation.completionDate || '',
+      warrantyDurationDays: basicInformation.warrantyDurationDays,
+      warrantyExpirationDate: basicInformation.warrantyExpirationDate || '',
     });
+
+    // Nếu đã có level1CodeId, cần load lại danh sách level2/level3 tương ứng
+    if (basicInformation.level1CodeId) {
+      level2CodeService
+        .getLevel2CodeByLevel1(basicInformation.level1CodeId)
+        .then((data) => setLevel2Codes(data || []));
+      level3CodeService
+        .getLevel3CodeByLevel1(basicInformation.level1CodeId)
+        .then((data) => setLevel3Codes(data || []));
+    }
+
+    setTimeout(() => {
+      isResettingForm.current = false;
+    }, 100);
   }, [basicInformation, isUpdate]);
 
   useEffect(() => {
@@ -429,7 +452,11 @@ export function ContractBasicInformationForm() {
       // Nếu đã có contractItems prefill từ basicInformation thì không fetch lại
       const existingItems = form.getValues('contractItems');
       if (existingItems && existingItems.length > 0) return;
-      if (basicInformation?.contractItems && basicInformation.contractItems.length > 0) return;
+      if (
+        basicInformation?.contractItems &&
+        basicInformation.contractItems.length > 0
+      )
+        return;
 
       contractService
         .getContractDetail(contractFormat.parentContractId)
@@ -484,7 +511,8 @@ export function ContractBasicInformationForm() {
         value: guarantee.value,
         valueType: guarantee.valueType,
         durationDate: guarantee.durationDate,
-        bankAccountId: guarantee.bankAccountId ?? guarantee.bankAccount?.id ?? '',
+        bankAccountId:
+          guarantee.bankAccountId ?? guarantee.bankAccount?.id ?? '',
       };
     };
 
@@ -500,9 +528,11 @@ export function ContractBasicInformationForm() {
       console.log('contract.paymentSchedules:', contract.paymentSchedules);
       isResettingForm.current = true;
       if (contract.level1CodeId) {
-        level2CodeService.getLevel2CodeByLevel1(contract.level1CodeId)
+        level2CodeService
+          .getLevel2CodeByLevel1(contract.level1CodeId)
           .then((data) => setLevel2Codes(data || []));
-        level3CodeService.getLevel3CodeByLevel1(contract.level1CodeId)
+        level3CodeService
+          .getLevel3CodeByLevel1(contract.level1CodeId)
           .then((data) => setLevel3Codes(data || []));
       }
       form.reset({
@@ -519,8 +549,17 @@ export function ContractBasicInformationForm() {
         contractNumber: contract.contractNumber,
         appendixNumber: contract.appendixNumber,
         partnerId: contract.partnerId,
-        startDate: contract.startDate.slice(0, 10),
-        endDate: contract.endDate.slice(0, 10),
+        signingDate: contract.signingDate ? contract.signingDate.slice(0, 10) : '',
+        effectiveDate: contract.effectiveDate ? contract.effectiveDate.slice(0, 10) : '',
+        completionDurationDays: diffDays(contract.effectiveDate, contract.completionDate),
+        completionDate: contract.completionDate ? contract.completionDate.slice(0, 10) : '',
+        warrantyDurationDays: (() => {
+          const diff = diffDays(contract.completionDate, contract.warrantyExpirationDate);
+          return diff !== undefined ? diff - 1 : undefined; // trừ 1 vì bảo hành tính từ ngày kế tiếp
+        })(),
+        warrantyExpirationDate: contract.warrantyExpirationDate
+          ? contract.warrantyExpirationDate.slice(0, 10)
+          : '',
         contractFile: files,
         attachmentFiles: attachments.length > 0 ? attachments : null,
         discountType: contract.discountType,
@@ -534,6 +573,7 @@ export function ContractBasicInformationForm() {
           ),
         },
         contractValue: contract.contractValue,
+        vatPercentage: contract.vatPercentage,
         contractItems: contract.contractItems,
         contractOthersValue: contract.contractOthersValue,
         contractOtherItems: contract.contractOtherItems,
@@ -547,7 +587,9 @@ export function ContractBasicInformationForm() {
               const scheduleType = schedule.scheduleType;
               const year = schedule.year ? Number(schedule.year) : null;
               const month = schedule.month ? Number(schedule.month) : null;
-              const quarter = schedule.quarter ? Number(schedule.quarter) : null;
+              const quarter = schedule.quarter
+                ? Number(schedule.quarter)
+                : null;
 
               let fromDate: string | null = null;
               let toDate: string | null = null;
@@ -555,11 +597,19 @@ export function ContractBasicInformationForm() {
               if (scheduleType === ScheduleType.Year.id && year) {
                 fromDate = `${year}-01-01`;
                 toDate = `${year}-12-31`;
-              } else if (scheduleType === ScheduleType.Month.id && year && month) {
+              } else if (
+                scheduleType === ScheduleType.Month.id &&
+                year &&
+                month
+              ) {
                 const lastDay = new Date(year, month, 0).getDate(); // ngày cuối tháng
                 fromDate = `${year}-${String(month).padStart(2, '0')}-01`;
                 toDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-              } else if (scheduleType === ScheduleType.Quarter.id && year && quarter) {
+              } else if (
+                scheduleType === ScheduleType.Quarter.id &&
+                year &&
+                quarter
+              ) {
                 const quarterMonthStart = (quarter - 1) * 3 + 1;
                 const quarterMonthEnd = quarter * 3;
                 const lastDay = new Date(year, quarterMonthEnd, 0).getDate();
@@ -569,8 +619,8 @@ export function ContractBasicInformationForm() {
                 fromDate = schedule.fromDate?.slice(0, 10) || null;
                 toDate = schedule.toDate?.slice(0, 10) || null;
               } else if (scheduleType === ScheduleType.LumpSum.id) {
-                fromDate = contract.startDate?.slice(0, 10) || null;
-                toDate = contract.endDate?.slice(0, 10) || null;
+                fromDate = contract.effectiveDate?.slice(0, 10) || null;
+                toDate = contract.completionDate?.slice(0, 10) || null;
               }
 
               return {
@@ -603,7 +653,9 @@ export function ContractBasicInformationForm() {
       });
       setTimeout(() => {
         isResettingForm.current = false;
-        prevScheduleTypeRef.current = form.getValues('paymentSchedules.scheduleType');
+        prevScheduleTypeRef.current = form.getValues(
+          'paymentSchedules.scheduleType'
+        );
         const schedules = form.getValues('paymentSchedules.schedules');
         if (schedules && schedules.length > 0) {
           replacePaymentSchedules(schedules);
@@ -642,13 +694,36 @@ export function ContractBasicInformationForm() {
 
   const watchedDiscountType = form.watch('discountType');
   const watchedDiscountValue = form.watch('discountValue');
-  const watchedContractValue = form.watch('contractValue');
-  const watchedContractOthersValue = form.watch('contractOthersValue');
-  const watchedContractOtherItems = form.watch('contractOtherItems');
-  const watchedContractItems = form.watch('contractItems');
   const watchedPaymentScheduleType = form.watch(
     'paymentSchedules.scheduleType'
   );
+
+  const watchedContractNumberId = form.watch('contractNumber');
+  const watchedEffectiveDate = form.watch('effectiveDate');
+  const watchedCompletionDurationDays = form.watch('completionDurationDays');
+  const watchedCompletionDate = form.watch('completionDate');
+  const watchedWarrantyDurationDays = form.watch('warrantyDurationDays');
+  const filteredAppendixs = contractAppendixs.filter(
+    appendix => appendix.contractNumberId === watchedContractNumberId
+  );
+
+  useEffect(() => {
+    if (isResettingForm.current) return;
+    form.setValue('appendixNumber', '');
+  }, [watchedContractNumberId]);
+
+  // Ngày hoàn thành hợp đồng = Ngày hiệu lực + Thời gian thực hiện
+  useEffect(() => {
+    if (isResettingForm.current) return;
+    form.setValue('completionDate', addDays(watchedEffectiveDate, watchedCompletionDurationDays));
+  }, [watchedEffectiveDate, watchedCompletionDurationDays]);
+
+  // Ngày hết hạn bảo hành = (Ngày hoàn thành + 1) + Thời gian bảo hành
+  useEffect(() => {
+    if (isResettingForm.current) return;
+    const warrantyStartDate = addDays(watchedCompletionDate, 1);
+    form.setValue('warrantyExpirationDate', addDays(warrantyStartDate, watchedWarrantyDurationDays));
+  }, [watchedCompletionDate, watchedWarrantyDurationDays]);
 
   const isRuleContract = [0, 1].includes(contractFormat?.contractFormat || 0);
   const isFirstScheduleTypeMount = useRef(true);
@@ -658,26 +733,29 @@ export function ContractBasicInformationForm() {
 
   const contractItemsTotal = (() => {
     const items = form.watch('contractItems');
-    if (items && items.length > 0) {
-      return items.reduce((total, item) => {
-        const material = materials.find((m) => m.id === item.materialId);
-        return total + (item.quantity || 0) * (material?.price || 0);
-      }, 0);
-    }
-    return form.watch('contractValue') || 0;
+    return items.reduce((total, item) => {
+      const material = materials.find((m) => m.id === item.materialId);
+      return total + (item.quantity || 0) * (material?.price || 0);
+    }, 0);
   })();
-
 
   const contractOtherItemsTotal = (() => {
     const items = form.watch('contractOtherItems');
-    if (items && items.length > 0) {
-      return items.reduce((total, item) => {
-        const material = otherMaterials.find((m) => m.id === item.materialId);
-        return total + (item.quantity || 0) * (material?.price || 0);
-      }, 0);
-    }
-    return form.watch('contractOthersValue') || 0;
+    return items.reduce((total, item) => {
+      const material = otherMaterials.find((m) => m.id === item.materialId);
+      return total + (item.quantity || 0) * (material?.price || 0);
+    }, 0);
   })();
+
+  const getVatAmount = () => {
+    const beforeTax = getContractFinalValue();
+    const vat = form.watch('vatPercentage') || 0;
+    return Math.round((beforeTax * vat) / 100);
+  };
+
+  const getContractAfterTax = () => {
+    return getContractFinalValue() + getVatAmount();
+  };
 
   useEffect(() => {
     if (isResettingForm.current) return; // ← Thêm dòng này
@@ -694,8 +772,12 @@ export function ContractBasicInformationForm() {
       if (currentSchedules && currentSchedules.length > 0) {
         const resetSchedules = currentSchedules.map((schedule) => ({
           ...schedule,
-          month: null, quarter: null, year: null,
-          fromDate: null, toDate: null, dueDate: null,
+          month: null,
+          quarter: null,
+          year: null,
+          fromDate: null,
+          toDate: null,
+          dueDate: null,
         }));
         replacePaymentSchedules(resetSchedules);
       }
@@ -716,55 +798,52 @@ export function ContractBasicInformationForm() {
       level1CodeService.getLevel1CodeList(),
       contractStructureCatalogService.getContractStructureCatalogList(),
       contractFieldService.getContractFieldList(),
+      contractNumberService.getContractNumberList(),
+      contractAppendixService.getContractAppendixList(),
     ]);
 
-    promises.then(
-      ([
-        contractTypes,
-        contractRegisters,
-        partners,
-        procurementMethods,
-        users,
-        materials,
-        otherMaterials,
-        departments,
-        _positions,
-        level1CodesData,
-        contractStructuresData,
-        contractFieldsData,
-      ]) => {
-        setContractTypes(contractTypes || []);
-        setContractRegisters(contractRegisters || []);
-        setPartners(partners || []);
-        setProcurementMethods(procurementMethods || []);
-        setUsers(users || []);
-        setMaterials(materials || []);
-        setOtherMaterials(otherMaterials || []);
-        setDepartments(departments || []);
-        setLevel1Codes(level1CodesData || []);
-        setContractStructures(contractStructuresData || []);
-        setContractFields(contractFieldsData || []);
-      }
-    ).finally(() => {
-      setIsCatalogLoading(false);
-    });
+    promises
+      .then(
+        ([
+          contractTypes,
+          contractRegisters,
+          partners,
+          procurementMethods,
+          users,
+          materials,
+          otherMaterials,
+          departments,
+          _positions,
+          level1CodesData,
+          contractStructuresData,
+          contractFieldsData,
+          contractNumbersData,
+          contractAppendixsData,
+        ]) => {
+          setContractTypes(contractTypes || []);
+          setContractRegisters(contractRegisters || []);
+          setPartners(partners || []);
+          setProcurementMethods(procurementMethods || []);
+          setUsers(users || []);
+          setMaterials(materials || []);
+          setOtherMaterials(otherMaterials || []);
+          setDepartments(departments || []);
+          setLevel1Codes(level1CodesData || []);
+          setContractStructures(contractStructuresData || []);
+          setContractFields(contractFieldsData || []);
+          setContractNumbers(contractNumbersData || []);
+          setContractAppendixs(contractAppendixsData || []);
+        }
+      )
+      .finally(() => {
+        setIsCatalogLoading(false);
+      });
   }, []);
 
+
+
   const getContractFinalValue = () => {
-    const totalItems = contractItemsTotal;
-    const totalOthers = contractOtherItemsTotal;
-
-    const total = (totalItems || 0) + (totalOthers || 0);
-
-    let discount = 0;
-    const discountVal = watchedDiscountValue || 0;
-    if (watchedDiscountType == DiscountType.Percent.id) {
-      discount = (total / 100) * discountVal;
-    } else {
-      discount = discountVal;
-    }
-
-    return total - discount;
+    return form.watch('contractValue') || 0;
   };
 
   const getPaymentSchedulesTotal = () => {
@@ -797,19 +876,19 @@ export function ContractBasicInformationForm() {
       return {
         status: 'exact',
         message: `Đủ thanh toán cho giá trị hợp đồng: ${format.number(contractValue)} đ`,
-        color: 'text-green-600'
+        color: 'text-green-600',
       };
     } else if (difference > 0) {
       return {
         status: 'excess',
         message: `Thừa ${format.number(difference)} đ so với giá trị hợp đồng`,
-        color: 'text-orange-600'
+        color: 'text-orange-600',
       };
     } else {
       return {
         status: 'shortage',
         message: `Còn thiếu ${format.number(Math.abs(difference))} đ so với giá trị hợp đồng`,
-        color: 'text-red-600'
+        color: 'text-red-600',
       };
     }
   };
@@ -835,10 +914,16 @@ export function ContractBasicInformationForm() {
 
   const watchedLevel1CodeId = form.watch('level1CodeId');
   const watchedLevel3CodeId = form.watch('level3CodeId');
+  const prevLevel1CodeIdRef = useRef(watchedLevel1CodeId);
 
   useEffect(() => {
     if (!watchedLevel1CodeId || level1Codes.length === 0) return;
-    if (isResettingForm.current) return;
+    if (isResettingForm.current) {
+      prevLevel1CodeIdRef.current = watchedLevel1CodeId;
+      return;
+    }
+    if (prevLevel1CodeIdRef.current === watchedLevel1CodeId) return;
+    prevLevel1CodeIdRef.current = watchedLevel1CodeId;
 
     const selected = level1Codes.find((l) => l.id === watchedLevel1CodeId);
     if (selected?.contractTypeId) {
@@ -854,13 +939,15 @@ export function ContractBasicInformationForm() {
 
     // Load level2 theo level1
     setIsLevel2Loading(true);
-    level2CodeService.getLevel2CodeByLevel1(watchedLevel1CodeId)
+    level2CodeService
+      .getLevel2CodeByLevel1(watchedLevel1CodeId)
       .then((data) => setLevel2Codes(data || []))
       .finally(() => setIsLevel2Loading(false));
 
     // Load level3 theo level1
     setIsLevel3Loading(true);
-    level3CodeService.getLevel3CodeByLevel1(watchedLevel1CodeId)
+    level3CodeService
+      .getLevel3CodeByLevel1(watchedLevel1CodeId)
       .then((data) => setLevel3Codes(data || []))
       .finally(() => setIsLevel3Loading(false));
   }, [watchedLevel1CodeId, level1Codes]);
@@ -873,7 +960,8 @@ export function ContractBasicInformationForm() {
     // ← Xóa title cũ ngay khi đổi mã 3
     form.setValue('title', '');
 
-    signedContentService.getSignedContentByLevel3(watchedLevel3CodeId)
+    signedContentService
+      .getSignedContentByLevel3(watchedLevel3CodeId)
       .then((data) => {
         const first = data?.[0];
         if (first?.name) {
@@ -883,31 +971,35 @@ export function ContractBasicInformationForm() {
   }, [watchedLevel3CodeId]);
 
   const handleSubmit = (data: BasicInformationValues) => {
-    if (getContractFinalValue() < 0) {
-      return form.setError('discountValue', {
-        message: 'Phải nhỏ hơn giá trị vật tư',
-      });
-    }
-    if (!isRuleContract && hasScheduleType && watchedPaymentScheduleType != ScheduleType.LumpSum.id) {
+    if (
+      !isRuleContract &&
+      hasScheduleType &&
+      watchedPaymentScheduleType != ScheduleType.LumpSum.id
+    ) {
       const comparison = getPaymentScheduleComparison();
       if (comparison.status !== 'exact') {
         toast.error('Tổng giá trị thanh toán phải bằng giá trị hợp đồng');
         return;
       }
     }
-    setBasicInformation(data);
+    // BE chỉ nhận 4 ngày tuyệt đối, không cần gửi số ngày (duration)
+    const { completionDurationDays, warrantyDurationDays, ...payload } = data
+    setBasicInformation(payload as BasicInformationValues);
     nextStep();
   };
 
-  const hasScheduleType = watchedPaymentScheduleType !== undefined && watchedPaymentScheduleType !== null;
-
+  const hasScheduleType =
+    watchedPaymentScheduleType !== undefined &&
+    watchedPaymentScheduleType !== null;
 
   if (isCatalogLoading || (isUpdate && loading)) {
     return (
       <div className='flex items-center justify-center min-h-96'>
         <div className='flex flex-col items-center gap-3'>
           <Loader2 className='w-8 h-8 animate-spin text-primary' />
-          <span className='text-sm text-muted-foreground'>Đang tải dữ liệu...</span>
+          <span className='text-sm text-muted-foreground'>
+            Đang tải dữ liệu...
+          </span>
         </div>
       </div>
     );
@@ -982,7 +1074,10 @@ export function ContractBasicInformationForm() {
           <FormGroupContent>
             <FormReadonly
               label='Loại hợp đồng'
-              value={contractTypes.find((t) => t.id === form.watch('contractTypeId'))?.name || ''}
+              value={
+                contractTypes.find((t) => t.id === form.watch('contractTypeId'))
+                  ?.name || ''
+              }
             />
             {/* ✅ Dùng Controller để hidden input luôn sync với form state */}
             <Controller
@@ -1004,7 +1099,9 @@ export function ContractBasicInformationForm() {
               control={form.control}
               name='contractFieldId'
               placeholder='Chọn lĩnh vực hợp đồng'
-              options={contractFields.map((f) => ({ value: f.id, label: f.name }))}
+              options={[
+                ...contractFields.map((f) => ({ value: f.id, label: f.name })),
+              ]}
             />
           </FormGroupContent>
         </FormGroup>
@@ -1028,297 +1125,252 @@ export function ContractBasicInformationForm() {
         <FormGroup>
           <FormGroupHeader className='flex justify-between items-center'>
             <div className='flex flex-col gap-1'>
-              <FormGroupLabel>
-                Giá trị hợp đồng{' '}
-                {[2, 3].includes(Number(contractFormat?.contractFormat)) && '(sau thuế): '}
-                {!isRuleContract && (
-                  <span className="text-red-500">
-                    {[2, 3].includes(Number(contractFormat?.contractFormat)) &&
-                      format.number(getContractFinalValue())}
-                    đ
-                  </span>
-                )}
-              </FormGroupLabel>
+              <FormGroupLabel>Giá trị hợp đồng</FormGroupLabel>
               {!isRuleContract && (
-                <div className='text-sm font-medium text-muted-foreground'>
-                  Tổng:{' '}
-                  <span className='text-foreground font-semibold'>
-                    {format.number(contractItemsTotal)}
-                  </span>
-                  <span className='text-foreground font-semibold'>
-                    đ
-                  </span>
+                <div className='flex flex-col gap-3 p-4 rounded-lg border bg-muted/30 w-fit min-w-[500px]'>
+                  {/* Dòng 1: Trước thuế */}
+                  <div className='flex items-center gap-3'>
+                    <span className='text-sm font-medium w-52 shrink-0'>
+                      Giá trị hợp đồng (trước thuế)
+                    </span>
+                    <div className='w-48'>
+                      <FormNumber
+                        control={form.control}
+                        name='contractValue'
+                        placeholder='Nhập giá trị hợp đồng'
+                      />
+                    </div>
+                    <span className='text-sm font-semibold'>VNĐ</span>
+                  </div>
+
+                  {/* Dòng 2: VAT */}
+                  <div className='flex items-center gap-3'>
+                    <span className='text-sm font-medium w-52 shrink-0'>
+                      Thuế VAT (%)
+                    </span>
+                    <div className='w-48'>
+                      <FormNumber
+                        control={form.control}
+                        name='vatPercentage'
+                        placeholder='Nhập % VAT'
+                      />
+                    </div>
+                    <span className='text-sm text-muted-foreground shrink-0'>
+                      = {format.number(getVatAmount())} VNĐ
+                    </span>
+                  </div>
+
+                  {/* Dòng 3: Sau thuế */}
+                  <div className='flex items-center gap-3 border-t pt-3'>
+                    <span className='text-sm font-medium w-52 shrink-0'>
+                      Giá trị hợp đồng (sau thuế)
+                    </span>
+                    <span className='font-bold text-primary text-base'>
+                      {format.number(getContractAfterTax())} VNĐ
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
-            <div className='flex items-center gap-2'>
-              <MaterialImportDialog
-                isOtherMaterial={false}
-                existingMaterials={materials}
-                onReloadMaterials={reloadMaterials}
-                contractFormat={contractFormat?.contractFormat}
-                onSuccess={(items) => {
-                  form.setValue('contractValue', null);
-                  items.forEach((item) => appendContractItem(item));
-                }}
-              />
-              <Button
-                variant={'default'}
-                size={'sm'}
-                type='button'
-                className='min-w-48'
-                onClick={() => {
-                  if (watchedContractValue) form.setValue('contractValue', null);
-                  appendContractItem(BasicInformationDefault.contractItems[0]);
-                }}
-              >
-                <PlusIcon />
-                <span>Thêm vật tư</span>
-              </Button>
-            </div>
-
           </FormGroupHeader>
 
-          <FormGroupContent className='max-h-74 overflow-auto'>
-            <FormRow>
-              {watchedContractItems.length === 0 && !isRuleContract && (
-                <FormNumber
-                  control={form.control}
-                  name='contractValue'
-                  placeholder='Nhập giá trị vật tư'
-                />
-              )}
-            </FormRow>
+          <FormGroupContent className='flex flex-col gap-6 max-h-[600px] overflow-auto'>
+            {/* ── Sub-section 1: Vật tư ── */}
+            <div className='flex flex-col gap-2'>
+              <FormGroupLabel>Thành phần hợp đồng</FormGroupLabel>
 
-            {contractItems?.map((_, index) => {
-              const watchedMaterialId = form.watch(
-                `contractItems.${index}.materialId`
-              );
-
-              const selectedMaterial = materials.find(
-                (material) => material.id === watchedMaterialId
-              );
-
-              const watchedQuantity = form.watch(
-                `contractItems.${index}.quantity`
-              );
-
-              return (
-                <FormRow key={index}>
-                  <div className='size-10 aspect-square rounded-lg mt-8 bg-primary border flex items-center justify-center text-primary-foreground'>
-                    <span>{index + 1}</span>
-                  </div>
-
-                  <div className='flex gap-2 flex-1 min-w-lg'>
-                    <VirtualMaterialSelect
-                      control={form.control}
-                      name={`contractItems.${index}.materialId`}
-                      label='Vật tư'
-                      placeholder='Chọn vật tư'
-                      materials={materials}
-                      isLoading={isCatalogLoading}
+              <div className='flex justify-between items-center'>
+                <div className='flex flex-col gap-1'>
+                  <span className='text-sm font-semibold'>
+                    Danh sách vật tư, tài sản chi tiết
+                  </span>
+                  {!isRuleContract && (
+                    <div className='text-sm font-medium text-muted-foreground'>
+                      Tổng:
+                      <span className='text-foreground font-semibold'>
+                        {format.number(contractItemsTotal)}
+                      </span>
+                      <span className='text-foreground font-semibold'>đ</span>
+                    </div>
+                  )}
+                </div>
+                <div className='flex items-center gap-2'>
+                  <MaterialImportDialog
+                    isOtherMaterial={false}
+                    existingMaterials={materials}
+                    onReloadMaterials={reloadMaterials}
+                    contractFormat={contractFormat?.contractFormat}
+                    onSuccess={(items) => {
+                      items.forEach((item) => appendContractItem(item));
+                    }}
+                  />
+                  <Button
+                    variant={'default'}
+                    size={'sm'}
+                    type='button'
+                    className='min-w-48'
+                    onClick={() => {
+                      appendContractItem(
+                        BasicInformationDefault.contractItems[0]
+                      );
+                    }}
+                  >
+                    <PlusIcon />
+                    <span>Thêm vật tư, tài sản</span>
+                  </Button>
+                  <div className='flex justify-end'>
+                    <CreateMaterialDialog
+                      isOtherMaterial={false}
+                      onSuccess={reloadMaterials}
                     />
+                  </div>
+                </div>
+              </div>
 
+              {contractItems?.map((_, index) => {
+                const watchedMaterialId = form.watch(
+                  `contractItems.${index}.materialId`
+                );
+                const selectedMaterial = materials.find(
+                  (m) => m.id === watchedMaterialId
+                );
+                const watchedQuantity = form.watch(
+                  `contractItems.${index}.quantity`
+                );
+
+                return (
+                  <FormRow key={index}>
+                    <div className='size-10 aspect-square rounded-lg mt-8 bg-primary border flex items-center justify-center text-primary-foreground'>
+                      <span>{index + 1}</span>
+                    </div>
+                    <div className='flex gap-2 flex-1 min-w-lg'>
+                      <VirtualMaterialSelect
+                        control={form.control}
+                        name={`contractItems.${index}.materialId`}
+                        label='Vật tư'
+                        placeholder='Chọn vật tư'
+                        materials={materials}
+                        isLoading={isCatalogLoading}
+                      />
+                    </div>
                     <FormReadonly
                       label='Đơn vị tính'
                       value={selectedMaterial?.unitOfMeasureName || '—'}
                     />
-
                     <FormReadonly
                       label='Đơn giá vật tư (đ)'
                       value={format.number(selectedMaterial?.price || 0)}
                     />
-                  </div>
-
-                  {!isRuleContract && (
-                    <div className='w-56 shrink-0'>
-                      <FormNumber
-                        control={form.control}
-                        name={`contractItems.${index}.quantity`}
-                        label='Khối lượng'
-                        placeholder='Nhập khối lượng'
-                        readOnly={[0, 1].includes(
-                          contractFormat?.contractFormat || 0
-                        )}
-                      />
-                    </div>
-                  )}
-
-                  {!isRuleContract && (
-                    <div className='w-56 shrink-0'>
-                      <FormReadonly
-                        label='Thành tiền (đ)'
-                        value={format.number(
-                          (selectedMaterial?.price || 0) * (watchedQuantity || 0)
-                        )}
-                      />
-                    </div>
-                  )}
-
-                  <Button
-                    variant={'destructive'}
-                    size={'icon-lg'}
-                    className='mt-8'
-                    type='button'
-                    onClick={() => {
-                      removeContractItem(index);
-                    }}
-                  >
-                    <Trash2Icon />
-                  </Button>
-                </FormRow>
-              );
-            })}
-            <div className='flex justify-end'>
-              <CreateMaterialDialog
-                isOtherMaterial={false}
-                onSuccess={reloadMaterials}
-              />
+                    {!isRuleContract && (
+                      <div className='w-56 shrink-0'>
+                        <FormNumber
+                          control={form.control}
+                          name={`contractItems.${index}.quantity`}
+                          label='Khối lượng'
+                          placeholder='Nhập khối lượng'
+                          readOnly={[0, 1].includes(
+                            contractFormat?.contractFormat || 0
+                          )}
+                        />
+                      </div>
+                    )}
+                    {!isRuleContract && (
+                      <div className='w-56 shrink-0'>
+                        <FormReadonly
+                          label='Thành tiền (đ)'
+                          value={format.number(
+                            (selectedMaterial?.price || 0) *
+                            (watchedQuantity || 0)
+                          )}
+                        />
+                      </div>
+                    )}
+                    <Button
+                      variant={'destructive'}
+                      size={'icon-lg'}
+                      className='mt-8'
+                      type='button'
+                      onClick={() => removeContractItem(index)}
+                    >
+                      <Trash2Icon />
+                    </Button>
+                  </FormRow>
+                );
+              })}
             </div>
-          </FormGroupContent>
-        </FormGroup>
 
-        <FormGroup>
-          <FormGroupHeader className='flex justify-between items-center'>
-            <div className='flex flex-col gap-1'>
-              <FormGroupLabel>Thành phần hợp đồng khác</FormGroupLabel>
-              {!isRuleContract && (
-                <div className='text-sm font-medium text-muted-foreground'>
-                  Tổng:{' '}
-                  <span className='text-foreground font-semibold'>
-                    {format.number(contractOtherItemsTotal)}
-                  </span>
-                  <span className='text-foreground font-semibold'>
-                    đ
+            {/* ── Sub-section 2: Dịch vụ khác ── */}
+            <div className='flex flex-col gap-2'>
+              <div className='flex justify-between items-center'>
+                <div className='flex flex-col gap-1'>
+                  <span className='text-sm font-semibold'>
+                    Danh sách dịch vụ khác
                   </span>
                 </div>
-              )}
-            </div>
-            <div className='flex items-center gap-2'>
-              <MaterialImportDialog
-                isOtherMaterial={true}
-                existingMaterials={otherMaterials}
-                onReloadMaterials={reloadOtherMaterials}
-                contractFormat={contractFormat?.contractFormat}
-                onSuccess={(items) => {
-                  form.setValue('contractOthersValue', null);
-                  items.forEach((item) => appendContractOtherItem(item));
-                }}
-              />
-              <Button
-                variant={'default'}
-                size={'sm'}
-                type='button'
-                className='min-w-48'
-                onClick={() => {
-                  if (watchedContractOthersValue) form.setValue('contractOthersValue', null);
-                  appendContractOtherItem({ materialId: '', quantity: '' as unknown as number });
-                }}
-              >
-                <PlusIcon />
-                <span>Thêm thành phần khác</span>
-              </Button>
-            </div>
-
-          </FormGroupHeader>
-
-          <FormGroupContent className='max-h-74 overflow-auto'>
-            <FormRow>
-              {watchedContractOtherItems &&
-                watchedContractOtherItems.length === 0 &&
-                !isRuleContract && (
-                  <FormNumber
-                    control={form.control}
-                    name='contractOthersValue'
-                    placeholder='Nhập giá trị thành phần hợp đồng khác'
+                <div className='flex items-center gap-2'>
+                  <MaterialImportDialog
+                    isOtherMaterial={true}
+                    existingMaterials={otherMaterials}
+                    onReloadMaterials={reloadOtherMaterials}
+                    contractFormat={contractFormat?.contractFormat}
+                    onSuccess={(items) => {
+                      items.forEach((item) => appendContractOtherItem(item));
+                    }}
                   />
-                )}
-            </FormRow>
-
-            {contractOtherItems?.map((_, index) => {
-              const watchedMaterialId = form.watch(
-                `contractOtherItems.${index}.materialId`
-              );
-
-              const selectedMaterial = otherMaterials.find(
-                (material) => material.id === watchedMaterialId
-              );
-
-              const watchedQuantity = form.watch(
-                `contractOtherItems.${index}.quantity`
-              );
-
-              return (
-                <FormRow key={index}>
-                  <div className='size-10 aspect-square rounded-lg mt-8 bg-primary border flex items-center justify-center text-primary-foreground'>
-                    <span>{index + 1}</span>
-                  </div>
-
-                  <div className='flex gap-2 flex-1 min-w-lg'>
-                    <FormSelect
-                      control={form.control}
-                      name={`contractOtherItems.${index}.materialId`}
-                      label='Thành phần hợp đồng khác'
-                      placeholder='Chọn thành phần hợp đồng khác'
-                      options={otherMaterials.map((material) => ({
-                        value: material.id,
-                        label: `${material.materialCode} - ${material.name}`,
-                      }))}
-                    />
-
-                    <FormReadonly
-                      label='Đơn vị tính'
-                      value={selectedMaterial?.unitOfMeasureName || '—'}  // ← thêm
-                    />
-
-                    <FormReadonly
-                      label='Đơn giá thành phần khác (đ)'
-                      value={format.number(selectedMaterial?.price || 0)}
-                    />
-                  </div>
-
-                  {!isRuleContract && (
-                    <div className='w-56 shrink-0'>
-                      <FormNumber
-                        control={form.control}
-                        name={`contractOtherItems.${index}.quantity`}
-                        label='Khối lượng'
-                        placeholder='Nhập khối lượng'
-                      />
-                    </div>
-                  )}
-
-                  {!isRuleContract && (
-                    <div className='w-56 shrink-0'>
-                      <FormReadonly
-                        label='Thành tiền (đ)'
-                        value={format.number(
-                          (selectedMaterial?.price || 0) *
-                          (watchedQuantity || 0)
-                        )}
-                      />
-                    </div>
-                  )}
-
                   <Button
-                    variant={'destructive'}
-                    size={'icon-lg'}
-                    className='mt-8'
+                    variant={'default'}
+                    size={'sm'}
                     type='button'
+                    className='min-w-48'
                     onClick={() => {
-                      removeContractOtherItem(index);
+                      appendContractOtherItem({
+                        materialId: '',
+                        quantity: '' as unknown as number,
+                      });
                     }}
                   >
-                    <Trash2Icon />
+                    <PlusIcon />
+                    <span>Thêm dịch vụ khác</span>
                   </Button>
-                </FormRow>
-              );
-            })}
-            <div className='flex justify-end'>
-              <CreateMaterialDialog
-                isOtherMaterial={true}
-                onSuccess={reloadOtherMaterials}
-              />
+                  <div className='flex justify-end'>
+                    <CreateMaterialDialog
+                      isOtherMaterial={true}
+                      onSuccess={reloadOtherMaterials}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {contractOtherItems?.map((_, index) => {
+                return (
+                  <FormRow key={index}>
+                    <div className='size-10 aspect-square rounded-lg mt-8 bg-primary border flex items-center justify-center text-primary-foreground'>
+                      <span>{index + 1}</span>
+                    </div>
+                    <div className='flex gap-2 flex-1 min-w-lg'>
+                      <FormSelect
+                        control={form.control}
+                        name={`contractOtherItems.${index}.materialId`}
+                        label='Dịch vụ khác'
+                        placeholder='Chọn dịch vụ khác'
+                        options={otherMaterials.map((material) => ({
+                          value: material.id,
+                          label: `${material.materialCode} - ${material.name}`,
+                        }))}
+                      />
+                    </div>
+                    <Button
+                      variant={'destructive'}
+                      size={'icon-lg'}
+                      className='mt-8'
+                      type='button'
+                      onClick={() => removeContractOtherItem(index)}
+                    >
+                      <Trash2Icon />
+                    </Button>
+                  </FormRow>
+                );
+              })}
             </div>
           </FormGroupContent>
         </FormGroup>
@@ -1418,7 +1470,11 @@ export function ContractBasicInformationForm() {
                       control={form.control}
                       setValue={form.setValue}
                       bankAccountIdField={`contractGuarantee.${name}.bankAccountId`}
-                      currentId={form.watch(`contractGuarantee.${name}.bankAccountId`) as string}
+                      currentId={
+                        form.watch(
+                          `contractGuarantee.${name}.bankAccountId`
+                        ) as string
+                      }
                       label='Tài khoản ngân hàng'
                     />
                   </FormGroupContent>
@@ -1451,18 +1507,24 @@ export function ContractBasicInformationForm() {
           </FormGroupHeader>
           <FormGroupContent>
             <FormRow className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
-              <FormInput
+              <FormSelect
                 control={form.control}
                 name='contractNumber'
                 label='Số ký hiệu hợp đồng'
-                placeholder='Nhập số ký hiệu hợp đồng'
+                placeholder='Số ký hiệu hợp đồng'
+                options={[
+                  ...contractNumbers.map((f) => ({ value: f.id, label: f.number })),
+                ]}
               />
-
-              <FormInput
+              <FormSelect
                 control={form.control}
                 name='appendixNumber'
-                label='Số ký hiệu PLHĐ'
-                placeholder='Nhập số ký hiệu PLHĐ'
+                label='Số ký hiệu phụ lục hợp đồng'
+                placeholder='Số ký hiệu phụ lục hợp đồng'
+                options={filteredAppendixs.map((f) => ({
+                  value: f.id,
+                  label: f.appendixNumber,
+                }))}
               />
             </FormRow>
           </FormGroupContent>
@@ -1470,13 +1532,13 @@ export function ContractBasicInformationForm() {
 
         <FormGroup>
           <FormGroupHeader>
-            <FormGroupLabel>Đối tác/khách hàng</FormGroupLabel>
+            <FormGroupLabel>Đơn vị ký kết hợp đồng</FormGroupLabel>
           </FormGroupHeader>
           <FormGroupContent>
             <FormSelect
               control={form.control}
               name='partnerId'
-              placeholder='Chọn đối tác/khách hàng'
+              placeholder='Chọn đơn vị ký kết hợp đồng'
               options={partners.map((partner) => ({
                 value: partner.id,
                 label: partner.name,
@@ -1524,11 +1586,14 @@ export function ContractBasicInformationForm() {
                     </ItemContent>
                     <ItemActions>
                       <Button
+                        type='button'
                         variant={'destructive'}
                         size={'icon-lg'}
                         onClick={(e) => {
+                          e.preventDefault();
                           e.stopPropagation();
-                          form.resetField('partnerId');
+                          form.setValue('partnerId', '', { shouldDirty: true });
+                          form.clearErrors('partnerId');
                         }}
                       >
                         <XIcon />
@@ -1543,21 +1608,61 @@ export function ContractBasicInformationForm() {
 
         <FormGroup>
           <FormGroupHeader>
-            <FormGroupLabel>Hiệu lực hợp đồng</FormGroupLabel>
+            <FormGroupLabel>Mốc thời gian hợp đồng</FormGroupLabel>
           </FormGroupHeader>
           <FormGroupContent>
             <FormRow>
               <FormDate
                 control={form.control}
-                name='startDate'
-                label='Ngày tháng năm ký hợp đồng'
-                placeholder='Chọn ngày ký tháng năm ký hợp đồng'
+                name='signingDate'
+                label='Ngày ký hợp đồng'
+                placeholder='Chọn ngày ký hợp đồng'
               />
               <FormDate
                 control={form.control}
-                name='endDate'
-                label='Hiệu lực hết của hợp đồng'
-                placeholder='Chọn ngày hiệu lực hết của hợp đồng'
+                name='effectiveDate'
+                label='Ngày hợp đồng có hiệu lực'
+                placeholder='Chọn ngày hiệu lực'
+              />
+            </FormRow>
+
+            <FormRow>
+              <FormNumber
+                control={form.control}
+                name='completionDurationDays'
+                label='Thời gian thực hiện hợp đồng (ngày)'
+                placeholder='Nhập số ngày thực hiện'
+              />
+              <FormReadonly
+                label='Ngày hoàn thành hợp đồng'
+                value={form.watch('completionDate') || '—'}
+              />
+              <Controller
+                control={form.control}
+                name='completionDate'
+                render={({ field }) => (
+                  <input type='hidden' {...field} value={field.value ?? ''} />
+                )}
+              />
+            </FormRow>
+
+            <FormRow>
+              <FormNumber
+                control={form.control}
+                name='warrantyDurationDays'
+                label='Thời gian bảo hành (ngày)'
+                placeholder='Nhập số ngày bảo hành'
+              />
+              <FormReadonly
+                label='Ngày hết hạn bảo hành'
+                value={form.watch('warrantyExpirationDate') || '—'}
+              />
+              <Controller
+                control={form.control}
+                name='warrantyExpirationDate'
+                render={({ field }) => (
+                  <input type='hidden' {...field} value={field.value ?? ''} />
+                )}
               />
             </FormRow>
           </FormGroupContent>
@@ -1570,7 +1675,9 @@ export function ContractBasicInformationForm() {
                 <FormGroupLabel>Thời hạn thanh toán, đối chiếu</FormGroupLabel>
                 {hasScheduleType && paymentSchedules.length > 0 && (
                   <div className='text-sm font-medium'>
-                    <span className='text-muted-foreground'>Tổng thanh toán: </span>
+                    <span className='text-muted-foreground'>
+                      Tổng thanh toán:{' '}
+                    </span>
                     <span className='text-foreground font-semibold'>
                       {format.number(getPaymentSchedulesTotal())} đ
                     </span>

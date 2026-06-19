@@ -60,7 +60,7 @@ export function MaterialImportDialog({
     const [downloading, setDownloading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const label = isOtherMaterial ? 'thành phần hợp đồng khác' : 'vật tư';
+    const label = isOtherMaterial ? 'dịch vụ khác' : 'vật tư';
 
     const isRuleContract = contractFormat !== undefined && [0, 1].includes(contractFormat);
     // ── Download template với ExcelJS dropdown ─────────────────────────────────

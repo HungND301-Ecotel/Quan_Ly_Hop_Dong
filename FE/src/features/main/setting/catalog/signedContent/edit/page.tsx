@@ -124,7 +124,7 @@ export function EditSignedContentAction({ row, table }: DataTableEvent<SignedCon
               <FormInput
                 control={form.control}
                 name='title'
-                label='Tiêu đề'
+                label='Tên nội dung ký kết hợp đồng'
                 placeholder='Nhập tiêu đề nội dung ký kết'
               />
               <FormSelect

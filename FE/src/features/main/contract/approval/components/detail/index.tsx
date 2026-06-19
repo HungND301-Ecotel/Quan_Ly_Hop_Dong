@@ -16,7 +16,16 @@ import { useAuthContext } from '@/features/context';
 import { useApi } from '@/hooks/use-api';
 import { contractService } from '@/services/contract';
 import { Contract } from '@/services/contract/type';
-import { EyeIcon, FileDigit, FileText, History, Info, Workflow } from 'lucide-react';
+import {
+  ActivityIcon,
+  CreditCardIcon,
+  EyeIcon,
+  FileDigit,
+  FileText,
+  History,
+  Info,
+  Workflow,
+} from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { ContractAccept } from './components/accept';
 import { ContractDocuments } from './components/documents';
@@ -26,6 +35,8 @@ import { ContractInformation } from './components/information';
 import { ContractReject } from './components/reject';
 import { ContractEvidence } from './components/evidence';
 import { contractPaymentService } from '@/services/contract-payment';
+import { ProgressSectionNew } from '@/features/main/finance/buy/components/progress/FileFakeData/ProgressSectionNew';
+import { PaymentSection } from '@/features/main/finance/buy/components/payment';
 
 export type ContractDetailProps = {
   onSubmit?: () => Promise<void> | void;
@@ -85,7 +96,7 @@ export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
           <EyeIcon />
         </Button>
       </DialogTrigger>
-      <DialogContent className='flex flex-1 flex-col gap-0 w-full md:min-w-2xl lg:min-w-6xl px-0 h-[calc(100vh-4rem)] overflow-hidden'>
+      <DialogContent className='flex flex-1 flex-col gap-0 min-w-[calc(100vw-4rem)] px-0 h-[calc(100vh-4rem)] overflow-hidden'>
         <DialogHeader className='gap-1 p-6 pt-0 border-b'>
           <DialogTitle className='text-2xl font-semibold'>
             Chi tiết hợp đồng {row.original.contractNumber.toUpperCase()}
@@ -95,9 +106,9 @@ export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs className='w-full flex-1 gap-4 py-6'>
+        <Tabs defaultValue='information' className='w-full flex-1 gap-4 py-6'>
           <div className='px-6'>
-            <TabsList defaultValue={'information'} className='w-full'>
+            <TabsList className='w-full grid grid-cols-7'>
               <TabsTrigger
                 value='information'
                 className='flex items-center gap-2'
@@ -108,6 +119,14 @@ export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
               <TabsTrigger value='flow' className='flex items-center gap-2'>
                 <Workflow className='size-4' />
                 <span className='hidden md:inline'>Luồng ký duyệt</span>
+              </TabsTrigger>
+              <TabsTrigger value='progress' className='flex items-center gap-2'>
+                <ActivityIcon className='size-4' />
+                <span className='hidden md:inline'>Tiến độ hợp đồng</span>
+              </TabsTrigger>
+              <TabsTrigger value='payment' className='flex items-center gap-2'>
+                <CreditCardIcon className='size-4' />
+                <span className='hidden md:inline'>Thanh toán hợp đồng</span>
               </TabsTrigger>
               <TabsTrigger
                 value='documents'
@@ -133,6 +152,25 @@ export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
                 information={detail.data}
                 loading={detail.loading}
               />
+            </TabsContent>
+            <TabsContent value='progress'>
+              {detail.data && (
+                <ProgressSectionNew
+                  contractId={row.original.id}
+                  contractValue={detail.data?.contractValue ?? 0}
+                />
+              )}
+            </TabsContent>
+            <TabsContent value='payment'>
+              {detail.data && (
+                <PaymentSection
+                  contractId={row.original.id}
+                  contractValue={detail.data.contractValue ?? 0}
+                  onSaved={() => {
+                    detail.refresh?.();
+                  }}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value='history'>
@@ -205,7 +243,6 @@ export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
               />
             </>
           )}
-
         </DialogFooter>
       </DialogContent>
     </Dialog>

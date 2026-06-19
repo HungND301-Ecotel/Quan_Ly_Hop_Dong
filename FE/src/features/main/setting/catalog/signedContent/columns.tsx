@@ -8,7 +8,7 @@ export const SIGNED_CONTENT_COLUMNS: ColumnDef<SignedContent>[] = [
   DataTableSelectColumn as ColumnDef<SignedContent>,
   {
     accessorKey: 'title',
-    header: 'Tiêu đề',
+    header: 'Tên nội dung ký kết hợp đồng',
   },
   {
     accessorKey: 'level3CodeName',
