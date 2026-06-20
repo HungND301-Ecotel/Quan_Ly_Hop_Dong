@@ -442,14 +442,6 @@ public class ApplicationDbContext(
 
         // PaymentSchedules
         modelBuilder.Entity<PaymentSchedule>()
-            .HasDiscriminator<ScheduleType>("ScheduleType")
-            .HasValue<LumpSumPaymentSchedule>(ScheduleType.LumpSum)
-            .HasValue<MonthlyPaymentSchedule>(ScheduleType.Monthly)
-            .HasValue<QuarterlyPaymentSchedule>(ScheduleType.Quarterly)
-            .HasValue<YearlyPaymentSchedule>(ScheduleType.Yearly)
-            .HasValue<StagePaymentSchedule>(ScheduleType.Stage);
-
-        modelBuilder.Entity<PaymentSchedule>()
             .HasIndex(p => p.ContractId);
 
         modelBuilder.Entity<PaymentSchedule>()

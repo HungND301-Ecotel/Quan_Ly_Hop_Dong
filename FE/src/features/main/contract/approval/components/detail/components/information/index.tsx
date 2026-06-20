@@ -3,12 +3,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ContractFormat } from '@/constants/contract-format';
 import { ContractRole } from '@/constants/contract-role';
 import { DiscountType } from '@/constants/discount-type';
-import { ScheduleType } from '@/constants/schedule-type';
 import { format } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { Contract } from '@/services/contract/type';
 import {
-  Calendar1Icon,
   CalendarDays,
   DollarSignIcon,
   FileBadge,
@@ -655,82 +653,119 @@ export function ContractInformation({
           </Section>
         )}
 
-      {/* ── Lịch thanh toán ── */}
+      {/* 7. Lịch thanh toán */}
       {!isRuleContract && (
         <Section title='Lịch thanh toán' icon={CalendarDays}>
-          <div className='p-4 rounded-lg border border-blue-500/20'>
-            <div className='text-xs text-muted-foreground mb-1'>
-              Loại kế hoạch
-            </div>
-            <div className='text-sm font-semibold text-blue-600'>
-              {Object.values(ScheduleType).find(
-                (s) => String(s.id) === String(information?.paymentPlanType)
-              )?.name || '---'}
-            </div>
-          </div>
-
           {information?.paymentSchedules &&
             information.paymentSchedules.length > 0 && (
-              <>
-                <Separator className='my-2' />
-                <div>
-                  <div className='text-sm font-medium mb-3'>
-                    Chi tiết kế hoạch thanh toán
-                  </div>
-                  <div className='space-y-3'>
-                    {information.paymentSchedules.map((item, index) => {
-                      const displayAmount =
-                        item.amountType === DiscountType.Percent.id
-                          ? (item.amount / 100) * getContractFinalValue()
-                          : item.amount || 0;
-                      return (
-                        <div
-                          key={index}
-                          className='p-3 rounded-md border hover:border-primary/50 transition-colors'
-                        >
-                          <div className='flex items-center justify-between'>
-                            <div className='flex flex-col items-start gap-2'>
-                              <div className='flex gap-2 items-center'>
-                                <span className='flex items-center justify-center size-7 rounded-full bg-blue-500/10 text-blue-600 text-sm font-semibold'>
-                                  {index + 1}
-                                </span>
-                                <span className='text-sm font-medium'>
-                                  Kỳ {index + 1}
-                                </span>
-                              </div>
-                              <div className='flex items-center gap-2 text-xs text-muted-foreground'>
-                                <Calendar1Icon className='size-3.5' />
-                                <span>
-                                  {item.fromDate && item.toDate
-                                    ? `Từ ${format.date(item.fromDate)} đến ${format.date(item.toDate)}`
-                                    : item.dueDate
-                                      ? `Hạn thanh toán: ${format.date(item.dueDate)}`
-                                      : item.month && item.year
-                                        ? `Tháng ${item.month}/${item.year}`
-                                        : item.quarter && item.year
-                                          ? `Quý ${item.quarter}/${item.year}`
-                                          : '---'}
-                                </span>
-                              </div>
+              <div>
+                <div className='text-sm font-medium mb-3'>
+                  Chi tiết kế hoạch thanh toán
+                </div>
+                <div className='space-y-3'>
+                  {information.paymentSchedules.map((item, index) => {
+                    // Tính số tiền: nếu là % thì nhân với giá trị hợp đồng
+                    const displayAmount =
+                      item.amountType === DiscountType.Percent.id
+                        ? (item.amount / 100) * getContractFinalValue()
+                        : item.amount || 0;
+
+                    return (
+                      <div
+                        key={index}
+                        className='p-4 rounded-lg border bg-linear-to-br from-background to-muted/20 hover:border-primary/50 transition-colors'
+                      >
+                        <div className='flex items-center justify-between'>
+                          <div className='flex items-center gap-2'>
+                            <span className='flex items-center justify-center size-7 rounded-full bg-blue-500/10 text-blue-600 text-sm font-semibold'>
+                              {index + 1}
+                            </span>
+                            <div className='flex flex-col'>
+                              <span className='text-sm font-medium'>Kỳ {index + 1}</span>
+                              <span className='text-xs text-muted-foreground'>Số ngày thanh toán/đối chiếu: {item.days} ngày</span>
                             </div>
-                            <div className='text-right'>
-                              <div className='text-xs text-muted-foreground'>
-                                {item.amountType === DiscountType.Percent.id
-                                  ? `Giá trị: ${item.amount}%`
-                                  : 'Số tiền cố định'}
-                              </div>
-                              <div className='text-base font-bold text-primary'>
-                                {format.number(displayAmount)} đ
-                              </div>
+                          </div>
+                          <div className='text-right'>
+                            <div className='text-xs text-muted-foreground'>
+                              {item.amountType === DiscountType.Percent.id
+                                ? `Giá trị: ${item.amount}%`
+                                : 'Số tiền cố định'}
+                            </div>
+                            <div className='text-base font-bold text-primary'>
+                              {format.number(displayAmount)} đ
                             </div>
                           </div>
                         </div>
-                      );
-                    })}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+        </Section>
+      )}
+
+      {/* 8. Bảo lãnh */}
+      {!isRuleContract && information?.contractGuarantee && information.contractGuarantee.length > 0 && (
+        <Section title='Bảo lãnh hợp đồng' icon={ShieldCheck}>
+          <div className='space-y-4'>
+            {information.contractGuarantee.map((guarantee) => {
+              if (!guarantee?.value) return null;
+
+              const guaranteeTypeMap: Record<number, { label: string; colorClass: string; iconColor: string }> = {
+                1: {
+                  label: 'Bảo lãnh thực hiện hợp đồng',
+                  colorClass: 'bg-white',
+                  iconColor: 'text-amber-600',
+                },
+                2: {
+                  label: 'Bảo lãnh bảo hành',
+                  colorClass: 'bg-white',
+                  iconColor: 'text-green-600',
+                },
+                3: {
+                  label: 'Bảo lãnh đặt cọc',
+                  colorClass: 'bg-white',
+                  iconColor: 'text-blue-600',
+                },
+              };
+
+              const { colorClass } = guaranteeTypeMap[guarantee.guaranteeType] ?? {
+                label: 'Bảo lãnh khác',
+                colorClass: 'from-muted/5 to-muted/0',
+                iconColor: 'text-muted-foreground',
+              };
+
+              return (
+                <div
+                  key={guarantee.bankAccount?.id}
+                  className={`p-4 rounded-lg border bg-linear-to-br ${colorClass}`}
+                >
+                  <div className='grid grid-cols-3 gap-3'>
+                    <InfoRow
+                      label='Giá trị'
+                      value={
+                        guarantee.valueType === 1
+                          ? `${guarantee.value}%`
+                          : new Intl.NumberFormat('vi-VN', {
+                            style: 'currency',
+                            currency: 'VND',
+                          }).format(guarantee.value)
+                      }
+                      highlight
+                    />
+                    {guarantee.durationDate && (
+                      <InfoRow
+                        label='Thời hạn'
+                        value={format.date(guarantee.durationDate)}
+                      />
+                    )}
+
                   </div>
                 </div>
-              </>
-            )}
+              );
+            })}
+          </div>
         </Section>
       )}
 

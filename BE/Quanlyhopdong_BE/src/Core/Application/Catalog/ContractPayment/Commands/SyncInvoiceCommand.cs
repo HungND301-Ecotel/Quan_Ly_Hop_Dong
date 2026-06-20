@@ -28,13 +28,22 @@ public class SyncInvoiceCommandHandler(
 
         var contract = await _contractRepo.GetFirstOrDefaultAsync(
             predicate: x => x.ContractNumber == request.Request.ContractNumber,
-            include: x => x.Include(c => c.ContractUserRoles),
-            disableTracking: true);
+            include: x => x.Include(c => c.ContractUserRoles).Include(c => c.PaymentSchedules),
+            disableTracking: false);
 
         if (contract == null)
         {
             throw new NotFoundException($"Contract with number {request.Request.ContractNumber} not found");
         }
+
+        var schedule = contract.PaymentSchedules.FirstOrDefault();
+        if (schedule == null)
+        {
+            schedule = new Domain.Entities.Catalog.PaymentSchedule.PaymentSchedule(contract.Id, 30, 0, Domain.Common.Enums.ValueType.Amount);
+            await unitOfWork.GetRepository<Domain.Entities.Catalog.PaymentSchedule.PaymentSchedule>().InsertAsync(schedule);
+            await unitOfWork.SaveChangesAsync();
+        }
+        var scheduleId = schedule.Id;
 
         var currentUserId = currentUser.UserId;
         var userRepo = unitOfWork.GetRepository<Domain.Entities.Identity.User>();
@@ -102,16 +111,33 @@ public class SyncInvoiceCommandHandler(
         {
             if (!paymentByPeriod.TryGetValue(source.PeriodNumber, out var payment))
             {
-                skippedCount++;
+                var newPayment = Domain.Entities.Catalog.ContractPayment.Create(
+                    contract.Id,
+                    scheduleId,
+                    source.PeriodNumber,
+                    source.DateInvoice ?? DateTimeOffset.MinValue,
+                    source.InvoiceAmount,
+                    acceptanceReportFilePaths: null,
+                    invoiceFilePaths: null,
+                    taxFilePaths: null,
+                    numberInvoice: source.NumberInvoice,
+                    dateInvoice: source.DateInvoice);
+
+                await _paymentRepo.InsertAsync(newPayment);
+                createdCount++;
                 continue;
             }
 
             string? currentNumberInvoice = payment.Invoice?.NumberInvoice;
             var currentDateInvoice = payment.Invoice?.DateInvoice;
 
+            var sourceEffectiveDateInvoice = source.DateInvoice ?? DateTimeOffset.MinValue;
+            var currentEffectiveDateInvoice = currentDateInvoice ?? DateTimeOffset.MinValue;
+
             bool isChanged = !string.Equals(currentNumberInvoice, source.NumberInvoice, StringComparison.Ordinal)
-                || !currentDateInvoice.HasValue
-                || currentDateInvoice.Value != source.DateInvoice;
+                || currentEffectiveDateInvoice != sourceEffectiveDateInvoice
+                || payment.Amount != source.InvoiceAmount
+                || payment.PaymentScheduleId != scheduleId;
 
             if (!isChanged)
             {
@@ -121,10 +147,10 @@ public class SyncInvoiceCommandHandler(
             bool hasInvoiceBefore = payment.Invoice != null;
 
             payment.Update(
-                payment.PaymentScheduleId,
+                scheduleId,
                 payment.PeriodNumber,
-                payment.PaymentDate,
-                payment.Amount,
+                source.DateInvoice ?? payment.PaymentDate,
+                source.InvoiceAmount,
                 payment.AcceptanceReportFilePaths,
                 payment.InvoiceFilePaths,
                 payment.TaxFilePaths,

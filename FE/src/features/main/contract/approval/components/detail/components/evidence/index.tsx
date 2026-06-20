@@ -2,33 +2,17 @@
 
 import { useMemo } from 'react';
 import { AlertCircle, CheckCircle2, FileCheck, FileText, Receipt } from 'lucide-react';
-import { PaymentSchedule } from '@/services/contract-payment/type';
+import { ContractPayment } from '@/services/contract-payment/type';
 
 export type ContractEvidenceProps = {
-  schedules: PaymentSchedule[];
+  payments: ContractPayment[];
+  days: number;
   loading?: boolean;
 };
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 const unique = (paths: string[]) => Array.from(new Set(paths.filter(Boolean)));
-
-function getFiles(schedule: PaymentSchedule, key: 'acceptanceReportFilePaths' | 'invoiceFilePaths' | 'taxFilePaths') {
-  return unique(
-    (schedule.contractPayments || []).flatMap((p) => p[key] || [])
-  );
-}
-
-function getPeriodLabel(s: PaymentSchedule, index: number): string {
-  if (s.month && s.year) return `Tháng ${s.month}/${s.year}`;
-  if (s.quarter && s.year) return `Quý ${s.quarter}/${s.year}`;
-  if (s.fromDate && s.toDate) {
-    const from = new Date(s.fromDate).toLocaleDateString('vi-VN');
-    const to = new Date(s.toDate).toLocaleDateString('vi-VN');
-    return `${from} – ${to}`;
-  }
-  return `Kỳ ${index + 1}`;
-}
 
 // ─── sub-components ──────────────────────────────────────────────────────────
 
@@ -89,28 +73,27 @@ function StatusBadge({ bbnt, hd, tax }: { bbnt: boolean; hd: boolean; tax: boole
 
 // ─── main component ──────────────────────────────────────────────────────────
 
-export function ContractEvidence({ schedules, loading }: ContractEvidenceProps) {
-  const sorted = useMemo(
-    () =>
-      [...schedules].sort((a, b) => {
-        const ay = a.year ?? 0, by = b.year ?? 0;
-        if (ay !== by) return ay - by;
-        const am = a.month ?? (a.quarter ?? 0) * 3;
-        const bm = b.month ?? (b.quarter ?? 0) * 3;
-        return am - bm;
-      }),
-    [schedules]
-  );
-
+export function ContractEvidence({ payments, days, loading }: ContractEvidenceProps) {
   const rows = useMemo(
     () =>
-      sorted.map((s, idx) => {
-        const bbntFiles = getFiles(s, 'acceptanceReportFilePaths');
-        const hdFiles   = getFiles(s, 'invoiceFilePaths');
-        const taxFiles  = getFiles(s, 'taxFilePaths');
+      payments.map((p) => {
+        const bbntFiles = unique(p.acceptanceReportFilePaths || []);
+        const hdFiles   = unique(p.invoiceFilePaths || []);
+        const taxFiles  = unique(p.taxFilePaths || []);
+
+        let calculatedDueDateStr = '';
+        if (p.invoice?.dateInvoice) {
+          const dateInvoice = new Date(p.invoice.dateInvoice);
+          if (!Number.isNaN(dateInvoice.getTime()) && dateInvoice.getFullYear() > 1970) {
+            dateInvoice.setDate(dateInvoice.getDate() + days);
+            calculatedDueDateStr = dateInvoice.toLocaleDateString('vi-VN');
+          }
+        }
+
         return {
-          schedule: s,
-          index: idx,
+          id: p.id,
+          periodNumber: p.periodNumber,
+          periodLabel: calculatedDueDateStr ? `Hạn thanh toán: ${calculatedDueDateStr}` : `Kỳ ${p.periodNumber}`,
           bbntFiles,
           hdFiles,
           taxFiles,
@@ -118,8 +101,8 @@ export function ContractEvidence({ schedules, loading }: ContractEvidenceProps) 
           hasHD: hdFiles.length > 0,
           hasTax: taxFiles.length > 0,
         };
-      }),
-    [sorted]
+      }).sort((a, b) => a.periodNumber - b.periodNumber),
+    [payments, days]
   );
 
   const total    = rows.length;
@@ -194,9 +177,9 @@ export function ContractEvidence({ schedules, loading }: ContractEvidenceProps) 
           </thead>
           <tbody>
             {rows.map((row, i) => (
-              <tr key={row.schedule.id} className={i % 2 === 0 ? '' : 'bg-muted/20'}>
-                <td className="px-4 py-3 font-medium">Kỳ {row.index + 1}</td>
-                <td className="px-4 py-3 text-muted-foreground">{getPeriodLabel(row.schedule, row.index)}</td>
+              <tr key={row.id} className={i % 2 === 0 ? '' : 'bg-muted/20'}>
+                <td className="px-4 py-3 font-medium">Kỳ {row.periodNumber}</td>
+                <td className="px-4 py-3 text-muted-foreground">{row.periodLabel}</td>
                 <td className="px-4 py-3"><FileCell files={row.bbntFiles} /></td>
                 <td className="px-4 py-3"><FileCell files={row.hdFiles} /></td>
                 <td className="px-4 py-3"><FileCell files={row.taxFiles} /></td>

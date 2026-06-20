@@ -137,8 +137,6 @@ export const BasicInformationSchema = z
     ),
 
     paymentSchedules: z.object({
-      scheduleType: z.coerce.number<number>().optional().nullable(),
-
       schedules: z.array(
         z.object({
           amountType: z.coerce
@@ -149,21 +147,9 @@ export const BasicInformationSchema = z
             .number<number>({ error: 'Số không hợp lệ' })
             .optional()
             .nullable(),
-          month: z.coerce
+          days: z.coerce
             .number<number>({ error: 'Số không hợp lệ' })
-            .optional()
-            .nullable(),
-          year: z.coerce
-            .number<number>({ error: 'Số không hợp lệ' })
-            .optional()
-            .nullable(),
-          quarter: z.coerce
-            .number<number>({ error: 'Số không hợp lệ' })
-            .optional()
-            .nullable(),
-          fromDate: z.string().optional().nullable(),
-          toDate: z.string().optional().nullable(),
-          dueDate: z.string().optional().nullable(),
+            .min(0, { error: 'Phải từ 0 trở lên' }),
         })
       ),
     }),
@@ -257,7 +243,6 @@ export const BasicInformationDefault: BasicInformationValues = {
   ],
 
   paymentSchedules: {
-    scheduleType: '' as unknown as number,
     schedules: [],
   },
 

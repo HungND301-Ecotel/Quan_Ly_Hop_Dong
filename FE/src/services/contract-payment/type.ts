@@ -11,7 +11,7 @@ export type ContractPayment = {
   periodNumber: number;
   acceptanceReportFilePaths: string[];
   invoiceFilePaths: string[];
-  invoice: Object | null;
+  invoice: { numberInvoice?: string; dateInvoice?: string } | null;
   tax: Object | null;
   taxFilePaths: string[];
   paymentDate: string; // ISO 8601
@@ -114,6 +114,7 @@ export type PaymentSchedule = {
   fromDate: string | null;
   toDate: string | null;
   dueDate: string | null;
+  days: number;
   contractPayments: ContractPayment[];
   /** Response mới: array tiến độ trong kỳ */
   contractProgresses: ContractProgressOfSchedule[];

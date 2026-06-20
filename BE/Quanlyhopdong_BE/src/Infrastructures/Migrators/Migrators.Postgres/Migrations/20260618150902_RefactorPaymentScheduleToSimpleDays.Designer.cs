@@ -3,6 +3,7 @@ using System;
 using EfCore.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Migrators.PostgreSQL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260618150902_RefactorPaymentScheduleToSimpleDays")]
+    partial class RefactorPaymentScheduleToSimpleDays
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -580,9 +583,6 @@ namespace Migrators.PostgreSQL.Migrations
                     b.Property<Guid>("ContractId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ContractPaymentId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uuid");
 
@@ -594,10 +594,6 @@ namespace Migrators.PostgreSQL.Migrations
 
                     b.Property<DateTimeOffset?>("DeletedOn")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal>("ExecutedAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
 
                     b.Property<Guid>("LastModifiedBy")
                         .HasColumnType("uuid");
@@ -617,8 +613,6 @@ namespace Migrators.PostgreSQL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ContractId");
-
-                    b.HasIndex("ContractPaymentId");
 
                     b.HasIndex("PaymentScheduleId");
 
@@ -2895,17 +2889,11 @@ namespace Migrators.PostgreSQL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.Catalog.ContractPayment", "ContractPayment")
-                        .WithMany()
-                        .HasForeignKey("ContractPaymentId");
-
                     b.HasOne("Domain.Entities.Catalog.PaymentSchedule.PaymentSchedule", "PaymentSchedule")
                         .WithMany("ContractProgresses")
                         .HasForeignKey("PaymentScheduleId");
 
                     b.Navigation("Contract");
-
-                    b.Navigation("ContractPayment");
 
                     b.Navigation("PaymentSchedule");
                 });

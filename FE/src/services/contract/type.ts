@@ -112,16 +112,10 @@ export type ContractItem = {
 export type PaymentSchedule = {
   id: string;
   contractId: string;
-  scheduleType: number;
   amountType?: number;
   amount: number;
   paymentStatus: number;
-  month?: number;
-  year?: number;
-  quarter?: number;
-  fromDate?: string;
-  toDate?: string;
-  dueDate?: string;
+  days: number;
 };
 
 export type ContractUserRole = {

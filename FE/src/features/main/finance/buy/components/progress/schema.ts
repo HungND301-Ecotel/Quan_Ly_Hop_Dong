@@ -33,6 +33,8 @@ export const ContractProgressBatchSchema = z.object({
       periodStart: z.string().min(1, { message: 'Vui lòng chọn ngày bắt đầu' }),
       periodEnd: z.string().min(1, { message: 'Vui lòng chọn ngày kết thúc' }),
       progressTotal: z.coerce.number<number>().optional(),
+      contractPaymentId: z.string().nullable().optional(),
+      executedAmount: z.coerce.number().optional(),
     })
   ),
 });
@@ -48,3 +50,104 @@ export const ContractProgressBatchDefault: ContractProgressBatchFormValues = {
   contractId: '',
   items: [],
 };
+
+// Schema cho một vật tư trong progress
+export const ContractProgressItemSchema = z.object({
+  id: z.string(),
+  contractItemId: z.string(),
+  itemCode: z.string(),
+  itemName: z.string(),
+  unit: z.string(),
+  unitPrice: z.number(),
+  contractQuantity: z.number(),
+  contractAmount: z.number(),
+  executedQuantity: z.number(),
+  remainingQuantity: z.number(),
+  currentExecutedQuantity: z.number().min(0, 'Khối lượng phải lớn hơn 0'),
+  currentExecutedAmount: z.number(),
+});
+
+export const ContractProgressFormSchema = z
+  .object({
+    id: z.string(),
+    paymentScheduleId: z.string().nullable().optional(),
+    totalExecutedQuantity: z.number(),
+    totalExecutedAmount: z.number(),
+    periodStart: z.string().min(1, 'Vui lòng chọn ngày bắt đầu'),
+    periodEnd: z.string().min(1, 'Vui lòng chọn ngày kết thúc'),
+    contractProgressItems: z.array(ContractProgressItemSchema),
+    isHasValue: z.boolean().optional(),
+    isHasMaterial: z.boolean().optional(),
+    contractPaymentId: z.string().min(1, 'Vui lòng chọn hóa đơn'),
+    executedAmount: z.coerce.number().optional(),
+  })
+  .refine(
+    (data) => {
+      if (!data.periodStart || !data.periodEnd) return true;
+      return new Date(data.periodStart) <= new Date(data.periodEnd);
+    },
+    {
+      message: 'Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc',
+      path: ['periodEnd'],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.isHasMaterial === false) return true;
+      // Nếu có giá trị tiền và danh sách vật tư trống (hết vật tư để thực hiện), bỏ qua kiểm tra
+      if (data.isHasValue && data.contractProgressItems.length === 0) return true;
+      // Kiểm tra ít nhất một vật tư có khối lượng > 0
+      return data.contractProgressItems.some(
+        (item) => item.currentExecutedQuantity > 0
+      );
+    },
+    {
+      message: 'Phải nhập khối lượng thực hiện cho ít nhất một vật tư',
+      path: ['contractProgressItems'],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.isHasMaterial === false) return true;
+      // Kiểm tra khối lượng thực hiện không vượt quá remaining
+      return data.contractProgressItems.every(
+        (item) => item.currentExecutedQuantity <= item.remainingQuantity
+      );
+    },
+    {
+      message: 'Khối lượng thực hiện không được vượt quá khối lượng còn lại',
+      path: ['contractProgressItems'],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.isHasValue) {
+        return (data.executedAmount ?? 0) > 0;
+      }
+      return true;
+    },
+    {
+      message: 'Vui lòng nhập số tiền thực hiện lớn hơn 0',
+      path: ['executedAmount'],
+    }
+  );
+
+export type ContractProgressFormValues = z.infer<
+  typeof ContractProgressFormSchema
+>;
+
+// Default values cho form mới
+export const ContractProgressFormDefault: Partial<ContractProgressFormValues> =
+  {
+    id: '',
+    paymentScheduleId: '',
+    periodStart: '',
+    periodEnd: '',
+    totalExecutedQuantity: 0,
+    totalExecutedAmount: 0,
+    contractProgressItems: [],
+    isHasValue: false,
+    isHasMaterial: false,
+    contractPaymentId: '',
+    executedAmount: 0,
+  };

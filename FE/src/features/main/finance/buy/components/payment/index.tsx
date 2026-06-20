@@ -8,7 +8,6 @@ import {
 import { contractPaymentService } from '@/services/contract-payment';
 import {
   PaymentInstallment,
-  PaymentSchedule,
 } from '@/services/contract-payment/type';
 import { ReceiptTextIcon } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
@@ -27,103 +26,6 @@ export type PaymentSectionProps = {
 const ensureUniqueFilePaths = (paths: string[]) =>
   Array.from(new Set(paths.filter(Boolean)));
 
-const formatPeriodDate = (value: string | null): string | null => {
-  if (!value) return null;
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return parsed.toLocaleDateString('vi-VN');
-};
-
-/** Thời gian thanh toán kế hoạch — chỉ hiện month/year/quarter/dateRange */
-const getPeriodLabel = (schedule: PaymentSchedule): string => {
-  if (schedule.month && schedule.year) {
-    return `Tháng ${schedule.month}/${schedule.year}`;
-  }
-  if (schedule.quarter && schedule.year) {
-    return `Quý ${schedule.quarter}/${schedule.year}`;
-  }
-  const fromDate = formatPeriodDate(schedule.fromDate);
-  const toDate = formatPeriodDate(schedule.toDate);
-  if (fromDate && toDate) return `${fromDate} - ${toDate}`;
-  return '—';
-};
-
-const mapSchedulesToInstallments = (
-  schedules: PaymentSchedule[]
-): PaymentInstallment[] => {
-  // Sắp xếp theo year → month/quarter để kỳ nhất quán
-  const sortedSchedules = [...schedules].sort((a, b) => {
-    const aYear = a.year ?? 0;
-    const bYear = b.year ?? 0;
-    if (aYear !== bYear) return aYear - bYear;
-    const aMonth = a.month ?? (a.quarter != null ? a.quarter * 3 : 0);
-    const bMonth = b.month ?? (b.quarter != null ? b.quarter * 3 : 0);
-    return aMonth - bMonth;
-  });
-
-  return sortedSchedules.map((schedule, index) => {
-    const period = index + 1; // Kỳ = số thứ tự 1-based
-    const payments = schedule.contractPayments || [];
-    const contractProgresses = schedule.contractProgresses || [];
-
-    const acceptanceMinute = ensureUniqueFilePaths(
-      payments.flatMap((p) => p.acceptanceReportFilePaths || [])
-    );
-    const invoice = ensureUniqueFilePaths(
-      payments.flatMap((p) => p.invoiceFilePaths || [])
-    );
-    const tax = ensureUniqueFilePaths(
-      payments.flatMap((p) => p.taxFilePaths || [])
-    );
-
-    // Số tiền TT thực tế: tổng amount của tất cả contractPayments
-    const actualPaymentAmount = payments.reduce(
-      (sum, p) => sum + (p.amount ?? 0),
-      0
-    );
-
-    // Ngày TT thực tế: lấy paymentDate mới nhất
-    const paymentDates = payments
-      .map((p) => p.paymentDate)
-      .filter((d): d is string => !!d)
-      .sort();
-    const actualPaymentDate =
-      paymentDates.length > 0 ? paymentDates[paymentDates.length - 1] : null;
-
-    // existingPaymentId: id của contractPayment đầu tiên nếu có
-    const existingPaymentId = payments[0]?.id;
-
-    // progressTotal: tổng từ tất cả contractProgresses trong kỳ
-    const progressTotal = contractProgresses.reduce(
-      (sum, p) => sum + (p.progressTotal ?? 0),
-      0
-    );
-
-    // progresses: flatten contractProgressItems (hiện tại API trả về rỗng)
-    const progresses = contractProgresses.flatMap(
-      (p) => p.contractProgressItems || []
-    );
-
-    return {
-      id: schedule.id,
-      period,
-      periodLabel: getPeriodLabel(schedule),
-      paymentAmount: schedule.paymentAmount ?? 0,
-      actualPaymentAmount,
-      actualPaymentDate,
-      existingPaymentId,
-      contractProgresses,
-      progresses,
-      progressTotal,
-      documents: {
-        acceptanceMinute,
-        invoice,
-        tax,
-      },
-    };
-  });
-};
-
 export function PaymentSection({
   contractId,
   onSaved,
@@ -141,7 +43,43 @@ export function PaymentSection({
 
       setLiquidationFile(paymentDetail?.liquidationFilePath || undefined);
 
-      return mapSchedulesToInstallments(paymentSchedules || []);
+      const days = paymentSchedules?.[0]?.days ?? 30;
+      const payments = paymentDetail?.payments || [];
+
+      const installments: PaymentInstallment[] = payments.map((p) => {
+        let calculatedDueDateStr = '';
+        if (p.invoice?.dateInvoice) {
+          const dateInvoice = new Date(p.invoice.dateInvoice);
+          if (!Number.isNaN(dateInvoice.getTime()) && dateInvoice.getFullYear() > 1970) {
+            dateInvoice.setDate(dateInvoice.getDate() + days);
+            calculatedDueDateStr = dateInvoice.toLocaleDateString('vi-VN');
+          }
+        }
+
+        const acceptanceMinute = ensureUniqueFilePaths(p.acceptanceReportFilePaths || []);
+        const invoiceFiles = ensureUniqueFilePaths(p.invoiceFilePaths || []);
+        const taxFiles = ensureUniqueFilePaths(p.taxFilePaths || []);
+
+        return {
+          id: p.id,
+          period: p.periodNumber,
+          periodLabel: calculatedDueDateStr ? `Hạn thanh toán: ${calculatedDueDateStr}` : `Kỳ ${p.periodNumber}`,
+          paymentAmount: p.amount ?? 0,
+          actualPaymentAmount: p.amount ?? 0,
+          actualPaymentDate: p.paymentDate,
+          existingPaymentId: p.id,
+          contractProgresses: [],
+          progresses: [],
+          progressTotal: 0,
+          documents: {
+            acceptanceMinute,
+            invoice: invoiceFiles,
+            tax: taxFiles,
+          },
+        };
+      });
+
+      return installments.sort((a, b) => a.period - b.period);
     } catch (error) {
       console.error('Error fetching payment schedules:', error);
       toast.error('Lỗi khi tải thông tin thanh toán');
@@ -157,7 +95,7 @@ export function PaymentSection({
           table.refresh?.();
           onSaved?.();
         },
-        onNavigateToDocument, // ← thêm
+        onNavigateToDocument,
         disabled,
       }),
     [contractId, onNavigateToDocument, disabled]

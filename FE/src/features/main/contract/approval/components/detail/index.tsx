@@ -61,7 +61,13 @@ export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
     return contractPaymentService.getPaymentSchedules(row.original.id);
   }, [row, open]);
 
+  const paymentsDetailService = useCallback(() => {
+    if (!row || !open) return;
+    return contractPaymentService.getContractPaymentDetail(row.original.id);
+  }, [row, open]);
+
   const schedules = useApi({ service: schedulesService });
+  const paymentsDetail = useApi({ service: paymentsDetailService });
 
   const detail = useApi({ service: detailService });
   const history = useApi({ service: historyService });
@@ -209,8 +215,9 @@ export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
 
             <TabsContent value='evidence'>
               <ContractEvidence
-                schedules={schedules.data || []}
-                loading={schedules.loading}
+                payments={paymentsDetail.data?.payments || []}
+                days={schedules.data?.[0]?.days ?? 30}
+                loading={paymentsDetail.loading || schedules.loading}
               />
             </TabsContent>
 

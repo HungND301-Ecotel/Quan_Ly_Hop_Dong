@@ -34,7 +34,6 @@ export function VirtualMaterialSelect<T extends FieldValues>({
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState('');
     const parentRef = useRef<HTMLDivElement>(null);
-
     const filtered = useMemo(() => {
         if (!search.trim()) return materials;
         const lower = search.toLowerCase();
@@ -44,6 +43,8 @@ export function VirtualMaterialSelect<T extends FieldValues>({
                 m.materialCode.toLowerCase().includes(lower)
         );
     }, [search, materials]);
+
+    console.log("VirtualMaterialSelect render. materials count:", materials?.length, "filtered count:", filtered?.length, "search:", JSON.stringify(search), "isLoading:", isLoading);
 
     const rowVirtualizer = useVirtualizer({
         count: filtered.length,

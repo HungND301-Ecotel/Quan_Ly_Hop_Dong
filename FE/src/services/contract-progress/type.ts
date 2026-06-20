@@ -3,6 +3,8 @@ export type ContractProgressDetail = {
   toDate: string;
   total: number;
   contractProgresses: ContractProgress[];
+  isHasValue?: boolean;
+  isHasMaterial?: boolean;
 };
 
 export type ContractProgress = {
@@ -13,6 +15,11 @@ export type ContractProgress = {
   periodEnd: string;
   progressTotal: number;
   contractProgressItems: ContractItem[];
+  contractPaymentId?: string | null;
+  numberInvoice?: string | null;
+  executedAmount?: number;
+  isHasValue?: boolean;
+  isHasMaterial?: boolean;
 };
 
 export type ContractItem = {
@@ -45,13 +52,15 @@ export type ContractProgressItemSource = {
 // Payload tạo mới tiến độ với các vật tư (API /contractprogress/with-items)
 export type CreateContractProgressWithItemsRequest = {
   contractId: string;
-  paymentScheduleId: string;
+  paymentScheduleId?: string | null;
   periodStart: string;
   periodEnd: string;
   contractProgressItems: {
     contractItemId: string;
     executedQuantity: number;
   }[];
+  contractPaymentId?: string | null;
+  executedAmount?: number;
 };
 
 export type CreateContractProgressWithItemsResponse = {
@@ -64,7 +73,7 @@ export type CreateContractProgressWithItemsResponse = {
 export type UpdateContractProgressWithItemsRequest = {
   contractId: string;
   id: string;
-  paymentScheduleId: string;
+  paymentScheduleId?: string | null;
   periodStart: string;
   periodEnd: string;
   contractProgressItems: {
@@ -72,6 +81,8 @@ export type UpdateContractProgressWithItemsRequest = {
     contractItemId: string;
     executedQuantity: number;
   }[];
+  contractPaymentId?: string | null;
+  executedAmount?: number;
 };
 
 export type UpdateContractProgressWithItemsResponse = {

@@ -28,13 +28,22 @@ public class SyncTaxCommandHandler(
 
         Domain.Entities.Catalog.Contract? contract = await _contractRepo.GetFirstOrDefaultAsync(
             predicate: x => x.ContractNumber == request.Request.ContractNumber,
-            include: x => x.Include(c => c.ContractUserRoles),
-            disableTracking: true);
+            include: x => x.Include(c => c.ContractUserRoles).Include(c => c.PaymentSchedules),
+            disableTracking: false);
 
         if (contract == null)
         {
             throw new NotFoundException($"Contract with number {request.Request.ContractNumber} not found");
         }
+
+        var schedule = contract.PaymentSchedules.FirstOrDefault();
+        if (schedule == null)
+        {
+            schedule = new Domain.Entities.Catalog.PaymentSchedule.PaymentSchedule(contract.Id, 30, 0, Domain.Common.Enums.ValueType.Amount);
+            await unitOfWork.GetRepository<Domain.Entities.Catalog.PaymentSchedule.PaymentSchedule>().InsertAsync(schedule);
+            await unitOfWork.SaveChangesAsync();
+        }
+        var scheduleId = schedule.Id;
 
         var currentUserId = currentUser.UserId;
         var userRepo = unitOfWork.GetRepository<Domain.Entities.Identity.User>();
@@ -120,7 +129,8 @@ public class SyncTaxCommandHandler(
                 || currentTaxableRevenue.Value != source.TaxableRevenue
                 || !currentVatAmount.HasValue
                 || currentVatAmount.Value != source.VatAmount
-                || !string.Equals(currentTaxCode, source.TaxCode, StringComparison.Ordinal);
+                || !string.Equals(currentTaxCode, source.TaxCode, StringComparison.Ordinal)
+                || payment.PaymentScheduleId != scheduleId;
 
             if (!isChanged)
             {
@@ -130,7 +140,7 @@ public class SyncTaxCommandHandler(
             bool hasTaxBefore = payment.Tax != null;
 
             payment.Update(
-                payment.PaymentScheduleId,
+                scheduleId,
                 payment.PeriodNumber,
                 payment.PaymentDate,
                 payment.Amount,

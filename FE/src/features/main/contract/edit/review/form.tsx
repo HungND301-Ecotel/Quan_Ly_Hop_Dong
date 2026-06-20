@@ -51,7 +51,6 @@ import z from 'zod';
 import { errorMessageMap } from './error-map';
 import { BankAccountService } from '@/services/bank-account';
 import { BankAccount } from '@/services/bank-account/type';
-import { ScheduleType } from '@/constants/schedule-type';
 import { Level1Code } from '@/services/level1code/type';
 import { Level2Code } from '@/services/level2code/type';
 import { Level3Code } from '@/services/level3code/type';
@@ -405,62 +404,17 @@ export function ContractReviewForm() {
         basicInformation!;
 
       const cleanedPaymentSchedules = (() => {
-        if (!paymentSchedules) return undefined;
-        const { scheduleType, schedules } = paymentSchedules;
+        if (!paymentSchedules || paymentSchedules.schedules.length === 0) return undefined;
+        const firstSchedule = paymentSchedules.schedules[0];
 
         return {
-          scheduleType,
-          schedules: schedules.map((schedule) => {
-            const year = schedule.year ? Number(schedule.year) : null;
-            const month = schedule.month ? Number(schedule.month) : null;
-            const quarter = schedule.quarter ? Number(schedule.quarter) : null;
-            let fromDate: string | null = null;
-            let toDate: string | null = null;
-
-            if (scheduleType === ScheduleType.Month.id && year && month) {
-              const lastDay = new Date(year, month, 0).getDate();
-              fromDate = `${year}-${String(month).padStart(2, '0')}-01T00:00:00Z`;
-              toDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59Z`;
-            } else if (
-              scheduleType === ScheduleType.Quarter.id &&
-              year &&
-              quarter
-            ) {
-              const startMonth = (quarter - 1) * 3 + 1;
-              const endMonth = quarter * 3;
-              const lastDay = new Date(year, endMonth, 0).getDate();
-              fromDate = `${year}-${String(startMonth).padStart(2, '0')}-01T00:00:00Z`;
-              toDate = `${year}-${String(endMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59Z`;
-            } else if (scheduleType === ScheduleType.Year.id && year) {
-              fromDate = `${year}-01-01T00:00:00Z`;
-              toDate = `${year}-12-31T23:59:59Z`;
-            } else if (scheduleType === ScheduleType.Stage.id) {
-              fromDate = schedule.fromDate
-                ? `${schedule.fromDate}T00:00:00Z`
-                : null;
-              toDate = schedule.toDate ? `${schedule.toDate}T23:59:59Z` : null;
-            } else if (scheduleType === ScheduleType.LumpSum.id) {
-              fromDate = basicInformation?.effectiveDate
-                ? `${basicInformation.effectiveDate.slice(0, 10)}T00:00:00Z`
-                : null;
-              toDate = basicInformation?.completionDate
-                ? `${basicInformation.completionDate.slice(0, 10)}T23:59:59Z`
-                : null;
+          schedules: [
+            {
+              amountType: 0,
+              amount: 0,
+              days: firstSchedule.days || 30,
             }
-
-            return {
-              amountType: schedule.amountType,
-              amount: schedule.amount,
-              month: schedule.month || null,
-              year: schedule.year || null,
-              quarter: schedule.quarter || null,
-              fromDate,
-              toDate,
-              dueDate: schedule.dueDate
-                ? `${schedule.dueDate}T00:00:00Z`
-                : null,
-            };
-          }),
+          ],
         };
       })();
 
@@ -1160,80 +1114,18 @@ export function ContractReviewForm() {
             }
 
             {/* 7. Lịch thanh toán */}
-            {
-              !isRuleContract && basicInformation?.paymentSchedules && (
-                <Section title='Lịch thanh toán' icon={CalendarDays}>
-                  <div className='p-4 rounded-lg bg-white border border-blue-500/20'>
-                    <div className='text-xs text-muted-foreground mb-1'>
-                      Loại kế hoạch
-                    </div>
-                    <div className='text-sm font-semibold text-blue-600'>
-                      {basicInformation.paymentSchedules.scheduleType === 1 &&
-                        'Theo tháng'}
-                      {basicInformation.paymentSchedules.scheduleType === 2 &&
-                        'Theo quý'}
-                      {basicInformation.paymentSchedules.scheduleType === 3 &&
-                        'Theo kỳ hạn'}
-                      {basicInformation.paymentSchedules.scheduleType === 4 &&
-                        'Theo giai đoạn'}
-                      {basicInformation.paymentSchedules.scheduleType === 5 &&
-                        'Một lần'}
-                    </div>
+            {!isRuleContract && basicInformation?.paymentSchedules && basicInformation.paymentSchedules.schedules.length > 0 && (
+              <Section title='Lịch thanh toán' icon={CalendarDays}>
+                <div className='p-4 rounded-lg border bg-white shadow-sm hover:border-primary/50 transition-colors'>
+                  <div className='flex flex-col gap-1'>
+                    <span className='text-sm font-medium text-slate-800'>Số ngày thanh toán/đối chiếu</span>
+                    <span className='text-2xl font-bold text-primary'>
+                      {basicInformation.paymentSchedules.schedules[0].days} ngày
+                    </span>
                   </div>
-
-                  {basicInformation.paymentSchedules.schedules.length > 0 && (
-                    <>
-                      <Separator className='my-2' />
-                      <div>
-                        <div className='text-sm font-medium mb-3'>
-                          Chi tiết kế hoạch thanh toán
-                        </div>
-                        <div className='space-y-3'>
-                          {basicInformation.paymentSchedules.schedules.map(
-                            (schedule, index) => (
-                              <div
-                                key={index}
-                                className='p-3 rounded-md border bg-white from-background to-muted/20 hover:border-primary/50 transition-colors'
-                              >
-                                <div className='flex items-center justify-between'>
-                                  <div className='flex items-center gap-2'>
-                                    <span className='flex items-center justify-center size-7 rounded-full bg-blue-500/10 text-blue-600 text-sm font-semibold'>
-                                      {index + 1}
-                                    </span>
-                                    <span className='text-sm font-medium'>
-                                      Kỳ {index + 1}
-                                    </span>
-                                  </div>
-                                  {schedule.amount && (
-                                    <div className='text-right'>
-                                      <div className='text-xs text-muted-foreground'>
-                                        {schedule.amountType ==
-                                          DiscountType.Percent.id
-                                          ? `Giá trị: ${schedule.amount}%`
-                                          : 'Số tiền cố định'}
-                                      </div>
-                                      <div className='text-base font-bold text-primary'>
-                                        {schedule.amountType ==
-                                          DiscountType.Percent.id
-                                          ? format.number(
-                                            (schedule.amount / 100) *
-                                            getContractFinalValue()
-                                          ) + ' đ'
-                                          : format.number(schedule.amount) + ' đ'}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </Section>
-              )
-            }
+                </div>
+              </Section>
+            )}
 
             {/* 8. Bảo lãnh */}
             {

@@ -28,7 +28,6 @@ import { userService } from '@/services/user';
 import { User } from '@/types/user.type';
 import {
   Banknote,
-  Calendar,
   CalendarDays,
   DollarSignIcon,
   EyeIcon,
@@ -793,76 +792,49 @@ export function ContractArchiveReviewForm() {
             {/* 7. Lịch thanh toán */}
             {!isRuleContract && basicInformation?.paymentSchedules && (
               <Section title='Lịch thanh toán' icon={CalendarDays}>
-                <div className='p-4 rounded-lg bg-blue-500/5 border border-blue-500/20'>
-                  <div className='text-xs text-muted-foreground mb-1'>Loại kế hoạch</div>
-                  <div className='text-sm font-semibold text-blue-600'>
-                    {basicInformation.paymentSchedules.scheduleType === 1 && 'Theo tháng'}
-                    {basicInformation.paymentSchedules.scheduleType === 2 && 'Theo quý'}
-                    {basicInformation.paymentSchedules.scheduleType === 3 && 'Theo kỳ hạn'}
-                    {basicInformation.paymentSchedules.scheduleType === 4 && 'Theo giai đoạn'}
-                    {basicInformation.paymentSchedules.scheduleType === 5 && 'Một lần'}
-                  </div>
-                </div>
-
                 {basicInformation.paymentSchedules.schedules.length > 0 && (
-                  <>
-                    <Separator />
-                    <div>
-                      <div className='text-sm font-medium mb-3'>Chi tiết kế hoạch thanh toán</div>
-                      <div className='space-y-3'>
-                        {basicInformation.paymentSchedules.schedules.map((schedule, index) => {
-                          const rawAmount = schedule.amount ?? 0;
-                          const displayAmount =
-                            schedule.amountType === DiscountType.Percent.id
-                              ? (rawAmount / 100) * getContractFinalValue()
-                              : rawAmount;
-                          return (
-                            <div
-                              key={index}
-                              className='p-4 rounded-lg border bg-linear-to-br from-background to-muted/20 hover:border-primary/50 transition-colors'
-                            >
-                              <div className='flex items-center justify-between'>
-                                <div className='flex flex-col items-start gap-2'>
-                                  <div className='flex gap-2 items-center'>
-                                    <span className='flex items-center justify-center size-7 rounded-full bg-blue-500/10 text-blue-600 text-sm font-semibold'>
-                                      {index + 1}
-                                    </span>
-                                    <span className='text-sm font-medium'>Kỳ {index + 1}</span>
+                  <div>
+                    <div className='text-sm font-medium mb-3'>Chi tiết kế hoạch thanh toán</div>
+                    <div className='space-y-3'>
+                      {basicInformation.paymentSchedules.schedules.map((schedule, index) => {
+                        const rawAmount = schedule.amount ?? 0;
+                        const displayAmount =
+                          schedule.amountType === DiscountType.Percent.id
+                            ? (rawAmount / 100) * getContractFinalValue()
+                            : rawAmount;
+                        return (
+                          <div
+                            key={index}
+                            className='p-4 rounded-lg border bg-linear-to-br from-background to-muted/20 hover:border-primary/50 transition-colors'
+                          >
+                            <div className='flex items-center justify-between'>
+                              <div className='flex items-center gap-2'>
+                                <span className='flex items-center justify-center size-7 rounded-full bg-blue-500/10 text-blue-600 text-sm font-semibold'>
+                                  {index + 1}
+                                </span>
+                                <div className='flex flex-col'>
+                                  <span className='text-sm font-medium'>Kỳ {index + 1}</span>
+                                  <span className='text-xs text-muted-foreground'>Số ngày thanh toán/đối chiếu: {schedule.days} ngày</span>
+                                </div>
+                              </div>
+                              {schedule.amount != null && (
+                                <div className='text-right'>
+                                  <div className='text-xs text-muted-foreground'>
+                                    {schedule.amountType === DiscountType.Percent.id
+                                      ? `Giá trị: ${rawAmount}%`
+                                      : 'Số tiền cố định'}
                                   </div>
-                                  <div className='flex items-center gap-2 text-xs text-muted-foreground'>
-                                    <Calendar className='size-3.5' />
-                                    <span>
-                                      {schedule.fromDate && schedule.toDate
-                                        ? `Từ ${format.date(schedule.fromDate)} đến ${format.date(schedule.toDate)}`
-                                        : schedule.dueDate
-                                          ? `Hạn thanh toán: ${format.date(schedule.dueDate)}`
-                                          : schedule.month && schedule.year
-                                            ? `Tháng ${schedule.month}/${schedule.year}`
-                                            : schedule.quarter && schedule.year
-                                              ? `Quý ${schedule.quarter}/${schedule.year}`
-                                              : '---'}
-                                    </span>
+                                  <div className='text-base font-bold text-primary'>
+                                    {format.number(displayAmount)} đ
                                   </div>
                                 </div>
-                                {schedule.amount != null && (
-                                  <div className='text-right'>
-                                    <div className='text-xs text-muted-foreground'>
-                                      {schedule.amountType === DiscountType.Percent.id
-                                        ? `Giá trị: ${rawAmount}%`
-                                        : 'Số tiền cố định'}
-                                    </div>
-                                    <div className='text-base font-bold text-primary'>
-                                      {format.number(displayAmount)} đ
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
+                              )}
                             </div>
-                          );
-                        })}
-                      </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  </>
+                  </div>
                 )}
               </Section>
             )}
