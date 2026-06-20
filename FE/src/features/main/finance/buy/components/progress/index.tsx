@@ -636,8 +636,6 @@ function ProgressFormDialog({
     defaultValues: ContractProgressFormDefault as ContractProgressFormValues,
   });
 
-  const isHasValue = form.watch('isHasValue');
-  const isHasMaterial = form.watch('isHasMaterial');
 
   const [loadingItems, setLoadingItems] = useState(false);
   const [invoices, setInvoices] = useState<{ label: string; value: string }[]>([]);
@@ -659,23 +657,6 @@ function ProgressFormDialog({
     defaultValue: fields,
   });
 
-  // Tính tổng — bỏ qua item có lỗi (vượt max hoặc thấp hơn N+1)
-  const totals = useMemo(() => {
-    let totalQuantity = 0;
-    let totalAmount = 0;
-    watchedItems.forEach((field) => {
-      const qty = Number(field.currentExecutedQuantity) || 0;
-      const maxQty = Number(field.remainingQuantity) || 0;
-      const nextQty = nextProgressItemMap[field.contractItemId] ?? 0;
-      const isOverMax = qty > maxQty;
-      const isUnderNext = hasNextProgress && nextQty > 0 && qty < nextQty;
-      if (!isOverMax && !isUnderNext) {
-        totalQuantity += qty;
-        totalAmount += qty * (field.unitPrice ?? 0);
-      }
-    });
-    return { totalQuantity, totalAmount };
-  }, [watchedItems, nextProgressItemMap, hasNextProgress]);
 
   useEffect(() => {
     if (!open) return;
@@ -866,10 +847,10 @@ function ProgressFormDialog({
   }, [watchedPaymentId, payments, allProgresses, isEdit, progress?.id]);
 
   const isOverRemaining = useMemo(() => {
-    if (!isHasValue || !invoiceInfo) return false;
+    if (!invoiceInfo) return false;
     const amount = Number(watchedExecutedAmount) || 0;
     return amount > invoiceInfo.remainingInvoiceAmount;
-  }, [isHasValue, invoiceInfo, watchedExecutedAmount]);
+  }, [invoiceInfo, watchedExecutedAmount]);
 
   useEffect(() => {
     if (!watchedPaymentId || payments.length === 0) {
@@ -904,7 +885,7 @@ function ProgressFormDialog({
   }, [watchedPaymentId, payments, dueDays, form]);
 
   const onSubmit = async (data: ContractProgressFormValues) => {
-    if (data.isHasValue) {
+    if (data.contractPaymentId) {
       const selectedPayment = payments.find((p) => p.id === data.contractPaymentId);
       if (selectedPayment) {
         const invoiceAmount = selectedPayment.amount ?? 0;
@@ -950,7 +931,7 @@ function ProgressFormDialog({
             executedQuantity: item.currentExecutedQuantity,
           })),
           contractPaymentId: data.contractPaymentId || null,
-          executedAmount: data.isHasValue ? Number(data.executedAmount) : 0,
+          executedAmount: Number(data.executedAmount) || 0,
         };
 
         const res = await contractProgressService.updateContractProgressWithItems(payload);
@@ -979,7 +960,7 @@ function ProgressFormDialog({
             executedQuantity: item.currentExecutedQuantity,
           })),
         contractPaymentId: data.contractPaymentId || null,
-        executedAmount: data.isHasValue ? Number(data.executedAmount) : 0,
+        executedAmount: Number(data.executedAmount) || 0,
       };
 
       const res = await contractProgressService.createContractProgressWithItems(payload);
@@ -1004,10 +985,8 @@ function ProgressFormDialog({
           </DialogTitle>
           <DialogDescription>
             {loadingItems
-              ? 'Đang tải danh sách vật tư'
-              : !fields || fields.length === 0
-                ? 'Không còn vật tư để thực hiện'
-                : 'Nhập thông tin thời gian và khối lượng thực hiện cho từng vật tư'}
+              ? 'Đang tải thông tin...'
+              : 'Nhập thông tin hóa đơn và khối lượng thực hiện'}
           </DialogDescription>
         </DialogHeader>
 
@@ -1029,22 +1008,20 @@ function ProgressFormDialog({
                   <span>{form.watch('periodEnd') ? format.date(form.watch('periodEnd')) : '—'}</span>
                 </div>
               </div>
-              {isHasValue && (
-                <div className='space-y-1 col-span-2'>
-                  <FormNumber
-                    control={form.control}
-                    name='executedAmount'
-                    label='Số tiền thực hiện (đ)'
-                    placeholder='Nhập số tiền thực hiện'
-                    className={isOverRemaining ? 'border-destructive focus-within:ring-destructive' : ''}
-                  />
-                  {isOverRemaining && (
-                    <p className='text-xs text-destructive font-medium'>
-                      Số tiền thực hiện không được vượt quá số tiền còn lại của hóa đơn ({format.number(invoiceInfo?.remainingInvoiceAmount || 0)} đ)
-                    </p>
-                  )}
-                </div>
-              )}
+              <div className='space-y-1 col-span-2'>
+                <FormNumber
+                  control={form.control}
+                  name='executedAmount'
+                  label='Số tiền thực hiện (đ)'
+                  placeholder='Nhập số tiền thực hiện'
+                  className={isOverRemaining ? 'border-destructive focus-within:ring-destructive' : ''}
+                />
+                {isOverRemaining && (
+                  <p className='text-xs text-destructive font-medium'>
+                    Số tiền thực hiện không được vượt quá số tiền còn lại của hóa đơn ({format.number(invoiceInfo?.remainingInvoiceAmount || 0)} đ)
+                  </p>
+                )}
+              </div>
             </div>
 
             {invoiceInfo && (
@@ -1070,16 +1047,12 @@ function ProgressFormDialog({
               </div>
             )}
 
-            {isHasMaterial !== false && (
+            {fields && fields.length > 0 && (
               <div>
-                <h4 className='font-semibold mb-4'>Danh sách vật tư</h4>
+                <h4 className='font-semibold mb-4'>Danh sách vật tư / thành phần hợp đồng</h4>
               {loadingItems ? (
                 <div className='text-center py-8 text-muted-foreground'>
                   Đang tải danh sách vật tư...
-                </div>
-              ) : !fields || fields.length === 0 ? (
-                <div className='text-center py-8 text-muted-foreground'>
-                  Không còn vật tư để thực hiện
                 </div>
               ) : (
                 <div className='overflow-x-auto -mx-1'>
@@ -1176,7 +1149,7 @@ function ProgressFormDialog({
               <div className='flex gap-2 items-center p-4 rounded-lg'>
                 <span className='font-semibold'>Tổng giá trị:</span>
                 <span className='text-xl font-bold text-primary'>
-                  {format.number(isHasValue ? (form.watch('executedAmount') || 0) : totals.totalAmount)} đ
+                  {format.number(form.watch('executedAmount') || 0)} đ
                 </span>
               </div>
             </div>
@@ -1190,7 +1163,7 @@ function ProgressFormDialog({
               </DialogClose>
               <Button
                 type='submit'
-                disabled={loadingItems || form.formState.isSubmitting || isOverRemaining || (!isHasValue && (!watchedItems || watchedItems.length === 0))}
+                disabled={loadingItems || form.formState.isSubmitting || isOverRemaining}
               >
                 {form.formState.isSubmitting ? (
                   <Spinner className='size-4' />
