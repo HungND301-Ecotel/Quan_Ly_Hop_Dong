@@ -20,9 +20,9 @@ public class CreateContractProgressWithItemsCommandHandler(IContractProgressServ
             throw new BadRequestException("Contract ID is required");
         }
 
-        if (request.Request.ContractProgressItems == null || !request.Request.ContractProgressItems.Any())
+        if ((request.Request.ContractProgressItems == null || !request.Request.ContractProgressItems.Any()) && request.Request.ExecutedAmount <= 0)
         {
-            throw new BadRequestException("Progress items are required");
+            throw new BadRequestException("Progress items or executed amount is required");
         }
 
         return await contractProgressService.CreateContractProgressWithItemsAsync(request.Request);

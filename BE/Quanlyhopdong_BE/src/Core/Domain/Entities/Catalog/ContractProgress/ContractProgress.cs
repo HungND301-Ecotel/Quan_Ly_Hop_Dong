@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using Domain.Common.Contracts;
 
 namespace Domain.Entities.Catalog.ContractProgress;
@@ -12,6 +12,8 @@ public class ContractProgress : AuditableEntity, IAggregateRoot
     public Guid? PaymentScheduleId { get; protected set; }
     public DateTimeOffset PeriodStart { get; protected set; }
     public DateTimeOffset PeriodEnd { get; protected set; }
+    public Guid? ContractPaymentId { get; protected set; }
+    public decimal ExecutedAmount { get; protected set; }
 
     // Navigation Properties
     [ForeignKey(nameof(ContractId))]
@@ -19,6 +21,9 @@ public class ContractProgress : AuditableEntity, IAggregateRoot
 
     [ForeignKey(nameof(PaymentScheduleId))]
     public virtual PaymentSchedule.PaymentSchedule? PaymentSchedule { get; protected set; }
+
+    [ForeignKey(nameof(ContractPaymentId))]
+    public virtual ContractPayment? ContractPayment { get; protected set; }
 
     private IList<ContractProgressItem> _progressItems = new List<ContractProgressItem>();
     public virtual IReadOnlyCollection<ContractProgressItem> ProgressItems => _progressItems.AsReadOnly();
@@ -30,7 +35,9 @@ public class ContractProgress : AuditableEntity, IAggregateRoot
         Guid contractId,
         Guid? paymentScheduleId,
         DateTimeOffset periodStart,
-        DateTimeOffset periodEnd)
+        DateTimeOffset periodEnd,
+        Guid? contractPaymentId = null,
+        decimal executedAmount = 0)
     {
         if (periodStart >= periodEnd)
         {
@@ -42,7 +49,9 @@ public class ContractProgress : AuditableEntity, IAggregateRoot
             ContractId = contractId,
             PaymentScheduleId = paymentScheduleId,
             PeriodStart = periodStart,
-            PeriodEnd = periodEnd
+            PeriodEnd = periodEnd,
+            ContractPaymentId = contractPaymentId,
+            ExecutedAmount = executedAmount
         };
     }
 
@@ -50,7 +59,9 @@ public class ContractProgress : AuditableEntity, IAggregateRoot
     public void Update(
         Guid? paymentScheduleId,
         DateTimeOffset periodStart,
-        DateTimeOffset periodEnd)
+        DateTimeOffset periodEnd,
+        Guid? contractPaymentId = null,
+        decimal executedAmount = 0)
     {
         if (periodStart >= periodEnd)
         {
@@ -60,6 +71,8 @@ public class ContractProgress : AuditableEntity, IAggregateRoot
         PaymentScheduleId = paymentScheduleId;
         PeriodStart = periodStart;
         PeriodEnd = periodEnd;
+        ContractPaymentId = contractPaymentId;
+        ExecutedAmount = executedAmount;
     }
 
     public void AddProgressItem(ContractProgressItem item)

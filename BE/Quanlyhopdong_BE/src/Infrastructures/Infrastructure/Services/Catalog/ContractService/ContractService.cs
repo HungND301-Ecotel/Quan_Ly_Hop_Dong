@@ -818,7 +818,7 @@ public partial class ContractService(
                 discountType: dto.DiscountType,
                 discountValue: dto.DiscountValue,
                 vatPercentage: dto.VatPercentage,
-                scheduleType: isEconomicContract ? dto.PaymentSchedules?.ScheduleType : null
+                scheduleType: null
             );
 
             if (!dto.IsDebtTrackingEnabled)
@@ -845,7 +845,7 @@ public partial class ContractService(
                 if (dto.PaymentSchedules != null && dto.PaymentSchedules.Schedules != null && dto.PaymentSchedules.Schedules.Any())
                 {
                     var paymentSchedule = dto.PaymentSchedules.Schedules
-                        .Select(p => p.ToDomain(Guid.Empty, dto.PaymentSchedules.ScheduleType)).ToList();
+                        .Select(p => p.ToDomain(Guid.Empty)).ToList();
                     entity.AddPaymentSchedules(paymentSchedule);
                 }
             }
@@ -1369,41 +1369,7 @@ public partial class ContractService(
                     continue;
                 }
 
-                item.ScheduleType = entity switch
-                {
-                    MonthlyPaymentSchedule => ScheduleType.Monthly,
-                    QuarterlyPaymentSchedule => ScheduleType.Quarterly,
-                    YearlyPaymentSchedule => ScheduleType.Yearly,
-                    LumpSumPaymentSchedule => ScheduleType.LumpSum,
-                    StagePaymentSchedule => ScheduleType.Stage,
-                    _ => default
-                };
-
-                switch (entity)
-                {
-                    case MonthlyPaymentSchedule m:
-                        item.Month = m.Month;
-                        item.Year = m.Year;
-                        break;
-
-                    case QuarterlyPaymentSchedule q:
-                        item.Quarter = q.Quarter;
-                        item.Year = q.Year;
-                        break;
-
-                    case YearlyPaymentSchedule y:
-                        item.Year = y.Year;
-                        break;
-
-                    case LumpSumPaymentSchedule l:
-                        item.DueDate = l.DueDate;
-                        break;
-
-                    case StagePaymentSchedule s:
-                        item.FromDate = s.FromDate;
-                        item.ToDate = s.ToDate;
-                        break;
-                }
+                item.Days = entity.Days;
             }
         }
 
@@ -1835,7 +1801,7 @@ public partial class ContractService(
                 paymentPlanType: PaymentPlanType.Monthly,
                 discountType: dto.DiscountType,
                 vatPercentage: dto.VatPercentage,
-                scheduleType: dto.PaymentSchedules?.ScheduleType,
+                scheduleType: null,
                 discountValue: dto.DiscountValue
             );
 
@@ -2287,8 +2253,8 @@ public partial class ContractService(
     }
 
     private async Task UpdatePaymentSchedule(
-    Contract entity,
-    CreatePaymentScheduleListDto? dtos)
+        Contract entity,
+        CreatePaymentScheduleListDto? dtos)
     {
         if (dtos == null || dtos.Schedules == null || !dtos.Schedules.Any())
         {
@@ -2301,24 +2267,27 @@ public partial class ContractService(
             return;
         }
 
-        var newPayments = dtos.Schedules.ToList();
+        var newScheduleDto = dtos.Schedules.First();
+        var existingSchedule = entity.PaymentSchedules.FirstOrDefault();
 
-        // Xóa hết payment schedules cũ
-        if (entity.PaymentSchedules.Any())
+        if (existingSchedule != null)
         {
-            _paymentScheduleRepo.Delete(entity.PaymentSchedules.ToList());
-            entity.ClearPaymentSchedule();
-        }
+            existingSchedule.Update(newScheduleDto.Days, newScheduleDto.Amount, newScheduleDto.AmountType);
+            _paymentScheduleRepo.Update(existingSchedule);
 
-        // Tạo mới tất cả payment schedules
-        var newList = new List<PaymentSchedule>();
-        foreach (var dto in newPayments)
+            // Xóa các schedules dư thừa nếu có
+            var extraSchedules = entity.PaymentSchedules.Skip(1).ToList();
+            if (extraSchedules.Any())
+            {
+                _paymentScheduleRepo.Delete(extraSchedules);
+                entity.ClearPaymentSchedule(extraSchedules);
+            }
+        }
+        else
         {
-            var schedule = dto.ToDomain(entity.Id, dtos.ScheduleType);
-            newList.Add(schedule);
+            var schedule = newScheduleDto.ToDomain(entity.Id);
+            entity.AddPaymentSchedules(new List<PaymentSchedule> { schedule });
         }
-
-        entity.AddPaymentSchedules(newList);
     }
 
     private async Task UpdateContractUserRoles(
@@ -2590,10 +2559,9 @@ public partial class ContractService(
         var contract = await _contractRepo.GetFirstOrDefaultAsync(
             predicate: c => c.Id == contractId,
             include: c => c.Include(x => x.PaymentSchedules)
-                           .ThenInclude(ps => ps.ContractPayments)
+                           .Include(x => x.ContractPayments)
                            .ThenInclude(cp => cp.Invoice)
-                           .Include(x => x.PaymentSchedules)
-                           .ThenInclude(ps => ps.ContractPayments)
+                           .Include(x => x.ContractPayments)
                            .ThenInclude(cp => cp.Tax!)
                            .Include(x => x.ContractItems).ThenInclude(x => x.Material)
                            .Include(x => x.PaymentSchedules)
@@ -2605,6 +2573,8 @@ public partial class ContractService(
         var effectiveContractValue = contract.ContractValue ?? 0;
 
         var result = new List<PaymentScheduleDto>();
+
+        var allContractPayments = contract.ContractPayments.ToList();
 
         foreach (var schedule in contract.PaymentSchedules)
         {
@@ -2621,7 +2591,7 @@ public partial class ContractService(
                 AmountType = schedule.AmountType,
                 PaymentAmount = paymentAmount,
                 PaymentStatus = schedule.PaymentStatus,
-                ContractPayments = schedule.ContractPayments.Select(cp => new ContractPaymentInfoDto
+                ContractPayments = allContractPayments.Select(cp => new ContractPaymentInfoDto
                 {
                     Id = cp.Id,
                     PeriodNumber = cp.PeriodNumber,
@@ -2632,7 +2602,7 @@ public partial class ContractService(
                         : new Application.Dto.Catalog.ContractPayment.InvoiceDto
                         {
                             NumberInvoice = cp.Invoice.NumberInvoice,
-                            DateInvoice = cp.Invoice.DateInvoice
+                            DateInvoice = cp.Invoice.DateInvoice == DateTimeOffset.MinValue ? null : cp.Invoice.DateInvoice
                         },
                     TaxFilePaths = cp.TaxFilePaths,
                     Tax = cp.Tax == null
@@ -2664,42 +2634,7 @@ public partial class ContractService(
                 }).ToList();
             }
 
-            // Map schedule type and specific properties
-            dto.ScheduleType = schedule switch
-            {
-                MonthlyPaymentSchedule => ScheduleType.Monthly,
-                QuarterlyPaymentSchedule => ScheduleType.Quarterly,
-                YearlyPaymentSchedule => ScheduleType.Yearly,
-                LumpSumPaymentSchedule => ScheduleType.LumpSum,
-                StagePaymentSchedule => ScheduleType.Stage,
-                _ => default
-            };
-
-            switch (schedule)
-            {
-                case MonthlyPaymentSchedule m:
-                    dto.Month = m.Month;
-                    dto.Year = m.Year;
-                    break;
-
-                case QuarterlyPaymentSchedule q:
-                    dto.Quarter = q.Quarter;
-                    dto.Year = q.Year;
-                    break;
-
-                case YearlyPaymentSchedule y:
-                    dto.Year = y.Year;
-                    break;
-
-                case LumpSumPaymentSchedule l:
-                    dto.DueDate = l.DueDate;
-                    break;
-
-                case StagePaymentSchedule s:
-                    dto.FromDate = s.FromDate;
-                    dto.ToDate = s.ToDate;
-                    break;
-            }
+            dto.Days = schedule.Days;
 
             result.Add(dto);
         }

@@ -18,8 +18,6 @@ public class TaxSyncSourceService(
                 k.MA_SO_VAT      AS TaxCode
             FROM [EFS_2022].[dbo].[KTPS] k
             WHERE k.SO_HDONG = @ContractNumber
-            AND k.NGAY_HDONG >= @ContractDate
-            AND k.NGAY_HDONG < DATEADD(DAY, 1, @ContractDate)
             AND (
                     k.THUE_SUAT_VAT IS NOT NULL
                 OR k.TIEN_THUE_VAT IS NOT NULL

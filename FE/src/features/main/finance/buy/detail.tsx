@@ -23,7 +23,7 @@ import {
 import { useCallback, useState } from 'react';
 import { ContractInformation } from '../../contract/approval/components/detail/components/information';
 import { PaymentSection } from './components/payment';
-import { ProgressSectionNew } from './components/progress/FileFakeData/ProgressSectionNew';
+import { ProgressSection } from './components/progress';
 import { useApi } from '@/hooks/use-api';
 import { DataTableEvent } from '@/components/data-table/types';
 import { contractService } from '@/services/contract';
@@ -129,7 +129,7 @@ export function EconomicContractDetail({
 
               <TabsContent value='progress'>
                 {tab === 'progress' && (
-                  <ProgressSectionNew
+                  <ProgressSection
                     contractId={contract.id}
                     contractValue={contract.contractValue}
                     disabled={!canUpdateProgress}

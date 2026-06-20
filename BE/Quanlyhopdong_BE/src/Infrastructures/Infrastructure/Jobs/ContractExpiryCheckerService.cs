@@ -67,10 +67,9 @@ public class ContractExpiryCheckerService(
             predicate: c => c.CompletionDate.Date < today && c.Status == ContractStatus.Active,
             include: q => q
                 .Include(c => c.PaymentSchedules)
-                .ThenInclude(ps => ps.ContractPayments)
+                .Include(c => c.ContractPayments)
                 .ThenInclude(cp => cp.Invoice)
-                .Include(c => c.PaymentSchedules)
-                .ThenInclude(ps => ps.ContractPayments)
+                .Include(c => c.ContractPayments)
                 .ThenInclude(cp => cp.Tax!),
             disableTracking: false); // Enable tracking để update
 
@@ -174,25 +173,23 @@ public class ContractExpiryCheckerService(
 
     private static bool HasIncompleteAcceptanceReport(Contract contract)
     {
-        if (!contract.PaymentSchedules.Any())
+        if (!contract.ContractPayments.Any())
         {
             return true;
         }
 
-        return contract.PaymentSchedules.Any(ps =>
-            !ps.ContractPayments.Any(p => p.AcceptanceReportFilePaths != null && p.AcceptanceReportFilePaths.Length > 0));
+        return contract.ContractPayments.Any(p => p.AcceptanceReportFilePaths == null || p.AcceptanceReportFilePaths.Length == 0);
     }
 
     private static bool HasMissingPaymentFile(Contract contract)
     {
-        if (!contract.PaymentSchedules.Any())
+        if (!contract.ContractPayments.Any())
         {
             return true;
         }
 
-        return contract.PaymentSchedules.Any(ps =>
-            !ps.ContractPayments.Any(p =>
-                (p.InvoiceFilePaths != null && p.InvoiceFilePaths.Length > 0) || p.Invoice != null));
+        return contract.ContractPayments.Any(p =>
+            (p.InvoiceFilePaths == null || p.InvoiceFilePaths.Length == 0) && p.Invoice == null);
     }
 
     private static bool HasMissingLiquidationFile(Contract contract)

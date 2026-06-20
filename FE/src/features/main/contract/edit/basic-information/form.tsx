@@ -1,6 +1,5 @@
 import { Form } from '@/components/form/form';
 import { FormDate } from '@/components/form/form-date';
-import { FormDates } from '@/components/form/form-dates';
 import { FormFiles } from '@/components/form/form-files';
 import {
   FormGroup,
@@ -10,14 +9,11 @@ import {
 } from '@/components/form/form-group';
 import { cn } from '@/lib/utils';
 import { FormInput } from '@/components/form/form-input';
-import { FormMonthYear } from '@/components/form/form-month-year';
 import { FormNumber } from '@/components/form/form-number';
-import { FormQuaterYear } from '@/components/form/form-quater-year';
 import { FormReadonly } from '@/components/form/form-readonly';
 import { FormRow } from '@/components/form/form-row';
 import { FormSelect } from '@/components/form/form-select';
 import { FormTextArea } from '@/components/form/form-text-area';
-import { FormYear } from '@/components/form/form-year';
 import { StepperPrev } from '@/components/stepper';
 import { useStepperContext } from '@/components/stepper/context';
 import { Button } from '@/components/ui/button';
@@ -39,7 +35,6 @@ import {
 import { GuaranteeType } from '@/constants/contract';
 import { ContractRole } from '@/constants/contract-role';
 import { DiscountType } from '@/constants/discount-type';
-import { ScheduleType } from '@/constants/schedule-type';
 import { useAuthContext } from '@/features/context';
 import {
   BasicInformationDefault,
@@ -386,6 +381,9 @@ export function ContractBasicInformationForm() {
       departmentId: user?.departmentId,
       contractItems: [],
       contractOtherItems: [],
+      paymentSchedules: {
+        schedules: [{ amountType: 0, amount: 0, days: 30 }],
+      },
     },
   });
 
@@ -538,52 +536,14 @@ export function ContractBasicInformationForm() {
         contractOthersValue: contract.contractOthersValue,
         contractOtherItems: contract.contractOtherItems,
         paymentSchedules: {
-          scheduleType:
-            contract.paymentSchedules && contract.paymentSchedules.length > 0
-              ? contract.paymentSchedules[0].scheduleType
-              : undefined,
           schedules:
-            contract.paymentSchedules?.map((schedule) => {
-              const scheduleType = schedule.scheduleType;
-              const year = schedule.year ? Number(schedule.year) : null;
-              const month = schedule.month ? Number(schedule.month) : null;
-              const quarter = schedule.quarter ? Number(schedule.quarter) : null;
-
-              let fromDate: string | null = null;
-              let toDate: string | null = null;
-
-              if (scheduleType === ScheduleType.Year.id && year) {
-                fromDate = `${year}-01-01`;
-                toDate = `${year}-12-31`;
-              } else if (scheduleType === ScheduleType.Month.id && year && month) {
-                const lastDay = new Date(year, month, 0).getDate(); // ngày cuối tháng
-                fromDate = `${year}-${String(month).padStart(2, '0')}-01`;
-                toDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-              } else if (scheduleType === ScheduleType.Quarter.id && year && quarter) {
-                const quarterMonthStart = (quarter - 1) * 3 + 1;
-                const quarterMonthEnd = quarter * 3;
-                const lastDay = new Date(year, quarterMonthEnd, 0).getDate();
-                fromDate = `${year}-${String(quarterMonthStart).padStart(2, '0')}-01`;
-                toDate = `${year}-${String(quarterMonthEnd).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-              } else if (scheduleType === ScheduleType.Stage.id) {
-                fromDate = schedule.fromDate?.slice(0, 10) || null;
-                toDate = schedule.toDate?.slice(0, 10) || null;
-              } else if (scheduleType === ScheduleType.LumpSum.id) {
-                fromDate = contract.startDate?.slice(0, 10) || null;
-                toDate = contract.endDate?.slice(0, 10) || null;
-              }
-
-              return {
-                amountType: schedule.amountType,
-                amount: schedule.amount,
-                month: schedule.month,
-                year: schedule.year,
-                quarter: schedule.quarter,
-                fromDate,
-                toDate,
-                dueDate: schedule.dueDate?.slice(0, 10),
-              };
-            }) || [],
+            contract.paymentSchedules && contract.paymentSchedules.length > 0
+              ? contract.paymentSchedules.map((schedule) => ({
+                  amountType: schedule.amountType,
+                  amount: schedule.amount,
+                  days: schedule.days,
+                }))
+              : [{ amountType: 0, amount: 0, days: 30 }],
         },
         contractGuarantee: {
           performanceBondGuarantee: getContractGuarantee(
@@ -603,7 +563,6 @@ export function ContractBasicInformationForm() {
       });
       setTimeout(() => {
         isResettingForm.current = false;
-        prevScheduleTypeRef.current = form.getValues('paymentSchedules.scheduleType');
         const schedules = form.getValues('paymentSchedules.schedules');
         if (schedules && schedules.length > 0) {
           replacePaymentSchedules(schedules);
@@ -631,9 +590,6 @@ export function ContractBasicInformationForm() {
   });
 
   const {
-    fields: paymentSchedules,
-    append: appendPaymentSchedule,
-    remove: removePaymentSchedule,
     replace: replacePaymentSchedules,
   } = useFieldArray({
     control: form.control,
@@ -646,15 +602,7 @@ export function ContractBasicInformationForm() {
   const watchedContractOthersValue = form.watch('contractOthersValue');
   const watchedContractOtherItems = form.watch('contractOtherItems');
   const watchedContractItems = form.watch('contractItems');
-  const watchedPaymentScheduleType = form.watch(
-    'paymentSchedules.scheduleType'
-  );
-
   const isRuleContract = [0, 1].includes(contractFormat?.contractFormat || 0);
-  const isFirstScheduleTypeMount = useRef(true);
-  const prevScheduleTypeRef = useRef<number | string | undefined>(
-    watchedPaymentScheduleType
-  );
 
   const contractItemsTotal = (() => {
     const items = form.watch('contractItems');
@@ -679,28 +627,7 @@ export function ContractBasicInformationForm() {
     return form.watch('contractOthersValue') || 0;
   })();
 
-  useEffect(() => {
-    if (isResettingForm.current) return; // ← Thêm dòng này
 
-    if (isFirstScheduleTypeMount.current) {
-      isFirstScheduleTypeMount.current = false;
-      prevScheduleTypeRef.current = watchedPaymentScheduleType;
-      return;
-    }
-
-    if (prevScheduleTypeRef.current !== watchedPaymentScheduleType) {
-      prevScheduleTypeRef.current = watchedPaymentScheduleType;
-      const currentSchedules = form.getValues('paymentSchedules.schedules');
-      if (currentSchedules && currentSchedules.length > 0) {
-        const resetSchedules = currentSchedules.map((schedule) => ({
-          ...schedule,
-          month: null, quarter: null, year: null,
-          fromDate: null, toDate: null, dueDate: null,
-        }));
-        replacePaymentSchedules(resetSchedules);
-      }
-    }
-  }, [watchedPaymentScheduleType, form, replacePaymentSchedules]);
 
   useEffect(() => {
     const promises = Promise.all([
@@ -738,6 +665,8 @@ export function ContractBasicInformationForm() {
         setPartners(partners || []);
         setProcurementMethods(procurementMethods || []);
         setUsers(users || []);
+        console.log('form.tsx loaded materials count:', (materials || []).length);
+        console.log('form.tsx loaded otherMaterials count:', (otherMaterials || []).length);
         setMaterials(materials || []);
         setOtherMaterials(otherMaterials || []);
         setDepartments(departments || []);
@@ -767,71 +696,11 @@ export function ContractBasicInformationForm() {
     return total - discount;
   };
 
-  const getPaymentSchedulesTotal = () => {
-    const schedules = form.watch('paymentSchedules.schedules');
-    const scheduleType = form.watch('paymentSchedules.scheduleType');
 
-    if (scheduleType == ScheduleType.LumpSum.id) {
-      return getContractFinalValue();
-    }
 
-    if (!schedules || schedules.length === 0) return 0;
 
-    return schedules.reduce((total, schedule) => {
-      const amount = schedule.amount || 0;
-      const amountType = schedule.amountType;
 
-      if (amountType == DiscountType.Percent.id) {
-        return total + (amount / 100) * getContractFinalValue();
-      }
-      return total + amount;
-    }, 0);
-  };
 
-  const getPaymentScheduleComparison = () => {
-    const contractValue = getContractFinalValue();
-    const paymentTotal = getPaymentSchedulesTotal();
-    const difference = paymentTotal - contractValue;
-
-    if (difference == 0) {
-      return {
-        status: 'exact',
-        message: `Đủ thanh toán cho giá trị hợp đồng: ${format.number(contractValue)} đ`,
-        color: 'text-green-600'
-      };
-    } else if (difference > 0) {
-      return {
-        status: 'excess',
-        message: `Thừa ${format.number(difference)} đ so với giá trị hợp đồng`,
-        color: 'text-orange-600'
-      };
-    } else {
-      return {
-        status: 'shortage',
-        message: `Còn thiếu ${format.number(Math.abs(difference))} đ so với giá trị hợp đồng`,
-        color: 'text-red-600'
-      };
-    }
-  };
-
-  useEffect(() => {
-    if (isResettingForm.current) return;
-
-    if (watchedPaymentScheduleType == ScheduleType.LumpSum.id) {
-      form.setValue('paymentSchedules.schedules', [
-        {
-          amountType: DiscountType.Amount.id,
-          amount: getContractFinalValue(),
-          month: null,
-          quarter: null,
-          year: null,
-          fromDate: null,
-          toDate: null,
-          dueDate: null,
-        },
-      ]);
-    }
-  }, [watchedPaymentScheduleType]);
 
   const watchedLevel1CodeId = form.watch('level1CodeId');
   const watchedLevel3CodeId = form.watch('level3CodeId');
@@ -888,18 +757,9 @@ export function ContractBasicInformationForm() {
         message: 'Phải nhỏ hơn giá trị vật tư',
       });
     }
-    if (!isRuleContract && hasScheduleType && watchedPaymentScheduleType != ScheduleType.LumpSum.id) {
-      const comparison = getPaymentScheduleComparison();
-      if (comparison.status !== 'exact') {
-        toast.error('Tổng giá trị thanh toán phải bằng giá trị hợp đồng');
-        return;
-      }
-    }
     setBasicInformation(data);
     nextStep();
   };
-
-  const hasScheduleType = watchedPaymentScheduleType !== undefined && watchedPaymentScheduleType !== null;
 
 
   if (isCatalogLoading || (isUpdate && loading)) {
@@ -1566,186 +1426,19 @@ export function ContractBasicInformationForm() {
         {!isRuleContract && (
           <FormGroup>
             <FormGroupHeader>
-              <div className='flex flex-col gap-1'>
-                <FormGroupLabel>Thời hạn thanh toán, đối chiếu</FormGroupLabel>
-                {hasScheduleType && paymentSchedules.length > 0 && (
-                  <div className='text-sm font-medium'>
-                    <span className='text-muted-foreground'>Tổng thanh toán: </span>
-                    <span className='text-foreground font-semibold'>
-                      {format.number(getPaymentSchedulesTotal())} đ
-                    </span>
-                    <span className='mx-2'>•</span>
-                    <span className={getPaymentScheduleComparison().color}>
-                      {getPaymentScheduleComparison().message}
-                    </span>
-                  </div>
-                )}
-              </div>
+              <FormGroupLabel>Thời hạn thanh toán, đối chiếu</FormGroupLabel>
             </FormGroupHeader>
-
             <FormGroupContent>
               <FormRow>
-                <FormSelect
-                  control={form.control}
-                  name='paymentSchedules.scheduleType'
-                  placeholder='Chọn thời hạn thanh toán, đối chiếu'
-                  options={Object.values(ScheduleType).map((scheduleType) => ({
-                    value: String(scheduleType.id),
-                    label: scheduleType.name,
-                  }))}
-                />
-
-                <Button
-                  type='button'
-                  size={'lg'}
-                  onClick={() => {
-                    appendPaymentSchedule({
-                      amountType: '' as unknown as number,
-                      amount: 0,
-                      month: null,
-                      quarter: null,
-                      year: null,
-                      fromDate: null,
-                      toDate: null,
-                      dueDate: null,
-                    });
-                  }}
-                  disabled={
-                    !hasScheduleType ||
-                    watchedPaymentScheduleType == ScheduleType.LumpSum.id
-                  }
-                  className='min-w-48'
-                >
-                  <PlusIcon />
-                  <span>Thêm thời hạn</span>
-                </Button>
+                <div className='w-full max-w-sm'>
+                  <FormNumber
+                    control={form.control}
+                    name={`paymentSchedules.schedules.0.days`}
+                    label='Số ngày thanh toán/đối chiếu'
+                    placeholder='Nhập số ngày'
+                  />
+                </div>
               </FormRow>
-
-              {hasScheduleType &&
-                paymentSchedules.map((_, index) => {
-                  const watchedUnit = form.watch(
-                    `paymentSchedules.schedules.${index}.amountType`
-                  );
-                  const watchedAmount = form.watch(
-                    `paymentSchedules.schedules.${index}.amount`
-                  );
-
-                  return (
-                    <FormRow key={index}>
-                      <div className='mt-8 size-10 aspect-square bg-primary rounded-lg text-primary-foreground flex items-center justify-center'>
-                        {index + 1}
-                      </div>
-
-                      {watchedPaymentScheduleType == ScheduleType.Month.id && (
-                        <FormMonthYear
-                          control={form.control}
-                          month={`paymentSchedules.schedules.${index}.month`}
-                          year={`paymentSchedules.schedules.${index}.year`}
-                          label='Thời hạn thanh toán, đối chiếu'
-                          placeholder='Chọn thời hạn'
-                        />
-                      )}
-
-                      {watchedPaymentScheduleType ==
-                        ScheduleType.Quarter.id && (
-                          <FormQuaterYear
-                            control={form.control}
-                            quater={`paymentSchedules.schedules.${index}.quarter`}
-                            year={`paymentSchedules.schedules.${index}.year`}
-                            label='Thời hạn thanh toán, đối chiếu'
-                            placeholder='Chọn thời hạn'
-                          />
-                        )}
-
-                      {watchedPaymentScheduleType == ScheduleType.Year.id && (
-                        <FormYear
-                          control={form.control}
-                          name={`paymentSchedules.schedules.${index}.year`}
-                          label='Thời hạn thanh toán, đối chiếu'
-                          placeholder='Chọn thời hạn'
-                        />
-                      )}
-
-                      {watchedPaymentScheduleType == ScheduleType.Stage.id && (
-                        <FormDates
-                          control={form.control}
-                          from={`paymentSchedules.schedules.${index}.fromDate`}
-                          to={`paymentSchedules.schedules.${index}.toDate`}
-                          label='Thời hạn thanh toán, đối chiếu'
-                          placeholder='Chọn thời hạn'
-                        />
-                      )}
-
-                      {watchedPaymentScheduleType ==
-                        ScheduleType.LumpSum.id && (
-                          <>
-                            <FormDate
-                              control={form.control}
-                              name={`paymentSchedules.schedules.${index}.dueDate`}
-                              label='Thời hạn thanh toán, đối chiếu'
-                              placeholder='Chọn thời hạn'
-                            />
-                            <FormReadonly
-                              label='Số tiền thanh toán (đ)'
-                              value={format.number(getContractFinalValue())}
-                            />
-                          </>
-                        )}
-
-                      {watchedPaymentScheduleType !=
-                        ScheduleType.LumpSum.id && (
-                          <FormSelect
-                            control={form.control}
-                            name={`paymentSchedules.schedules.${index}.amountType`}
-                            label='Đơn vị tính'
-                            placeholder='Chọn đơn vị tính'
-                            options={Object.values(DiscountType).map((unit) => ({
-                              value: String(unit.id),
-                              label: unit.name,
-                            }))}
-                          />
-                        )}
-
-                      {watchedPaymentScheduleType !=
-                        ScheduleType.LumpSum.id && (
-                          <>
-                            <FormNumber
-                              control={form.control}
-                              name={`paymentSchedules.schedules.${index}.amount`}
-                              label='Giá trị'
-                              placeholder='Nhập giá trị'
-                            />
-
-                            <FormReadonly
-                              label='Giá trị thanh toán'
-                              value={(() => {
-                                if (watchedUnit == DiscountType.Percent.id) {
-                                  return format.number(
-                                    ((watchedAmount || 0) / 100) *
-                                    getContractFinalValue()
-                                  );
-                                }
-                                return format.number(watchedAmount || 0);
-                              })()}
-                            />
-                          </>
-                        )}
-
-                      <Button
-                        type='button'
-                        size={'icon-lg'}
-                        variant={'destructive'}
-                        className='mt-8'
-                        onClick={() => {
-                          removePaymentSchedule(index);
-                        }}
-                        disabled={paymentSchedules.length === 1}
-                      >
-                        <Trash2Icon />
-                      </Button>
-                    </FormRow>
-                  );
-                })}
             </FormGroupContent>
           </FormGroup>
         )}

@@ -25,6 +25,7 @@ public class ContractProgressService(
     private readonly IWriteRepository<ContractItem> _contractItemRepo = unitOfWork.GetRepository<ContractItem>();
     private readonly IWriteRepository<PaymentSchedule> _scheduleRepo = unitOfWork.GetRepository<PaymentSchedule>();
     private readonly IWriteRepository<Domain.Entities.Identity.User> _userRepo = unitOfWork.GetRepository<Domain.Entities.Identity.User>();
+    private readonly IWriteRepository<ContractPayment> _paymentRepo = unitOfWork.GetRepository<ContractPayment>();
 
     private async Task ValidateProgressPermissionAsync(Guid contractId)
     {
@@ -51,6 +52,29 @@ public class ContractProgressService(
         }
     }
 
+    private async Task ValidateInvoiceAmountLimitAsync(Guid contractPaymentId, decimal executedAmount, Guid? currentProgressId)
+    {
+        if (executedAmount <= 0)
+        {
+            return;
+        }
+
+        var payment = await _paymentRepo.GetFirstOrDefaultAsync(
+            predicate: cp => cp.Id == contractPaymentId,
+            disableTracking: true)
+            ?? throw new BadRequestException("Hóa đơn không tồn tại");
+
+        var existingProgresses = await _progressRepo.GetAllAsync(
+            predicate: p => p.ContractPaymentId == contractPaymentId && p.Id != currentProgressId,
+            disableTracking: true);
+
+        decimal otherAmount = existingProgresses.Sum(p => p.ExecutedAmount);
+        if (otherAmount + executedAmount > payment.Amount)
+        {
+            throw new BadRequestException($"Số tiền thực hiện vượt quá số tiền còn lại của hóa đơn (tối đa còn lại: {payment.Amount - otherAmount})");
+        }
+    }
+
     public async Task<ContractProgressDto> GetByIdAsync(Guid id)
     {
         try
@@ -59,13 +83,25 @@ public class ContractProgressService(
                 predicate: p => p.Id == id,
                 include: p => p.Include(x => x.ProgressItems)
                                .ThenInclude(pi => pi.ContractItem)
-                               .ThenInclude(ci => ci.Material),
+                               .ThenInclude(ci => ci.Material)
+                               .Include(x => x.ContractPayment)
+                               .ThenInclude(cp => cp.Invoice)
+                               .Include(x => x.Contract)
+                               .ThenInclude(c => c.ContractItems),
                 disableTracking: true);
 
             if (progress == null)
             {
                 throw new NotFoundException($"ContractProgress with ID {id} not found");
             }
+
+            var contract = progress.Contract;
+            var isHasValue = contract.ContractValue.HasValue && contract.ContractValue.Value > 0;
+            var isHasMaterial = contract.ContractItems.Any(ci => !ci.Material.IsOtherMaterial);
+            
+            decimal progressTotal = isHasValue 
+                ? progress.ExecutedAmount 
+                : progress.ProgressItems.Sum(pi => pi.ExecutedAmount);
 
             var progressDto = new ContractProgressDto
             {
@@ -74,7 +110,12 @@ public class ContractProgressService(
                 PaymentScheduleId = progress.PaymentScheduleId,
                 PeriodStart = progress.PeriodStart,
                 PeriodEnd = progress.PeriodEnd,
-                ProgressTotal = progress.ProgressItems.Sum(pi => pi.ExecutedAmount),
+                ProgressTotal = progressTotal,
+                ContractPaymentId = progress.ContractPaymentId,
+                NumberInvoice = progress.ContractPayment?.Invoice?.NumberInvoice,
+                ExecutedAmount = progress.ExecutedAmount,
+                IsHasValue = isHasValue,
+                IsHasMaterial = isHasMaterial,
                 ContractProgressItems = progress.ProgressItems
                     .OrderBy(pi => pi.ContractItem.Material.MaterialCode)
                     .Select(pi => new ContractProgressItemDetailDto
@@ -106,6 +147,7 @@ public class ContractProgressService(
             // Verify contract exists
             var contract = await _contractRepo.GetFirstOrDefaultAsync(
                 predicate: c => c.Id == contractId,
+                include: c => c.Include(x => x.ContractItems).ThenInclude(ci => ci.Material),
                 disableTracking: true);
 
             if (contract == null)
@@ -118,9 +160,16 @@ public class ContractProgressService(
                 predicate: p => p.ContractId == contractId,
                 include: p => p.Include(x => x.ProgressItems)
                                .ThenInclude(pi => pi.ContractItem)
-                               .ThenInclude(ci => ci.Material),
+                               .ThenInclude(ci => ci.Material)
+                               .Include(x => x.ContractPayment)
+                               .ThenInclude(cp => cp.Invoice)
+                               .Include(x => x.Contract)
+                               .ThenInclude(c => c.ContractItems),
                 orderBy: q => q.OrderBy(p => p.PeriodStart),
                 disableTracking: true);
+
+            var isHasValue = contract.ContractValue.HasValue && contract.ContractValue.Value > 0;
+            var isHasMaterial = contract.ContractItems.Any(ci => !ci.Material.IsOtherMaterial);
 
             if (!progresses.Any())
             {
@@ -129,7 +178,9 @@ public class ContractProgressService(
                     FromDate = null,
                     ToDate = null,
                     Total = 0,
-                    ContractProgresses = new List<ContractProgressDto>()
+                    ContractProgresses = new List<ContractProgressDto>(),
+                    IsHasValue = isHasValue,
+                    IsHasMaterial = isHasMaterial
                 };
             }
 
@@ -145,6 +196,12 @@ public class ContractProgressService(
 
             foreach (var progress in progresses)
             {
+                var currentContract = progress.Contract;
+
+                decimal progressTotal = isHasValue 
+                    ? progress.ExecutedAmount 
+                    : progress.ProgressItems.Sum(pi => pi.ExecutedAmount);
+
                 var items = new List<ContractProgressItemDetailDto>();
 
                 foreach (var pi in progress.ProgressItems.OrderBy(pi => pi.ContractItem.Material.MaterialCode))
@@ -203,19 +260,31 @@ public class ContractProgressService(
                     PaymentScheduleId = progress.PaymentScheduleId,
                     PeriodStart = progress.PeriodStart,
                     PeriodEnd = progress.PeriodEnd,
-                    ProgressTotal = progress.ProgressItems.Sum(pi => pi.ExecutedAmount),
+                    ProgressTotal = progressTotal,
+                    ContractPaymentId = progress.ContractPaymentId,
+                    NumberInvoice = progress.ContractPayment?.Invoice?.NumberInvoice,
+                    ExecutedAmount = progress.ExecutedAmount,
+                    IsHasValue = isHasValue,
+                    IsHasMaterial = isHasMaterial,
                     ContractProgressItems = items
                 });
             }
 
-            var total = progressDtos.Sum(p => p.ProgressTotal);
+            // Calculate total based on whether contract is value-based or not
+            var firstProgress = progresses.First();
+            var hasValueContract = firstProgress.Contract.ContractValue.HasValue && firstProgress.Contract.ContractValue.Value > 0;
+            var total = hasValueContract
+                ? progresses.Sum(p => p.ExecutedAmount)
+                : progressDtos.Sum(p => p.ProgressTotal);
 
             return new ContractProgressResponseDto
             {
                 FromDate = fromDate,
                 ToDate = toDate,
                 Total = total,
-                ContractProgresses = progressDtos
+                ContractProgresses = progressDtos,
+                IsHasValue = isHasValue,
+                IsHasMaterial = isHasMaterial
             };
         }
         catch (Exception ex)
@@ -286,7 +355,9 @@ public class ContractProgressService(
                     request.ContractId,
                     request.PaymentScheduleId,
                     request.PeriodStart,
-                    request.PeriodEnd);
+                    request.PeriodEnd,
+                    request.ContractPaymentId,
+                    request.ExecutedAmount);
 
                 await _progressRepo.InsertAsync(progress);
                 await unitOfWork.SaveChangesAsync();
@@ -851,7 +922,9 @@ public class ContractProgressService(
                             request.ContractId,
                             item.PaymentScheduleId,
                             item.PeriodStart,
-                            item.PeriodEnd);
+                            item.PeriodEnd,
+                            item.ContractPaymentId,
+                            item.ExecutedAmount);
 
                         await _progressRepo.InsertAsync(newProgress);
                         await unitOfWork.SaveChangesAsync();
@@ -906,7 +979,12 @@ public class ContractProgressService(
                             }
                         }
 
-                        existing.Update(item.PaymentScheduleId, item.PeriodStart, item.PeriodEnd);
+                        existing.Update(
+                            item.PaymentScheduleId, 
+                            item.PeriodStart, 
+                            item.PeriodEnd,
+                            item.ContractPaymentId,
+                            item.ExecutedAmount);
                         _progressRepo.Update(existing);
 
                         results.Add(new UpdateContractProgressBatchResult
@@ -1305,7 +1383,21 @@ public class ContractProgressService(
                 .ToList();
 
             // Calculate total amount
-            var totalAmount = items.Sum(i => i.TotalItemAmount);
+            decimal totalAmount;
+            if (contract.ContractValue.HasValue && contract.ContractValue.Value > 0)
+            {
+                var progresses = await _progressRepo.GetAllAsync(
+                    predicate: p => p.ContractId == contractId,
+                    disableTracking: true);
+                var totalExecuted = progresses.Sum(p => p.ExecutedAmount);
+                totalAmount = Math.Max(0, contract.ContractValue.Value - totalExecuted);
+            }
+            else
+            {
+                var contractTotalValue = contractItems.Sum(ci => ci.Amount);
+                var totalExecutedValue = items.Sum(i => i.TotalItemAmount);
+                totalAmount = Math.Max(0, contractTotalValue - totalExecutedValue);
+            }
 
             return new WorkInProgressDto
             {
@@ -1400,27 +1492,26 @@ public class ContractProgressService(
                 throw new ConflictException("Period overlaps with existing progress record");
             }
 
-            // Validate progress items
-            if (request.ContractProgressItems == null || !request.ContractProgressItems.Any())
-            {
-                throw new BadRequestException("Progress items are required");
-            }
-
             // Get all contract items for validation
             var contractItems = await _contractItemRepo.GetAllAsync(
                 predicate: ci => ci.ContractId == request.ContractId,
+                include: ci => ci.Include(x => x.Material),
                 disableTracking: true);
 
             var contractItemMap = contractItems.ToDictionary(ci => ci.Id);
+            var isHasMaterial = contractItems.Any(ci => !ci.Material.IsOtherMaterial);
 
-            // Validate all contract item IDs exist
-            var invalidItems = request.ContractProgressItems
-                .Where(pi => !contractItemMap.ContainsKey(pi.ContractItemId))
-                .ToList();
-
-            if (invalidItems.Any())
+            if (isHasMaterial && request.ContractProgressItems != null && request.ContractProgressItems.Any())
             {
-                throw new BadRequestException($"Invalid contract items: {string.Join(", ", invalidItems.Select(i => i.ContractItemId))}");
+                // Validate all contract item IDs exist
+                var invalidItems = request.ContractProgressItems
+                    .Where(pi => !contractItemMap.ContainsKey(pi.ContractItemId))
+                    .ToList();
+
+                if (invalidItems.Any())
+                {
+                    throw new BadRequestException($"Invalid contract items: {string.Join(", ", invalidItems.Select(i => i.ContractItemId))}");
+                }
             }
 
             await unitOfWork.BeginTransactionAsync();
@@ -1445,12 +1536,20 @@ public class ContractProgressService(
                     }
                 }
 
+                // Validate invoice limit if contractPaymentId is provided
+                if (request.ContractPaymentId.HasValue && request.ExecutedAmount > 0)
+                {
+                    await ValidateInvoiceAmountLimitAsync(request.ContractPaymentId.Value, request.ExecutedAmount, null);
+                }
+
                 // Create progress record
                 var progress = ContractProgress.Create(
                     request.ContractId,
                     request.PaymentScheduleId,
                     request.PeriodStart,
-                    request.PeriodEnd);
+                    request.PeriodEnd,
+                    request.ContractPaymentId,
+                    request.ExecutedAmount);
 
                 await _progressRepo.InsertAsync(progress);
                 await unitOfWork.SaveChangesAsync();
@@ -1534,27 +1633,26 @@ public class ContractProgressService(
                 throw new BadRequestException("Period start must be before period end");
             }
 
-            // Validate progress items
-            if (request.ContractProgressItems == null || !request.ContractProgressItems.Any())
-            {
-                throw new BadRequestException("Progress items are required");
-            }
-
             // Get all contract items for validation
             var contractItems = await _contractItemRepo.GetAllAsync(
                 predicate: ci => ci.ContractId == request.ContractId,
+                include: ci => ci.Include(x => x.Material),
                 disableTracking: true);
 
             var contractItemMap = contractItems.ToDictionary(ci => ci.Id);
+            var isHasMaterial = contractItems.Any(ci => !ci.Material.IsOtherMaterial);
 
-            // Validate all contract item IDs exist
-            var invalidItems = request.ContractProgressItems
-                .Where(pi => !contractItemMap.ContainsKey(pi.ContractItemId))
-                .ToList();
-
-            if (invalidItems.Any())
+            if (isHasMaterial && request.ContractProgressItems != null && request.ContractProgressItems.Any())
             {
-                throw new BadRequestException($"Invalid contract items: {string.Join(", ", invalidItems.Select(i => i.ContractItemId))}");
+                // Validate all contract item IDs exist
+                var invalidItems = request.ContractProgressItems
+                    .Where(pi => !contractItemMap.ContainsKey(pi.ContractItemId))
+                    .ToList();
+
+                if (invalidItems.Any())
+                {
+                    throw new BadRequestException($"Invalid contract items: {string.Join(", ", invalidItems.Select(i => i.ContractItemId))}");
+                }
             }
 
             await unitOfWork.BeginTransactionAsync();
@@ -1594,11 +1692,19 @@ public class ContractProgressService(
                         }
                     }
 
+                    // Validate invoice limit if contractPaymentId is provided
+                    if (request.ContractPaymentId.HasValue && request.ExecutedAmount > 0)
+                    {
+                        await ValidateInvoiceAmountLimitAsync(request.ContractPaymentId.Value, request.ExecutedAmount, null);
+                    }
+
                     var newProgress = ContractProgress.Create(
                         request.ContractId,
                         request.PaymentScheduleId,
                         request.PeriodStart,
-                        request.PeriodEnd);
+                        request.PeriodEnd,
+                        request.ContractPaymentId,
+                        request.ExecutedAmount);
 
                     await _progressRepo.InsertAsync(newProgress);
                     await unitOfWork.SaveChangesAsync();
@@ -1693,12 +1799,23 @@ public class ContractProgressService(
 
                         if (schedule.ContractId != request.ContractId)
                         {
-                            throw new BadRequestException("PaymentSchedule không thuộc Contract này");
+                            throw new BadRequestException("PaymentSchedule khng thuTc Contract ny");
                         }
                     }
 
+                    // Validate invoice limit if contractPaymentId is provided
+                    if (request.ContractPaymentId.HasValue && request.ExecutedAmount > 0)
+                    {
+                        await ValidateInvoiceAmountLimitAsync(request.ContractPaymentId.Value, request.ExecutedAmount, existingProgress.Id);
+                    }
+
                     // Update progress period
-                    existingProgress.Update(request.PaymentScheduleId, request.PeriodStart, request.PeriodEnd);
+                    existingProgress.Update(
+                        request.PaymentScheduleId, 
+                        request.PeriodStart, 
+                        request.PeriodEnd,
+                        request.ContractPaymentId,
+                        request.ExecutedAmount);
                     _progressRepo.Update(existingProgress);
 
                     // Get existing progress items

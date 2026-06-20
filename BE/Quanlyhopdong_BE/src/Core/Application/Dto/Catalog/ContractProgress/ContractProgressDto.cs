@@ -11,6 +11,11 @@ public class ContractProgressDto
     public DateTimeOffset PeriodStart { get; set; }
     public DateTimeOffset PeriodEnd { get; set; }
     public decimal ProgressTotal { get; set; }
+    public Guid? ContractPaymentId { get; set; }
+    public string? NumberInvoice { get; set; }
+    public decimal ExecutedAmount { get; set; }
+    public bool IsHasValue { get; set; }
+    public bool IsHasMaterial { get; set; }
     public List<ContractProgressItemDetailDto> ContractProgressItems { get; set; } = new();
 }
 
@@ -49,6 +54,8 @@ public class ContractProgressResponseDto
     public DateTimeOffset? ToDate { get; set; }
     public decimal Total { get; set; }
     public List<ContractProgressDto> ContractProgresses { get; set; } = new();
+    public bool IsHasValue { get; set; }
+    public bool IsHasMaterial { get; set; }
 }
 
 /// <summary>
@@ -60,6 +67,8 @@ public class CreateContractProgressRequest
     public Guid? PaymentScheduleId { get; set; }
     public DateTimeOffset PeriodStart { get; set; }
     public DateTimeOffset PeriodEnd { get; set; }
+    public Guid? ContractPaymentId { get; set; }
+    public decimal ExecutedAmount { get; set; }
 }
 
 /// <summary>
@@ -208,6 +217,8 @@ public class UpdateContractProgressRequest
     public Guid? PaymentScheduleId { get; set; }
     public DateTimeOffset PeriodStart { get; set; }
     public DateTimeOffset PeriodEnd { get; set; }
+    public Guid? ContractPaymentId { get; set; }
+    public decimal ExecutedAmount { get; set; }
 }
 
 /// <summary>
@@ -231,6 +242,8 @@ public class UpdateContractProgressItemInBatch
     public Guid? PaymentScheduleId { get; set; }
     public DateTimeOffset PeriodStart { get; set; }
     public DateTimeOffset PeriodEnd { get; set; }
+    public Guid? ContractPaymentId { get; set; }
+    public decimal ExecutedAmount { get; set; }
 }
 
 /// <summary>
@@ -339,6 +352,8 @@ public class CreateContractProgressWithItemsRequest
     public Guid? PaymentScheduleId { get; set; }
     public DateTimeOffset PeriodStart { get; set; }
     public DateTimeOffset PeriodEnd { get; set; }
+    public Guid? ContractPaymentId { get; set; }
+    public decimal ExecutedAmount { get; set; }
     public List<CreateProgressItemDetailRequest> ContractProgressItems { get; set; } = new();
 }
 
@@ -395,6 +410,8 @@ public class UpdateContractProgressWithItemsRequest
     public Guid? PaymentScheduleId { get; set; }
     public DateTimeOffset PeriodStart { get; set; }
     public DateTimeOffset PeriodEnd { get; set; }
+    public Guid? ContractPaymentId { get; set; }
+    public decimal ExecutedAmount { get; set; }
     public List<UpdateProgressItemDetailRequest> ContractProgressItems { get; set; } = new();
 }
 

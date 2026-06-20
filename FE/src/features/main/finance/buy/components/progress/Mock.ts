@@ -24,6 +24,11 @@ export interface ContractProgress {
   totalExecutedQuantity: number;
   totalExecutedAmount: number;
   contractProgressItems: ContractProgressItem[];
+  contractPaymentId?: string | null;
+  numberInvoice?: string | null;
+  executedAmount?: number;
+  isHasValue?: boolean;
+  isHasMaterial?: boolean;
 }
 
 export interface ContractProgressDetail {

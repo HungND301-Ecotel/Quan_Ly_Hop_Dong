@@ -89,7 +89,7 @@ public class ContractPaymentService(
                         : new InvoiceDto
                         {
                             NumberInvoice = p.Invoice.NumberInvoice,
-                            DateInvoice = p.Invoice.DateInvoice
+                            DateInvoice = p.Invoice.DateInvoice == DateTimeOffset.MinValue ? null : p.Invoice.DateInvoice
                         },
                     TaxFilePaths = p.TaxFilePaths,
                     Tax = p.Tax == null
@@ -234,60 +234,39 @@ public class ContractPaymentService(
                 // Get existing payments from DB
                 var existingPayments = contract.ContractPayments.ToList();
 
-                // Process request items (Add or Update dựa theo PaymentScheduleId)
+                var schedules = await _scheduleRepo.GetAllAsync(
+                    predicate: s => s.ContractId == request.ContractId,
+                    disableTracking: false);
+                var schedule = schedules.FirstOrDefault();
+                if (schedule == null)
+                {
+                    schedule = new PaymentSchedule(request.ContractId, 30, 0, Domain.Common.Enums.ValueType.Amount);
+                    await _scheduleRepo.InsertAsync(schedule);
+                    await unitOfWork.SaveChangesAsync();
+                }
+                var scheduleId = schedule.Id;
+
+                // Process request items (Add or Update dựa theo Id hoặc PeriodNumber)
                 foreach (var itemRequest in request.Items)
                 {
                     try
                     {
-                        PaymentSchedule? schedule = null;
                         ContractPayment? existingPayment = null;
 
-                        // Validate PaymentSchedule if provided
-                        if (itemRequest.PaymentScheduleId.HasValue)
+                        if (itemRequest.Id.HasValue && itemRequest.Id.Value != Guid.Empty)
                         {
-                            schedule = await _scheduleRepo.GetFirstOrDefaultAsync(
-                                predicate: s => s.Id == itemRequest.PaymentScheduleId.Value,
-                                include: s => s.Include(x => x.ContractPayments),
-                                disableTracking: false);
-
-                            if (schedule == null)
-                            {
-                                results.Add(new UpdateContractPaymentBatchResult
-                                {
-                                    Id = null,
-                                    Operation = "Failed",
-                                    Success = false,
-                                    Message = "PaymentSchedule not found"
-                                });
-                                failedCount++;
-                                continue;
-                            }
-
-                            // Validate ContractId match
-                            if (schedule.ContractId != request.ContractId)
-                            {
-                                results.Add(new UpdateContractPaymentBatchResult
-                                {
-                                    Id = null,
-                                    Operation = "Failed",
-                                    Success = false,
-                                    Message = "PaymentSchedule không thuộc Contract này"
-                                });
-                                failedCount++;
-                                continue;
-                            }
-
-                            // TÌM payment hiện có theo PaymentScheduleId
-                            existingPayment = existingPayments
-                                .FirstOrDefault(ep => ep.PaymentScheduleId == itemRequest.PaymentScheduleId.Value);
+                            existingPayment = existingPayments.FirstOrDefault(ep => ep.Id == itemRequest.Id.Value);
+                        }
+                        else
+                        {
+                            existingPayment = existingPayments.FirstOrDefault(ep => ep.PeriodNumber == itemRequest.PeriodNumber);
                         }
 
                         // Determine Add or Update dựa trên existingPayment
                         if (existingPayment == null)
                         {
-                            // ADD NEW - Không tìm thấy payment với PaymentScheduleId này
-                            // Check for duplicate period number within the same payment schedule
-                            if (existingPayments.Any(ep => ep.PaymentScheduleId == itemRequest.PaymentScheduleId && ep.PeriodNumber == itemRequest.PeriodNumber))
+                            // ADD NEW
+                            if (existingPayments.Any(ep => ep.PeriodNumber == itemRequest.PeriodNumber))
                             {
                                 results.Add(new UpdateContractPaymentBatchResult
                                 {
@@ -302,7 +281,7 @@ public class ContractPaymentService(
 
                             var newPayment = ContractPayment.Create(
                                 request.ContractId,
-                                itemRequest.PaymentScheduleId,
+                                scheduleId,
                                 itemRequest.PeriodNumber,
                                 itemRequest.PaymentDate,
                                 itemRequest.Amount,
@@ -318,7 +297,7 @@ public class ContractPaymentService(
                                 itemRequest.Tax?.TaxCode);
 
                             await _paymentRepo.InsertAsync(newPayment);
-                            existingPayments.Add(newPayment); // Thêm vào danh sách để check duplicate ở vòng lặp tiếp theo
+                            existingPayments.Add(newPayment);
 
                             results.Add(new UpdateContractPaymentBatchResult
                             {
@@ -331,10 +310,9 @@ public class ContractPaymentService(
                         }
                         else
                         {
-                            // UPDATE EXISTING - Tìm thấy payment với PaymentScheduleId này
-                            // Check for duplicate period number within the same payment schedule (excluding current item)
+                            // UPDATE EXISTING
                             var otherPayments = existingPayments
-                                .Where(ep => ep.Id != existingPayment.Id && ep.PaymentScheduleId == itemRequest.PaymentScheduleId)
+                                .Where(ep => ep.Id != existingPayment.Id)
                                 .ToList();
 
                             if (otherPayments.Any(ep => ep.PeriodNumber == itemRequest.PeriodNumber))
@@ -351,7 +329,7 @@ public class ContractPaymentService(
                             }
 
                             existingPayment.Update(
-                                itemRequest.PaymentScheduleId,
+                                scheduleId,
                                 itemRequest.PeriodNumber,
                                 itemRequest.PaymentDate,
                                 itemRequest.Amount,
@@ -365,8 +343,6 @@ public class ContractPaymentService(
                                 itemRequest.Tax?.TaxableRevenue,
                                 itemRequest.Tax?.VatAmount,
                                 itemRequest.Tax?.TaxCode);
-
-                            // EF Core will track changes automatically
 
                             results.Add(new UpdateContractPaymentBatchResult
                             {
@@ -614,27 +590,20 @@ public class ContractPaymentService(
             return;
         }
 
-        var paymentSchedules = await _scheduleRepo.GetAllAsync(
-            predicate: ps => ps.ContractId == contract.Id,
-            include: ps => ps.Include(x => x.ContractPayments)
-                .ThenInclude(cp => cp.Invoice)
-                .Include(x => x.ContractPayments)
-                .ThenInclude(cp => cp.Tax!),
-            disableTracking: true); // OK vì đã SaveChanges rồi
+        var allPayments = await _paymentRepo.GetAllAsync(
+            predicate: cp => cp.ContractId == contract.Id,
+            include: cp => cp.Include(x => x.Invoice).Include(x => x.Tax!),
+            disableTracking: true);
 
-        if (!paymentSchedules.Any())
+        if (!allPayments.Any())
         {
             return;
         }
 
-        bool allPaymentsComplete = paymentSchedules.All(schedule =>
-        {
-            var payments = schedule.ContractPayments.ToList();
-            return payments.Any() && payments.All(p =>
-                p.AcceptanceReportFilePaths?.Length > 0 &&
-                ((p.InvoiceFilePaths?.Length > 0) || p.Invoice != null) &&
-                ((p.TaxFilePaths?.Length > 0) || p.Tax != null));
-        });
+        bool allPaymentsComplete = allPayments.All(p =>
+            p.AcceptanceReportFilePaths?.Length > 0 &&
+            ((p.InvoiceFilePaths?.Length > 0) || p.Invoice != null) &&
+            ((p.TaxFilePaths?.Length > 0) || p.Tax != null));
 
         ContractSubStatus? newSubStatus = null;
         ContractStatus? newStatus = null;
@@ -653,11 +622,6 @@ public class ContractPaymentService(
         }
         else
         {
-            // Check từ DB thay vì request - nhìn toàn bộ payments hiện có
-            var allPayments = paymentSchedules
-                .SelectMany(ps => ps.ContractPayments)
-                .ToList();
-
             var hasAnyAcceptanceReport = allPayments.Any(p =>
                 p.AcceptanceReportFilePaths?.Length > 0);
 

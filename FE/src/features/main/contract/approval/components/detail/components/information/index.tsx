@@ -3,13 +3,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ContractFormat } from '@/constants/contract-format';
 import { ContractRole } from '@/constants/contract-role';
 import { DiscountType } from '@/constants/discount-type';
-import { ScheduleType } from '@/constants/schedule-type';
 import { format } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { Contract } from '@/services/contract/type';
 import {
   Banknote,
-  Calendar1Icon,
   CalendarDays,
   DollarSignIcon,
   FileBadge,
@@ -521,20 +519,10 @@ export function ContractInformation({
         )}
 
       {/* 7. Lịch thanh toán */}
-      {!isRuleContract && <Section title='Lịch thanh toán' icon={CalendarDays}>
-        <div className='p-4 rounded-lg bg-blue-500/5 border border-blue-500/20'>
-          <div className='text-xs text-muted-foreground mb-1'>Loại kế hoạch</div>
-          <div className='text-sm font-semibold text-blue-600'>
-            {Object.values(ScheduleType).find(
-              (s) => String(s.id) === String(information?.paymentPlanType)
-            )?.name || '---'}
-          </div>
-        </div>
-
-        {information?.paymentSchedules &&
-          information.paymentSchedules.length > 0 && (
-            <>
-              <Separator />
+      {!isRuleContract && (
+        <Section title='Lịch thanh toán' icon={CalendarDays}>
+          {information?.paymentSchedules &&
+            information.paymentSchedules.length > 0 && (
               <div>
                 <div className='text-sm font-medium mb-3'>
                   Chi tiết kế hoạch thanh toán
@@ -553,26 +541,13 @@ export function ContractInformation({
                         className='p-4 rounded-lg border bg-linear-to-br from-background to-muted/20 hover:border-primary/50 transition-colors'
                       >
                         <div className='flex items-center justify-between'>
-                          <div className='flex flex-col items-start gap-2'>
-                            <div className='flex gap-2 items-center'>
-                              <span className='flex items-center justify-center size-7 rounded-full bg-blue-500/10 text-blue-600 text-sm font-semibold'>
-                                {index + 1}
-                              </span>
+                          <div className='flex items-center gap-2'>
+                            <span className='flex items-center justify-center size-7 rounded-full bg-blue-500/10 text-blue-600 text-sm font-semibold'>
+                              {index + 1}
+                            </span>
+                            <div className='flex flex-col'>
                               <span className='text-sm font-medium'>Kỳ {index + 1}</span>
-                            </div>
-                            <div className='flex items-center gap-2 text-xs text-muted-foreground'>
-                              <Calendar1Icon className='size-3.5' />
-                              <span>
-                                {item.fromDate && item.toDate
-                                  ? `Từ ${format.date(item.fromDate)} đến ${format.date(item.toDate)}`
-                                  : item.dueDate
-                                    ? `Hạn thanh toán: ${format.date(item.dueDate)}`
-                                    : item.month && item.year
-                                      ? `Tháng ${item.month}/${item.year}`
-                                      : item.quarter && item.year
-                                        ? `Quý ${item.quarter}/${item.year}`
-                                        : '---'}
-                              </span>
+                              <span className='text-xs text-muted-foreground'>Số ngày thanh toán/đối chiếu: {item.days} ngày</span>
                             </div>
                           </div>
                           <div className='text-right'>
@@ -591,9 +566,9 @@ export function ContractInformation({
                   })}
                 </div>
               </div>
-            </>
-          )}
-      </Section>}
+            )}
+        </Section>
+      )}
 
       {/* 8. Bảo lãnh */}
       {!isRuleContract && information?.contractGuarantee && information.contractGuarantee.length > 0 && (

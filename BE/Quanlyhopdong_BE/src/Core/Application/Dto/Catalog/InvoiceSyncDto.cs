@@ -11,7 +11,8 @@ public class ExternalInvoiceSyncItemDto
 {
     public int PeriodNumber { get; set; }
     public string NumberInvoice { get; set; } = string.Empty;
-    public DateTimeOffset DateInvoice { get; set; }
+    public DateTimeOffset? DateInvoice { get; set; }
+    public decimal InvoiceAmount { get; set; }
 }
 
 public class SyncInvoiceResultDto

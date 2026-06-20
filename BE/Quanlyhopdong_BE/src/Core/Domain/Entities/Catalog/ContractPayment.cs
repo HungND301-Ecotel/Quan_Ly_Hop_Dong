@@ -43,9 +43,9 @@ public class ContractPayment : AuditableEntity, IAggregateRoot
         decimal? vatAmount = null,
         string? taxCode = null)
     {
-        if (amount <= 0)
+        if (amount < 0)
         {
-            throw new ArgumentException("Amount must be positive");
+            throw new ArgumentException("Amount must be non-negative");
         }
 
         var contractPayment = new ContractPayment
@@ -82,9 +82,9 @@ public class ContractPayment : AuditableEntity, IAggregateRoot
         decimal? vatAmount,
         string? taxCode)
     {
-        if (amount <= 0)
+        if (amount < 0)
         {
-            throw new ArgumentException("Amount must be positive");
+            throw new ArgumentException("Amount must be non-negative");
         }
 
         PaymentScheduleId = paymentScheduleId;
@@ -100,24 +100,27 @@ public class ContractPayment : AuditableEntity, IAggregateRoot
 
     private void SetInvoice(string? numberInvoice, DateTimeOffset? dateInvoice)
     {
-        if (string.IsNullOrWhiteSpace(numberInvoice) && !dateInvoice.HasValue)
+        var hasNoDate = !dateInvoice.HasValue || dateInvoice.Value == DateTimeOffset.MinValue;
+        if (string.IsNullOrWhiteSpace(numberInvoice) && hasNoDate)
         {
             Invoice = null;
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(numberInvoice) || !dateInvoice.HasValue)
+        if (string.IsNullOrWhiteSpace(numberInvoice))
         {
-            throw new ArgumentException("NumberInvoice and DateInvoice are required when setting invoice");
+            throw new ArgumentException("NumberInvoice is required when setting invoice");
         }
+
+        var effectiveDateInvoice = dateInvoice ?? DateTimeOffset.MinValue;
 
         if (Invoice == null)
         {
-            Invoice = Domain.Entities.Catalog.Invoice.Create(numberInvoice, dateInvoice.Value);
+            Invoice = Domain.Entities.Catalog.Invoice.Create(numberInvoice, effectiveDateInvoice);
             return;
         }
 
-        Invoice.Update(numberInvoice, dateInvoice.Value);
+        Invoice.Update(numberInvoice, effectiveDateInvoice);
     }
 
     private void SetTax(

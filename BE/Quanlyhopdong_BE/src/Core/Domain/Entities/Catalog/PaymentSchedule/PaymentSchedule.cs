@@ -1,16 +1,17 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using Domain.Common.Contracts;
 using Domain.Common.Enums;
 using ValueType = Domain.Common.Enums.ValueType;
 
 namespace Domain.Entities.Catalog.PaymentSchedule;
 
-public abstract class PaymentSchedule : AuditableEntity, IAggregateRoot
+public class PaymentSchedule : AuditableEntity, IAggregateRoot
 {
     public Guid ContractId { get; protected set; }
     public ValueType AmountType { get; protected set; }
     public decimal Amount { get; protected set; }
     public PaymentStatus PaymentStatus { get; protected set; } = PaymentStatus.Unpaid;
+    public int Days { get; protected set; }
 
     // Navigation Properties
     [ForeignKey(nameof(ContractId))]
@@ -25,9 +26,17 @@ public abstract class PaymentSchedule : AuditableEntity, IAggregateRoot
     // Constructor
     protected PaymentSchedule() { }
 
-    protected PaymentSchedule(Guid contractId, decimal amount, ValueType amountType)
+    public PaymentSchedule(Guid contractId, int days, decimal amount, ValueType amountType)
     {
         ContractId = contractId;
+        Days = days;
+        Amount = amount;
+        AmountType = amountType;
+    }
+
+    public void Update(int days, decimal amount, ValueType amountType)
+    {
+        Days = days;
         Amount = amount;
         AmountType = amountType;
     }
@@ -87,7 +96,10 @@ public abstract class PaymentSchedule : AuditableEntity, IAggregateRoot
     /// <summary>
     /// Lấy ngày sắp đến hạn thanh toán của payment schedule
     /// </summary>
-    public abstract DateTimeOffset? GetDueDate();
+    public DateTimeOffset? GetDueDate()
+    {
+        return null;
+    }
 
     /// <summary>
     /// Kiểm tra xem payment schedule có sắp đến hạn không (trong vòng daysBefore)
