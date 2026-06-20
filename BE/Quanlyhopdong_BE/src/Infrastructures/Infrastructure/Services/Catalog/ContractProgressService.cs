@@ -97,7 +97,7 @@ public class ContractProgressService(
 
             var contract = progress.Contract;
             var isHasValue = contract.ContractValue.HasValue && contract.ContractValue.Value > 0;
-            var isHasMaterial = contract.ContractItems.Any(ci => !ci.Material.IsOtherMaterial);
+            var isHasMaterial = contract.ContractItems.Any();
             
             decimal progressTotal = isHasValue 
                 ? progress.ExecutedAmount 
@@ -169,7 +169,7 @@ public class ContractProgressService(
                 disableTracking: true);
 
             var isHasValue = contract.ContractValue.HasValue && contract.ContractValue.Value > 0;
-            var isHasMaterial = contract.ContractItems.Any(ci => !ci.Material.IsOtherMaterial);
+            var isHasMaterial = contract.ContractItems.Any();
 
             if (!progresses.Any())
             {
@@ -1499,7 +1499,7 @@ public class ContractProgressService(
                 disableTracking: true);
 
             var contractItemMap = contractItems.ToDictionary(ci => ci.Id);
-            var isHasMaterial = contractItems.Any(ci => !ci.Material.IsOtherMaterial);
+            var isHasMaterial = contractItems.Any();
 
             if (isHasMaterial && request.ContractProgressItems != null && request.ContractProgressItems.Any())
             {
@@ -1640,7 +1640,7 @@ public class ContractProgressService(
                 disableTracking: true);
 
             var contractItemMap = contractItems.ToDictionary(ci => ci.Id);
-            var isHasMaterial = contractItems.Any(ci => !ci.Material.IsOtherMaterial);
+            var isHasMaterial = contractItems.Any();
 
             if (isHasMaterial && request.ContractProgressItems != null && request.ContractProgressItems.Any())
             {
