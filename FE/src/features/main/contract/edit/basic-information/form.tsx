@@ -941,7 +941,6 @@ export function ContractBasicInformationForm() {
           <FormGroupHeader className='flex justify-between items-center'>
             <div className='flex flex-col gap-1'>
               <FormGroupLabel>Giá trị hợp đồng</FormGroupLabel>
-              {!isRuleContract && (
                 <div className='flex flex-col gap-3 p-4 rounded-lg border bg-muted/30 w-fit min-w-[500px]'>
                   {/* Dòng 1: Trước thuế */}
                   <div className='flex items-center gap-3'>
@@ -985,7 +984,6 @@ export function ContractBasicInformationForm() {
                     </span>
                   </div>
                 </div>
-              )}
             </div>
           </FormGroupHeader>
 
@@ -1060,19 +1058,14 @@ export function ContractBasicInformationForm() {
                       label='Đơn vị tính'
                       value={selectedMaterial?.unitOfMeasureName || '—'}
                     />
-                    {!isRuleContract && (
-                      <div className='w-56 shrink-0'>
-                        <FormNumber
-                          control={form.control}
-                          name={`contractItems.${index}.quantity`}
-                          label='Khối lượng'
-                          placeholder='Nhập khối lượng'
-                          readOnly={[0, 1].includes(
-                            contractFormat?.contractFormat || 0
-                          )}
-                        />
-                      </div>
-                    )}
+                    <div className='w-56 shrink-0'>
+                      <FormNumber
+                        control={form.control}
+                        name={`contractItems.${index}.quantity`}
+                        label='Khối lượng'
+                        placeholder='Nhập khối lượng'
+                      />
+                    </div>
                     <Button
                       variant={'destructive'}
                       size={'icon-lg'}

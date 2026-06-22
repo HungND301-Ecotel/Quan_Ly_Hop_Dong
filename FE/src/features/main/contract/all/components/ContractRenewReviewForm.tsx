@@ -637,17 +637,19 @@ export function ContractRenewReviewForm() {
                       <div className='text-sm font-medium mb-3'>Danh sách dịch vụ khác ({basicInformation.contractOtherItems.length} mục)</div>
                       <div className='space-y-2'>
                         <div className='grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 rounded-lg text-xs font-medium text-muted-foreground'>
-                          <div className='col-span-9'>Tên thành phần</div>
+                          <div className='col-span-6'>Tên thành phần</div>
                           <div className='col-span-3'>Đơn vị tính</div>
+                          <div className='col-span-3 text-right'>Số lượng</div>
                         </div>
                         {basicInformation.contractOtherItems.map((item, index) => {
                           const otherMaterial = otherMaterials.find((m) => m.id === item.materialId);
                           return (
                             <div key={index} className='grid grid-cols-12 gap-4 px-4 py-3 rounded-lg border hover:border-primary/50 hover:bg-muted/30 transition-colors'>
-                              <div className='col-span-9 flex items-center'><span className='text-sm font-medium'>{otherMaterial?.name || 'N/A'}</span></div>
+                              <div className='col-span-6 flex items-center'><span className='text-sm font-medium'>{otherMaterial?.name || 'N/A'}</span></div>
                               <div className='col-span-3 flex items-center text-sm text-muted-foreground'>
                                 {otherMaterial?.unitOfMeasureName || '—'}
                               </div>
+                              <div className='col-span-3 flex items-center justify-end text-sm font-semibold text-primary'>{item.quantity || 0}</div>
                             </div>
                           );
                         })}
