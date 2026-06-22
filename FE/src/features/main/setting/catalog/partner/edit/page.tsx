@@ -104,6 +104,7 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
 
   const onSubmit = async (values: PartnerInformationValues) => {
     try {
+      setLoading(true);
       if (row) {
         await partnerService.updatePartner({
           id: row.original.id,

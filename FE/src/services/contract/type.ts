@@ -65,6 +65,7 @@ export type ContractSignFlow = {
   pageNumber?: number;
   width?: number;
   height?: number;
+  fileIndex?: number;
 };
 
 export type UpdateContractSignFlow = ContractSignFlow & {

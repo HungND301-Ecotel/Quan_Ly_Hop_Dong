@@ -40,7 +40,7 @@ export type CreateUserReq = {
   phoneNumber: string;
   email: string;
   password?: string;
-  userRole: number;
+  userRole?: number;
   departmentId: string;
   positionId: string;
 };

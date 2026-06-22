@@ -42,16 +42,16 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 
+type CreateBankAccountDialogProps =
+  | { onSuccess: () => void; open: boolean; onOpenChange: (open: boolean) => void }
+  | { onSuccess: () => void; open?: never; onOpenChange?: never };
+
 // Dialog tạo mới tài khoản ngân hàng inline
 export function CreateBankAccountDialog({
   onSuccess,
   onOpenChange,
   open: openProp,
-}: {
-  onSuccess: () => void;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-}) {
+}: CreateBankAccountDialogProps) {
   const [loading, setLoading] = useState(false);
 
   const form = useForm<BankAccountValues>({

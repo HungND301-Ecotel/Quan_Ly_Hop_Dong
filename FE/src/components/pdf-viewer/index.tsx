@@ -168,9 +168,8 @@ export function PdfViewer({
     (pageNum: number) => {
       const newPage = Math.max(1, Math.min(pageNum, totalPages));
       setCurrentPage(newPage);
-      onPageChange?.(newPage);
     },
-    [totalPages, onPageChange, setCurrentPage]
+    [totalPages, setCurrentPage]
   );
 
   const handleFirstPage = () => goToPage(1);

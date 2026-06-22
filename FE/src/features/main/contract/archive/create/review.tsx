@@ -571,8 +571,8 @@ export function ContractArchiveReviewForm() {
                 <InfoRow
                   label='Ngày ký hợp đồng'
                   value={
-                    basicInformation?.startDate
-                      ? new Date(basicInformation.startDate).toLocaleDateString('vi-VN')
+                    basicInformation?.signingDate
+                      ? new Date(basicInformation.signingDate).toLocaleDateString('vi-VN')
                       : undefined
                   }
                   loading={loading}
@@ -580,8 +580,8 @@ export function ContractArchiveReviewForm() {
                 <InfoRow
                   label='Hiệu lực hết'
                   value={
-                    basicInformation?.endDate
-                      ? new Date(basicInformation.endDate).toLocaleDateString('vi-VN')
+                    basicInformation?.completionDate
+                      ? new Date(basicInformation.completionDate).toLocaleDateString('vi-VN')
                       : undefined
                   }
                   loading={loading}

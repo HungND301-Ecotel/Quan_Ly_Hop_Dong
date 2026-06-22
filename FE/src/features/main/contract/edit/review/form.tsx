@@ -362,19 +362,10 @@ export function ContractReviewForm() {
 
   const getContractFinalValue = () => {
     if (!basicInformation) return 0;
-    const { contractValue, discountType, discountValue } = basicInformation;
-
+    const { contractValue, vatPercentage } = basicInformation;
     const total = contractValue || 0;
-
-    let discount = 0;
-    const dValue = discountValue || 0;
-    if (discountType == DiscountType.Percent.id) {
-      discount = Math.round((total * dValue) / 100);
-    } else {
-      discount = dValue;
-    }
-
-    return total - discount;
+    const vat = Math.round((total * (vatPercentage || 0)) / 100);
+    return total + vat;
   };
 
   const handleSubmit = async () => {
@@ -395,16 +386,27 @@ export function ContractReviewForm() {
 
       if (signFlows && signFlows.signers.length > 0) {
         signFlows.signers.forEach((signer, index) => {
-          const position = signPositions?.postions.find(
-            (p) => p.userId === signer.signerId
-          );
-          signFlowsWithPositions.push(
-            position || {
-              userId: signer.signerId,
-              sequenceOrder: index + 1,
-              signatureType: Number(signer.signTypeId),
-            }
-          );
+          const signerPositions =
+            signPositions?.postions.filter((p) => p.userId === signer.signerId) || [];
+
+          if (signerPositions.length > 0) {
+            signFlowsWithPositions.push(
+              ...signerPositions.map((position) => ({
+                ...position,
+                sequenceOrder: index + 1,
+                signatureType: Number(signer.signTypeId),
+                fileIndex: position.fileIndex ?? 0,
+              }))
+            );
+            return;
+          }
+
+          signFlowsWithPositions.push({
+            userId: signer.signerId,
+            sequenceOrder: index + 1,
+            signatureType: Number(signer.signTypeId),
+            fileIndex: 0,
+          });
         });
       }
 

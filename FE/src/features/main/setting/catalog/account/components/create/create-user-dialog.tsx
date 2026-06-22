@@ -33,10 +33,7 @@ export function CreateUserDialog({
   const handleSubmit = async (values: CreateUserFormValues) => {
     try {
       setIsSubmitting(true);
-      await userService.createUser({
-        ...values,
-        userRole: parseInt(values.userRole),
-      });
+      await userService.createUser(values);
       toast.success('Tạo mới nhân viên thành công');
       setOpen(false);
       refresh();

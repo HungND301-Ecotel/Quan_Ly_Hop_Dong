@@ -9,7 +9,6 @@ export const createUserSchema = z.object({
     .max(11, 'Số điện thoại không hợp lệ'),
   email: z.string().email('Email không hợp lệ'),
   password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự').optional(),
-  userRole: z.string().min(1, 'Vui lòng chọn vai trò'),
   departmentId: z.string().min(1, 'Vui lòng chọn phòng ban'),
   positionId: z.string().min(1, 'Vui lòng chọn chức vụ'),
 });
