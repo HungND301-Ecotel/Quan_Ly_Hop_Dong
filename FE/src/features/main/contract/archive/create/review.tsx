@@ -653,21 +653,18 @@ export function ContractArchiveReviewForm() {
                     </div>
                     <div className='space-y-2'>
                       <div className='grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 rounded-lg text-xs font-medium text-muted-foreground'>
-                        <div className='col-span-3'>Tên vật tư</div>
+                        <div className='col-span-8'>Tên vật tư</div>
                         <div className='col-span-2'>Đơn vị tính</div>
-                        <div className='col-span-2 text-right'>Đơn giá</div>
                         {!isRuleContract && <div className='col-span-2 text-right'>Số lượng</div>}
-                        {!isRuleContract && <div className='col-span-3 text-right'>Thành tiền</div>}
                       </div>
                       {basicInformation.contractItems.map((item, index) => {
                         const material = materialMap.get(item.materialId);
-                        const total = (item.quantity || 0) * (material?.price || 0);
                         return (
                           <div
                             key={index}
                             className='grid grid-cols-12 gap-4 px-4 py-3 rounded-lg border hover:border-primary/50 hover:bg-muted/30 transition-colors'
                           >
-                            <div className='col-span-3 flex flex-col justify-center'>
+                            <div className='col-span-8 flex flex-col justify-center'>
                               <span className='text-sm font-medium'>{material?.name || 'N/A'}</span>
                               {material?.materialCode && (
                                 <span className='text-xs text-muted-foreground'>{material.materialCode}</span>
@@ -676,17 +673,9 @@ export function ContractArchiveReviewForm() {
                             <div className='col-span-2 flex items-center text-sm text-muted-foreground'>
                               {material?.unitOfMeasureName || '—'}
                             </div>
-                            <div className='col-span-2 flex items-center justify-end text-sm'>
-                              {format.number(material?.price || 0)} đ
-                            </div>
                             {!isRuleContract && (
                               <div className='col-span-2 flex items-center justify-end text-sm font-medium'>
                                 {item.quantity}
-                              </div>
-                            )}
-                            {!isRuleContract && (
-                              <div className='col-span-3 flex items-center justify-end text-sm font-semibold text-primary'>
-                                {format.number(total)} đ
                               </div>
                             )}
                           </div>
@@ -713,37 +702,26 @@ export function ContractArchiveReviewForm() {
                       </div>
                       <div className='space-y-2'>
                         <div className='grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 rounded-lg text-xs font-medium text-muted-foreground'>
-                          <div className='col-span-3'>Tên thành phần</div>
+                          <div className='col-span-8'>Tên thành phần</div>
                           <div className='col-span-2'>Đơn vị tính</div>
-                          <div className='col-span-2 text-right'>Đơn giá</div>
                           {!isRuleContract && <div className='col-span-2 text-right'>Số lượng</div>}
-                          {!isRuleContract && <div className='col-span-3 text-right'>Thành tiền</div>}
                         </div>
                         {basicInformation.contractOtherItems.map((item, index) => {
                           const otherMaterial = otherMaterials.find((m) => m.id === item.materialId);
-                          const total = (item.quantity || 0) * (otherMaterial?.price || 0);
                           return (
                             <div
                               key={index}
                               className='grid grid-cols-12 gap-4 px-4 py-3 rounded-lg border hover:border-primary/50 hover:bg-muted/30 transition-colors'
                             >
-                              <div className='col-span-3 flex items-center'>
+                              <div className='col-span-8 flex items-center'>
                                 <span className='text-sm font-medium'>{otherMaterial?.name || 'N/A'}</span>
                               </div>
                               <div className='col-span-2 flex items-center text-sm text-muted-foreground'>
                                 {otherMaterial?.unitOfMeasureName || '—'}
                               </div>
-                              <div className='col-span-2 flex items-center justify-end text-sm'>
-                                {format.number(otherMaterial?.price || 0)} đ
-                              </div>
                               {!isRuleContract && (
                                 <div className='col-span-2 flex items-center justify-end text-sm font-medium'>
                                   {item.quantity || 0}
-                                </div>
-                              )}
-                              {!isRuleContract && (
-                                <div className='col-span-3 flex items-center justify-end text-sm font-semibold text-orange-600'>
-                                  {format.number(total)} đ
                                 </div>
                               )}
                             </div>

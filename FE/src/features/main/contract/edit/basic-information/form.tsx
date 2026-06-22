@@ -668,22 +668,6 @@ export function ContractBasicInformationForm() {
     form.setValue('warrantyExpirationDate', addDays(warrantyStartDate, watchedWarrantyDurationDays));
   }, [watchedCompletionDate, watchedWarrantyDurationDays]);
 
-  const contractItemsTotal = (() => {
-    const items = form.watch('contractItems');
-    return items.reduce((total, item) => {
-      const material = materials.find((m) => m.id === item.materialId);
-      return total + (item.quantity || 0) * (material?.price || 0);
-    }, 0);
-  })();
-
-  const contractOtherItemsTotal = (() => {
-    const items = form.watch('contractOtherItems');
-    return items.reduce((total, item) => {
-      const material = otherMaterials.find((m) => m.id === item.materialId);
-      return total + (item.quantity || 0) * (material?.price || 0);
-    }, 0);
-  })();
-
   const getVatAmount = () => {
     const beforeTax = getContractFinalValue();
     const vat = form.watch('vatPercentage') || 0;
@@ -815,7 +799,7 @@ export function ContractBasicInformationForm() {
   const handleSubmit = (data: BasicInformationValues) => {
     if (getContractFinalValue() < 0) {
       return form.setError('discountValue', {
-        message: 'Phải nhỏ hơn giá trị vật tư',
+        message: 'Phải nhỏ hơn giá trị hợp đồng',
       });
     }
     setBasicInformation(data);
@@ -1015,15 +999,6 @@ export function ContractBasicInformationForm() {
                   <span className='text-sm font-semibold'>
                     Danh sách vật tư, tài sản chi tiết
                   </span>
-                  {!isRuleContract && (
-                    <div className='text-sm font-medium text-muted-foreground'>
-                      Tổng:
-                      <span className='text-foreground font-semibold'>
-                        {format.number(contractItemsTotal)}
-                      </span>
-                      <span className='text-foreground font-semibold'>đ</span>
-                    </div>
-                  )}
                 </div>
                 <div className='flex items-center gap-2'>
                   <MaterialImportDialog
@@ -1065,9 +1040,6 @@ export function ContractBasicInformationForm() {
                 const selectedMaterial = materials.find(
                   (m) => m.id === watchedMaterialId
                 );
-                const watchedQuantity = form.watch(
-                  `contractItems.${index}.quantity`
-                );
 
                 return (
                   <FormRow key={index}>
@@ -1088,10 +1060,6 @@ export function ContractBasicInformationForm() {
                       label='Đơn vị tính'
                       value={selectedMaterial?.unitOfMeasureName || '—'}
                     />
-                    <FormReadonly
-                      label='Đơn giá vật tư (đ)'
-                      value={format.number(selectedMaterial?.price || 0)}
-                    />
                     {!isRuleContract && (
                       <div className='w-56 shrink-0'>
                         <FormNumber
@@ -1101,17 +1069,6 @@ export function ContractBasicInformationForm() {
                           placeholder='Nhập khối lượng'
                           readOnly={[0, 1].includes(
                             contractFormat?.contractFormat || 0
-                          )}
-                        />
-                      </div>
-                    )}
-                    {!isRuleContract && (
-                      <div className='w-56 shrink-0'>
-                        <FormReadonly
-                          label='Thành tiền (đ)'
-                          value={format.number(
-                            (selectedMaterial?.price || 0) *
-                            (watchedQuantity || 0)
                           )}
                         />
                       </div>
@@ -1240,7 +1197,7 @@ export function ContractBasicInformationForm() {
                 <FormReadonly
                   label='Thành tiền chiết khấu (đ)'
                   value={(() => {
-                    const total = contractItemsTotal + contractOtherItemsTotal;
+                    const total = form.watch('contractValue') || 0;
                     const val = watchedDiscountValue || 0;
                     if (watchedDiscountType == DiscountType.Percent.id) {
                       return format.number(Math.round((total / 100) * val));
