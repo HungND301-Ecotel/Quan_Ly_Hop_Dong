@@ -517,11 +517,9 @@ export function ContractInformation({
               </div>
               <div className='space-y-2'>
                 <div className='grid grid-cols-12 gap-4 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground'>
-                  <div className='col-span-8'>Tên vật tư</div>
-                  <div className='col-span-2'>Đơn vị tính</div>
-                  {!isRuleContract && (
-                    <div className='col-span-2 text-right'>Số lượng</div>
-                  )}
+                  <div className='col-span-6'>Tên vật tư</div>
+                  <div className='col-span-3'>Đơn vị tính</div>
+                  <div className='col-span-3 text-right'>Số lượng</div>
                 </div>
                 {information.contractItems.map((item, index) => {
                   return (
@@ -529,7 +527,7 @@ export function ContractInformation({
                       key={index}
                       className='grid grid-cols-12 gap-4 px-3 py-2 rounded-lg border hover:border-primary/50 hover:bg-white transition-colors'
                     >
-                      <div className='col-span-8 flex flex-col justify-center'>
+                      <div className='col-span-6 flex flex-col justify-center'>
                         <span className='text-sm font-medium'>
                           {item.materialName}
                         </span>
@@ -537,14 +535,12 @@ export function ContractInformation({
                           {item.materialCode}
                         </span>
                       </div>
-                      <div className='col-span-2 flex items-center text-sm text-muted-foreground'>
+                      <div className='col-span-3 flex items-center text-sm text-muted-foreground'>
                         {item?.unitOfMeasureName || '—'}
                       </div>
-                      {!isRuleContract && (
-                        <div className='col-span-2 flex items-center justify-end text-sm font-medium'>
-                          {item.quantity}
-                        </div>
-                      )}
+                      <div className='col-span-3 flex items-center justify-end text-sm font-medium'>
+                        {item.quantity || 0}
+                      </div>
                     </div>
                   );
                 })}
