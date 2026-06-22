@@ -20,6 +20,8 @@ import { cn } from '@/lib/utils';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronsLeftIcon,
+  ChevronsRightIcon,
   FileTextIcon,
   PenLineIcon,
   ZoomInIcon,
@@ -171,8 +173,10 @@ export function PdfViewer({
     [totalPages, onPageChange, setCurrentPage]
   );
 
+  const handleFirstPage = () => goToPage(1);
   const handlePreviousPage = () => goToPage(currentPage - 1);
   const handleNextPage = () => goToPage(currentPage + 1);
+  const handleLastPage = () => goToPage(totalPages);
   // const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.25, 3));
   // const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.25, 0.5));
 
@@ -212,6 +216,16 @@ export function PdfViewer({
 
         <div className='flex items-center gap-2'>
           <Button
+            type='button'
+            variant='outline'
+            size='icon'
+            onClick={handleFirstPage}
+            disabled={currentPage <= 1}
+          >
+            <ChevronsLeftIcon className='size-4' />
+          </Button>
+          <Button
+            type='button'
             variant='outline'
             size='icon'
             onClick={handlePreviousPage}
@@ -237,12 +251,22 @@ export function PdfViewer({
           </Select>
 
           <Button
+            type='button'
             variant='outline'
             size='icon'
             onClick={handleNextPage}
             disabled={currentPage >= totalPages}
           >
             <ChevronRightIcon className='size-4' />
+          </Button>
+          <Button
+            type='button'
+            variant='outline'
+            size='icon'
+            onClick={handleLastPage}
+            disabled={currentPage >= totalPages}
+          >
+            <ChevronsRightIcon className='size-4' />
           </Button>
         </div>
 

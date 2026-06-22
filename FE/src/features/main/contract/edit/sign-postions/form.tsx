@@ -3,8 +3,6 @@ import { PdfViewer } from '@/components/pdf-viewer';
 import { StepperPrev } from '@/components/stepper';
 import { useStepperContext } from '@/components/stepper/context';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -34,9 +32,10 @@ import { SignBox } from '@/features/main/contract/edit/sign-postions/sign-box';
 import { userService } from '@/services/user';
 import { User } from '@/types/user.type';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { UsersIcon } from 'lucide-react';
+import { FileText, Paperclip, UsersIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
+import { FileCombobox } from '@/components/ui/fileCombobox';
 
 type ClickPosition = {
   positionX: number;
@@ -59,12 +58,44 @@ export function ContractSignPostionsForm() {
   } = useContractEditContext();
   const { next } = useStepperContext();
 
+  // Gộp 2 nguồn file thành 1 danh sách duy nhất với fileIndex toàn cục liên tục
+  // contractFile đứng trước, attachmentFiles nối tiếp theo sau
+  const contractFiles = Array.isArray(basicInformation?.contractFile)
+    ? basicInformation.contractFile
+    : basicInformation?.contractFile
+      ? [basicInformation.contractFile]
+      : [];
+
+  const attachmentFiles = Array.isArray(basicInformation?.attachmentFiles)
+    ? basicInformation.attachmentFiles
+    : basicInformation?.attachmentFiles
+      ? [basicInformation.attachmentFiles]
+      : [];
+
+  // allFiles[i].fileIndex chính là index toàn cục dùng để lưu vào position.fileIndex
+  const allFiles = useMemo(() => {
+    return [
+      ...contractFiles.map((file, idx) => ({
+        file,
+        fileIndex: idx,
+        group: 'contract' as const,
+      })),
+      ...attachmentFiles.map((file, idx) => ({
+        file,
+        fileIndex: contractFiles.length + idx,
+        group: 'attachment' as const,
+      })),
+    ];
+  }, [contractFiles, attachmentFiles]);
+
+
   const [open, setOpen] = useState(false);
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
   const [clickPosition, setClickPosition] = useState<ClickPosition | null>(
     null
   );
+  const selectedFile = allFiles.find((f) => f.fileIndex === selectedFileIndex);
 
   useEffect(() => {
     const promises = Promise.all([userService.getUserList()]);
@@ -101,7 +132,7 @@ export function ContractSignPostionsForm() {
   };
 
   const addSignature = useCallback(
-    (signer: User, signerIndex: number, position: ClickPosition) => {
+    (signer: User, signerIndex: number, position: ClickPosition, fileIndex: number) => {
       if (!signers) return;
 
       // Find the signer in the signers array to get signTypeId
@@ -125,6 +156,7 @@ export function ContractSignPostionsForm() {
         pageNumber: position.pageNumber,
         width: width / zoom,
         height: height / zoom,
+        fileIndex,
       });
     },
     [signers, append, zoom]
@@ -133,7 +165,7 @@ export function ContractSignPostionsForm() {
   const handleSignerSelect = (signer: User, signerIndex: number) => {
     if (!clickPosition) return;
 
-    addSignature(signer, signerIndex, clickPosition);
+    addSignature(signer, signerIndex, clickPosition, selectedFileIndex);
 
     // Close dialog and reset click position
     setOpen(false);
@@ -184,50 +216,48 @@ export function ContractSignPostionsForm() {
 
   // Render sign-boxes for current page
   const signBoxes = useMemo(() => {
-    return watchedPositions.map((position, index) => {
-      const user = users.find((u) => u.id === position.userId);
-      const signatureFile = user?.signatures.find(
-        (s) => s.signatureType === position.signatureType
-      )?.signatureFile;
+    return watchedPositions
+      .map((position, index) => ({ position, index })) // giữ index gốc
+      .filter(({ position }) => (position.fileIndex ?? 0) === selectedFileIndex)
+      .map(({ position, index }) => { // index ở đây là index gốc trong watchedPositions
+        const user = users.find((u) => u.id === position.userId);
+        const signatureFile = user?.signatures.find(
+          (s) => s.signatureType === position.signatureType
+        )?.signatureFile;
 
-      return (
-        <SignBox
-          key={fields[index]?.id || index}
-          positionX={position.positionX}
-          positionY={position.positionY}
-          pageNumber={position.pageNumber}
-          userId={position.userId}
-          signatureType={position.signatureType}
-          signatureFile={signatureFile}
-          width={position.width}
-          height={position.height}
-          signerName={user?.fullname}
-          onRemove={() => remove(index)}
-          currentPage={currentPage}
-          onPositionChange={handlePositionChange(index)}
-          onSizeChange={handleSizeChange(index)}
-          zoom={zoom}
-        />
-      );
-    });
-  }, [
-    watchedPositions,
-    users,
-    fields,
-    currentPage,
-    remove,
-    handlePositionChange,
-    handleSizeChange,
-    zoom,
-  ]);
+        return (
+          <SignBox
+            key={fields[index]?.id || index}
+            positionX={position.positionX}
+            positionY={position.positionY}
+            pageNumber={position.pageNumber}
+            userId={position.userId}
+            signatureType={position.signatureType}
+            signatureFile={signatureFile}
+            width={position.width}
+            height={position.height}
+            signerName={user?.fullname}
+            onRemove={() => remove(index)} // index gốc → đúng
+            currentPage={currentPage}
+            onPositionChange={handlePositionChange(index)} // index gốc → đúng
+            onSizeChange={handleSizeChange(index)} // index gốc → đúng
+            zoom={zoom}
+          />
+        );
+      });
+  }, [watchedPositions, users, fields, currentPage, selectedFileIndex, remove, handlePositionChange, handleSizeChange, zoom]);
 
   // Filter out signers who have already been added
   const availableSigners = useMemo(() => {
-    const addedUserIds = new Set(watchedPositions.map((p) => p.userId));
+    const addedUserIds = new Set(
+      watchedPositions
+        .filter((p) => (p.fileIndex ?? 0) === selectedFileIndex)
+        .map((p) => p.userId)
+    );
     return signersWithUsers.filter(
       ({ user }) => user && !addedUserIds.has(user.id)
     );
-  }, [signersWithUsers, watchedPositions]);
+  }, [signersWithUsers, watchedPositions, selectedFileIndex]);
 
   return (
     <Form
@@ -235,59 +265,65 @@ export function ContractSignPostionsForm() {
       onSubmit={handleSubmit}
       className='flex flex-col gap-4'
     >
-      {Array.isArray(basicInformation?.contractFile) && basicInformation.contractFile.length > 1 && (
-        <Tabs value={String(selectedFileIndex)} onValueChange={(val) => {
-          setSelectedFileIndex(Number(val));
-          setCurrentPage(1);
-        }} className='w-full'>
-          <TabsList className='w-full justify-start overflow-x-auto flex-wrap h-auto p-1 bg-muted/50 rounded-lg border'>
-            {basicInformation.contractFile.map((file, idx) => (
-              <TabsTrigger
-                key={idx}
-                value={String(idx)}
-                className='py-2 px-4 text-sm font-medium transition-all rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm'
-              >
-                {file.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+      {allFiles.length > 1 && (
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4 p-5 rounded-2xl border bg-gradient-to-br from-muted/30 to-muted/10 shadow-sm'>
+          {contractFiles.length > 0 && (
+            <FileCombobox
+              icon={<FileText className='h-4 w-4 text-primary' />}
+              label='File hợp đồng'
+              placeholder='Chọn hợp đồng'
+              files={allFiles.filter((f) => f.group === 'contract')}
+              selectedIndex={
+                allFiles[selectedFileIndex]?.group === 'contract'
+                  ? selectedFileIndex
+                  : -1
+              }
+              onSelect={(index) => {
+                setSelectedFileIndex(index);
+                setCurrentPage(1);
+              }}
+            />
+          )}
+
+          {attachmentFiles.length > 0 && (
+            <FileCombobox
+              icon={<Paperclip className='h-4 w-4 text-primary' />}
+              label='Tài liệu đính kèm'
+              placeholder='Chọn tệp đính kèm'
+              files={allFiles.filter((f) => f.group === 'attachment')}
+              selectedIndex={
+                allFiles[selectedFileIndex]?.group === 'attachment'
+                  ? selectedFileIndex
+                  : -1
+              }
+              onSelect={(index) => {
+                setSelectedFileIndex(index);
+                setCurrentPage(1);
+              }}
+            />
+          )}
+        </div>
       )}
 
       <PdfViewer
-        file={
-          Array.isArray(basicInformation?.contractFile)
-            ? basicInformation.contractFile[selectedFileIndex]
-            : basicInformation?.contractFile
-        }
+        file={selectedFile?.file}
         onPageClick={(event) => {
-          if (selectedFileIndex !== 0) {
-            toast.warning('Chữ ký chỉ được cấu hình trên file hợp đồng chính (file đầu tiên)');
-            return;
-          }
           const { page, ref: canvas } = event;
           if (!canvas) return;
 
           const rect = canvas.getBoundingClientRect();
-
-          const width = rect.width;
-          const height = rect.height;
-
-          const positionX = event.clientX - rect.left;
-          const positionY = event.clientY - rect.top;
-
           const position = {
-            positionX,
-            positionY,
+            positionX: event.clientX - rect.left,
+            positionY: event.clientY - rect.top,
             pageNumber: page,
-            canvasWidth: width,
-            canvasHeight: height,
+            canvasWidth: rect.width,
+            canvasHeight: rect.height,
           };
 
           if (availableSigners.length === 1) {
             const { user, signerIndex } = availableSigners[0];
             if (user) {
-              addSignature(user, signerIndex, position);
+              addSignature(user, signerIndex, position, selectedFileIndex); // <-- thêm
               return;
             }
           }
@@ -296,22 +332,17 @@ export function ContractSignPostionsForm() {
           setCurrentPage(page);
           setOpen(true);
         }}
-        signBoxes={selectedFileIndex === 0 ? signBoxes : []}
+        signBoxes={signBoxes}
         currentPage={currentPage}
         onPageChange={setCurrentPage}
         onSignButtonClick={(position) => {
-          if (selectedFileIndex !== 0) {
-            toast.warning('Chữ ký chỉ được cấu hình trên file hợp đồng chính (file đầu tiên)');
-            return;
-          }
           if (availableSigners.length === 1) {
             const { user, signerIndex } = availableSigners[0];
             if (user) {
-              addSignature(user, signerIndex, position);
+              addSignature(user, signerIndex, position, selectedFileIndex); // <-- thêm
               return;
             }
           }
-
           setClickPosition(position);
           setOpen(true);
         }}

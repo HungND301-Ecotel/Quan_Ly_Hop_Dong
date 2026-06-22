@@ -13,21 +13,33 @@ import {
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useApi } from '@/hooks/use-api';
+import { BankAccountService } from '@/services/bank-account';
+import { BankAccount } from '@/services/bank-account/type';
 import { partnerService } from '@/services/partner';
 import { Partner } from '@/services/partner/type';
-import {
-  Building2,
-  EyeIcon,
-  Hash,
-  Mail,
-  MapPin,
-  Phone,
-  User,
-} from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { positionService } from '@/services/postion';
+import { Position } from '@/services/postion/type';
+import { Briefcase, Building2, EyeIcon, Hash, MapPin, Phone, Printer, User } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 export function PartnerDetail({ row }: DataTableEvent<Partner>) {
   const [open, setOpen] = useState(false);
+
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    const fetchData = async () => {
+      const [posRes, bankRes] = await Promise.all([
+        positionService.getPositionList(),
+        BankAccountService.getBankAccountList(),
+      ]);
+      setPositions(posRes || []);
+      setBankAccounts(bankRes || []);
+    };
+    fetchData();
+  }, [open]);
 
   const detailService = useCallback(() => {
     if (!row || !open) return;
@@ -36,6 +48,12 @@ export function PartnerDetail({ row }: DataTableEvent<Partner>) {
 
   const detail = useApi({ service: detailService });
   if (!row) return null;
+
+  const positionName = positions.find(
+    (p) => p.id === detail.data?.positionId
+  )?.name;
+
+  const bankAccount = bankAccounts.find((b) => b.id === detail.data?.bankId);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -55,23 +73,13 @@ export function PartnerDetail({ row }: DataTableEvent<Partner>) {
         <ScrollArea className='flex-1 px-6'>
           <div className='py-6'>
             <div className='divide-y divide-slate-100'>
-              {/* Tên đối tác */}
+              {/* Đối tác hợp đồng */}
               <div className='flex flex-col sm:flex-row sm:items-center py-4'>
                 <Label className='text-muted-foreground w-full sm:w-52 flex items-center gap-2 shrink-0'>
-                  <Building2 className='w-4 h-4' /> Tên đối tác
+                  <Building2 className='w-4 h-4' /> Đối tác hợp đồng
                 </Label>
                 <p className='font-medium text-base'>
                   {detail.data?.name || '---'}
-                </p>
-              </div>
-
-              {/* Mã số thuế */}
-              <div className='flex flex-col sm:flex-row sm:items-center py-4'>
-                <Label className='text-muted-foreground w-full sm:w-52 flex items-center gap-2 shrink-0'>
-                  <Hash className='w-4 h-4' /> Mã số thuế
-                </Label>
-                <p className='font-medium text-base'>
-                  {detail.data?.taxCode || '---'}
                 </p>
               </div>
 
@@ -85,13 +93,13 @@ export function PartnerDetail({ row }: DataTableEvent<Partner>) {
                 </p>
               </div>
 
-              {/* Người đại diện */}
+              {/* Mã số thuế */}
               <div className='flex flex-col sm:flex-row sm:items-center py-4'>
                 <Label className='text-muted-foreground w-full sm:w-52 flex items-center gap-2 shrink-0'>
-                  <User className='w-4 h-4' /> Người đại diện
+                  <Hash className='w-4 h-4' /> Mã số thuế
                 </Label>
                 <p className='font-medium text-base'>
-                  {detail.data?.contactPerson || '---'}
+                  {detail.data?.taxCode || '---'}
                 </p>
               </div>
 
@@ -105,14 +113,53 @@ export function PartnerDetail({ row }: DataTableEvent<Partner>) {
                 </p>
               </div>
 
-              {/* Email */}
+              {/* Fax */}
               <div className='flex flex-col sm:flex-row sm:items-center py-4'>
                 <Label className='text-muted-foreground w-full sm:w-52 flex items-center gap-2 shrink-0'>
-                  <Mail className='w-4 h-4' /> Email liên hệ
+                  <Printer className='w-4 h-4' /> Fax
                 </Label>
                 <p className='font-medium text-base'>
-                  {detail.data?.email || '---'}
+                  {detail.data?.fax || '---'}
                 </p>
+              </div>
+
+              {/* Người đại diện */}
+              <div className='flex flex-col sm:flex-row sm:items-center py-4'>
+                <Label className='text-muted-foreground w-full sm:w-52 flex items-center gap-2 shrink-0'>
+                  <User className='w-4 h-4' /> Người đại diện
+                </Label>
+                <p className='font-medium text-base'>
+                  {detail.data?.contactPerson || '---'}
+                </p>
+              </div>
+
+              {/* Chức vụ */}
+              <div className='flex flex-col sm:flex-row sm:items-center py-4'>
+                <Label className='text-muted-foreground w-full sm:w-52 flex items-center gap-2 shrink-0'>
+                  <Briefcase className='w-4 h-4' /> Chức vụ
+                </Label>
+                <p className='font-medium text-base'>
+                  {positionName || '---'}
+                </p>
+              </div>
+
+              {/* Tài khoản ngân hàng */}
+              <div className='flex flex-col sm:flex-row sm:items-start py-4'>
+                <Label className='text-muted-foreground w-full sm:w-52 flex items-center gap-2 shrink-0 mt-1'>
+                  <Building2 className='w-4 h-4' /> Tài khoản ngân hàng
+                </Label>
+                {bankAccount ? (
+                  <div className='flex flex-col gap-0.5'>
+                    <p className='font-medium text-base'>
+                      {bankAccount.accountNumber} — {bankAccount.bankName}
+                    </p>
+                    <p className='text-sm text-muted-foreground'>
+                      {bankAccount.accountHolder}
+                    </p>
+                  </div>
+                ) : (
+                  <p className='font-medium text-base'>---</p>
+                )}
               </div>
             </div>
           </div>

@@ -29,10 +29,7 @@ export const PARTNER_COLUMNS: ColumnDef<Partner>[] = [
     cell: ({ row }) => {
       return (
         <div className='space-y-1'>
-          <p className='text-sm'>{row.original.email}</p>
-          <p className='text-xs text-muted-foreground italic'>
-            {row.original.phone}
-          </p>
+          <p className='text-sm'>{row.original.phone}</p>
         </div>
       );
     },

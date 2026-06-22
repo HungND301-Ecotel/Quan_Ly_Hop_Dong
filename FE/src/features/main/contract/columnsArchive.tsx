@@ -55,17 +55,19 @@ export const ArchiveContractColumns: ColumnDef<Contract>[] = [
     header: 'Đối tác',
   },
   {
-    accessorKey: 'startDate',
+    accessorKey: 'effectiveDate',
     header: () => <span className='w-full flex justify-center'>Hiệu lực hợp đồng</span>,
     cell: ({ row }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const endDate = row.original.endDate ? new Date(row.original.endDate) : null;
-      if (endDate) endDate.setHours(0, 0, 0, 0);
+      const completionDate = row.original.completionDate
+        ? new Date(row.original.completionDate)
+        : null;
+      if (completionDate) completionDate.setHours(0, 0, 0, 0);
 
-      const daysLeft = endDate
-        ? Math.ceil((endDate.getTime() - today.getTime()) / 86_400_000)
+      const daysLeft = completionDate
+        ? Math.ceil((completionDate.getTime() - today.getTime()) / 86_400_000)
         : null;
 
       // ✅ Chỉ hiện khi còn trong 7 ngày tới (chưa quá hạn)
@@ -78,8 +80,7 @@ export const ArchiveContractColumns: ColumnDef<Contract>[] = [
               Sắp hết hạn
             </p>
           )}
-          <p>{format.date(row.original.startDate)}</p>
-          <p>{format.date(row.original.endDate)}</p>
+          <p>{format.date(row.original.effectiveDate)}</p>
         </div>
       );
     },

@@ -26,6 +26,7 @@ import {
   UserCircle,
   Users,
   LayoutTemplate,
+  Hash,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
@@ -60,19 +61,25 @@ const CATALOG_ITEMS: MenuItem[] = [
     url: '/setting/catalog/contract-structure',
   },
   {
-    name: 'Mã cấp 1',
+    name: 'Bảng mã hợp đồng',
     icon: ListTree,
-    url: '/setting/catalog/level1',
-  },
-  {
-    name: 'Mã cấp 2',
-    icon: ListTree,
-    url: '/setting/catalog/level2',
-  },
-  {
-    name: 'Mã cấp 3',
-    icon: ListTree,
-    url: '/setting/catalog/level3',
+    children: [
+      {
+        name: 'Mã cấp 1',
+        icon: ListTree,
+        url: '/setting/catalog/level1',
+      },
+      {
+        name: 'Mã cấp 2',
+        icon: ListTree,
+        url: '/setting/catalog/level2',
+      },
+      {
+        name: 'Mã cấp 3',
+        icon: ListTree,
+        url: '/setting/catalog/level3',
+      },
+    ],
   },
   {
     name: 'Nội dung ký kết',
@@ -100,6 +107,16 @@ const CATALOG_ITEMS: MenuItem[] = [
     url: '/setting/catalog/contract-register',
   },
   {
+    name: 'Số hợp đồng',
+    icon: Hash,
+    url: '/setting/catalog/contract-number',
+  },
+  {
+    name: 'Số phụ lục hợp đồng',
+    icon: Hash,
+    url: '/setting/catalog/contract-appendix',
+  },
+  {
     name: 'Tài khoản ngân hàng',
     icon: Banknote,
     url: '/setting/catalog/bank-account',
@@ -114,12 +131,12 @@ const CATALOG_ITEMS: MenuItem[] = [
     icon: Package,
     children: [
       {
-        name: 'Thành phần vật tư',
+        name: 'Thành phần vật tư, tài sản',
         icon: ListCheck,
         url: '/setting/catalog/material',
       },
       {
-        name: 'Thành phần hợp đồng khác',
+        name: 'Dịch vụ khác',
         icon: MessageSquareDiff,
         url: '/setting/catalog/material/other',
       },
@@ -146,9 +163,9 @@ export function SettingInformationLayout() {
     const isActive = item.url ? location.pathname === item.url : false;
 
     // ✅ Kiểm tra nếu có children đang active
-    const hasActiveChild = hasChildren && item.children?.some(
-      child => child.url === location.pathname
-    );
+    const hasActiveChild =
+      hasChildren &&
+      item.children?.some((child) => child.url === location.pathname);
 
     if (hasChildren) {
       return (

@@ -185,6 +185,22 @@ export const API = {
     DELETE: '/contractfield',
   },
 
+  CONTRACT_NUMBER: {
+    LIST: '/contractnumber',
+    DETAIL: (id: string) => `/contractnumber/${id}`,
+    CREATE: '/contractnumber',
+    UPDATE: '/contractnumber',
+    DELETE: '/contractnumber',
+  },
+
+  CONTRACT_APPENDIX: {
+    LIST: '/contractappendix',
+    DETAIL: (id: string) => `/contractappendix/${id}`,
+    CREATE: '/contractappendix',
+    UPDATE: '/contractappendix',
+    DELETE: '/contractappendix',
+  },
+
     EXTERNAL_SYNC_CONNECTIONS: {
     LIST: '/externalsyncconnections',
     DETAIL: (id: string) => `/externalsyncconnections/${id}`,

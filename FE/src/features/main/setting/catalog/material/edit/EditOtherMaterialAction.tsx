@@ -2,7 +2,6 @@
 import { DataTableEvent } from '@/components/data-table/types';
 import { Form } from '@/components/form/form';
 import { FormInput } from '@/components/form/form-input';
-import { FormNumber } from '@/components/form/form-number';
 import { FormRow } from '@/components/form/form-row';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,16 +25,10 @@ import {
   MaterialInformationValues,
   MaterialSchema,
 } from '../../material/edit/schema'; // Dùng lại schema cũ
-import { FormSelect } from '@/components/form/form-select'; // ✅ thêm
-import { unitOfMeasureService } from '@/services/unit';
 
 export function EditOtherMaterialAction({ row, table }: DataTableEvent<Material>) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const unitOfMeasures = useApi({
-    service: unitOfMeasureService.getUnitOfMeasureList,
-  });
 
   const onRefresh = () => {
     table.options.meta?.refresh();
@@ -85,21 +78,21 @@ export function EditOtherMaterialAction({ row, table }: DataTableEvent<Material>
           isOtherMaterial: true,
         };
         await materialService.updateMaterial(payload);
-        toast.success('Cập nhật thông tin thành phần hợp đồng khác thành công');
+        toast.success('Cập nhật thông tin dịch vụ khác thành công');
       } else {
         const payload = {
           ...preppedValues,
           isOtherMaterial: true,
         };
         await materialService.createMaterial(payload);
-        toast.success('Tạo mới thành phần hợp đồng khác thành công');
+        toast.success('Tạo mới dịch vụ khác thành công');
       }
 
       setOpen(false);
       onRefresh();
       table.options.meta?.refresh?.();
     } catch {
-      toast.error('Lỗi khi cập nhật thông tin thành phần hợp đồng khác');
+      toast.error('Lỗi khi cập nhật thông tin dịch vụ khác');
     } finally {
       setLoading(false);
     }
@@ -123,10 +116,10 @@ export function EditOtherMaterialAction({ row, table }: DataTableEvent<Material>
       <DialogContent className='flex flex-col gap-0 w-full md:min-w-2xl lg:min-w-4xl px-0 overflow-hidden'>
         <DialogHeader className='gap-1 p-6 pt-0 border-b'>
           <DialogTitle className='text-2xl font-semibold'>
-            {row ? 'Chỉnh sửa' : 'Tạo mới'} thành phần hợp đồng khác
+            {row ? 'Chỉnh sửa' : 'Tạo mới'} dịch vụ khác
           </DialogTitle>
           <DialogDescription>
-            {row ? 'Chỉnh sửa' : 'Tạo mới'} thông tin thành phần hợp đồng khác
+            {row ? 'Chỉnh sửa' : 'Tạo mới'} thông tin dịch vụ khác
           </DialogDescription>
         </DialogHeader>
         <Form
@@ -140,36 +133,14 @@ export function EditOtherMaterialAction({ row, table }: DataTableEvent<Material>
               <FormInput
                 control={form.control}
                 name='materialCode'
-                label='Mã thành phần hợp đồng khác'
-                placeholder='Nhập mã thành phần hợp đồng khác'
+                label='Mã dịch vụ khác'
+                placeholder='Nhập mã dịch vụ khác'
               />
               <FormInput
                 control={form.control}
                 name='name'
-                label='Tên thành phần hợp đồng khác'
-                placeholder='Nhập tên thành phần hợp đồng khác'
-              />
-            </FormRow>
-
-            <FormRow>
-              <FormSelect
-                control={form.control}
-                name='unitOfMeasureId'
-                label='Đơn vị tính'
-                placeholder='Chọn đơn vị tính'
-                options={[
-                  { label: 'Không chọn', value: '' },
-                  ...(unitOfMeasures.data?.map((u) => ({
-                    label: u.name,
-                    value: u.id,
-                  })) ?? [])
-                ]}
-              />
-              <FormNumber
-                control={form.control}
-                name='price'
-                label='Đơn giá'
-                placeholder='Nhập đơn giá'
+                label='Tên dịch vụ khác'
+                placeholder='Nhập tên dịch vụ khác'
               />
             </FormRow>
           </div>

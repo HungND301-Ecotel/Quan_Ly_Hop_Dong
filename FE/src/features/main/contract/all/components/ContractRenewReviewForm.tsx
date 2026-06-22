@@ -525,8 +525,26 @@ export function ContractRenewReviewForm() {
               })()}
               <Separator />
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                <InfoRow label='Ngày ký hợp đồng' value={basicInformation?.startDate ? new Date(basicInformation.startDate).toLocaleDateString('vi-VN') : undefined} loading={loading} />
-                <InfoRow label='Hiệu lực hết' value={basicInformation?.endDate ? new Date(basicInformation.endDate).toLocaleDateString('vi-VN') : undefined} loading={loading} />
+                <InfoRow
+                  label='Ngày ký hợp đồng'
+                  value={basicInformation?.signingDate ? new Date(basicInformation.signingDate).toLocaleDateString('vi-VN') : undefined}
+                  loading={loading}
+                />
+                <InfoRow
+                  label='Ngày hợp đồng có hiệu lực'
+                  value={basicInformation?.effectiveDate ? new Date(basicInformation.effectiveDate).toLocaleDateString('vi-VN') : undefined}
+                  loading={loading}
+                />
+                <InfoRow
+                  label='Ngày hoàn thành hợp đồng'
+                  value={basicInformation?.completionDate ? new Date(basicInformation.completionDate).toLocaleDateString('vi-VN') : undefined}
+                  loading={loading}
+                />
+                <InfoRow
+                  label='Ngày hết hạn bảo hành'
+                  value={basicInformation?.warrantyExpirationDate ? new Date(basicInformation.warrantyExpirationDate).toLocaleDateString('vi-VN') : undefined}
+                  loading={loading}
+                />
               </div>
             </Section>
 
@@ -610,13 +628,13 @@ export function ContractRenewReviewForm() {
               )}
             </Section>
 
-            {/* 5. Thành phần hợp đồng khác */}
+            {/* 5. dịch vụ khác */}
             {((basicInformation?.contractOthersValue && basicInformation.contractOthersValue > 0) ||
               (basicInformation?.contractOtherItems && basicInformation.contractOtherItems.length > 0 && otherMaterials.length > 0)) && (
-                <Section title='Thành phần hợp đồng khác' icon={Layers}>
+                <Section title='Dịch vụ khác' icon={Layers}>
                   {basicInformation?.contractOtherItems && basicInformation.contractOtherItems.length > 0 && otherMaterials.length > 0 ? (
                     <div>
-                      <div className='text-sm font-medium mb-3'>Danh sách thành phần hợp đồng khác ({basicInformation.contractOtherItems.length} mục)</div>
+                      <div className='text-sm font-medium mb-3'>Danh sách dịch vụ khác ({basicInformation.contractOtherItems.length} mục)</div>
                       <div className='space-y-2'>
                         <div className='grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 rounded-lg text-xs font-medium text-muted-foreground'>
                           <div className='col-span-3'>Tên thành phần</div>

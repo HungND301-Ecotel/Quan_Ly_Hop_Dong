@@ -1,7 +1,6 @@
 import { Form } from '@/components/form/form';
 import { FormInput } from '@/components/form/form-input';
 import { FormSelect } from '@/components/form/form-select';
-import { UserRole } from '@/constants/user-role';
 import { Department } from '@/services/department/type';
 import { Position } from '@/services/postion/type';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -37,18 +36,13 @@ export function UserForm({
       fullname: '',
       phoneNumber: '',
       email: '',
-      password: '',
+      password: '123456',
       userRole: '',
       departmentId: '',
       positionId: '',
       ...defaultValues,
     },
   });
-
-  const roleOptions = Object.entries(UserRole).map(([key, role]) => ({
-    value: key,
-    label: role,
-  }));
 
   const positionOptions = positions.map((p) => ({
     value: p.id,
@@ -68,24 +62,19 @@ export function UserForm({
       onSubmit={readOnly ? (e: any) => e.preventDefault() : onSubmit}
       className='grid grid-cols-2 gap-4'
     >
-      <FormInput
-        control={form.control}
-        name='userName'
-        label='Tên đăng nhập'
-        placeholder='Nhập tên đăng nhập'
-        required
-        disabled={readOnly || isEdit}
-      />
+      {/* Row 1: Họ và tên - full width */}
+      <div className='col-span-2'>
+        <FormInput
+          control={form.control}
+          name='fullname'
+          label='Họ và tên'
+          placeholder='Nhập họ và tên'
+          required
+          disabled={readOnly}
+        />
+      </div>
 
-      <FormInput
-        control={form.control}
-        name='fullname'
-        label='Họ và tên'
-        placeholder='Nhập họ và tên'
-        required
-        disabled={readOnly}
-      />
-
+      {/* Row 2: Điện thoại | Email */}
       <FormInput
         control={form.control}
         name='phoneNumber'
@@ -104,7 +93,43 @@ export function UserForm({
         disabled={readOnly}
       />
 
-      {!readOnly && !isEdit && (
+      {/* Row 3: Chức vụ - full width */}
+      <div className='col-span-2'>
+        <FormSelect
+          control={form.control}
+          name='positionId'
+          label='Chức vụ'
+          placeholder='Chọn chức vụ'
+          options={positionOptions}
+          required
+          disabled={readOnly}
+        />
+      </div>
+
+      {/* Row 4: Phòng ban - full width */}
+      <div className='col-span-2'>
+        <FormSelect
+          control={form.control}
+          name='departmentId'
+          label='Phòng ban'
+          placeholder='Chọn phòng ban'
+          options={departmentOptions}
+          required
+          disabled={readOnly}
+        />
+      </div>
+
+      {/* Row 5: Tên đăng nhập | Mật khẩu */}
+      <FormInput
+        control={form.control}
+        name='userName'
+        label='Tên đăng nhập'
+        placeholder='Nhập tên đăng nhập'
+        required
+        disabled={readOnly || isEdit}
+      />
+
+      {!readOnly && !isEdit ? (
         <FormInput
           control={form.control}
           name='password'
@@ -113,37 +138,9 @@ export function UserForm({
           placeholder='Nhập mật khẩu (tùy chọn)'
           autoComplete='new-password'
         />
+      ) : (
+        <div />
       )}
-
-      <FormSelect
-        control={form.control}
-        name='userRole'
-        label='Vai trò'
-        placeholder='Chọn vai trò'
-        options={roleOptions}
-        required
-        disabled={readOnly}
-      />
-
-      <FormSelect
-        control={form.control}
-        name='positionId'
-        label='Chức vụ'
-        placeholder='Chọn chức vụ'
-        options={positionOptions}
-        required
-        disabled={readOnly}
-      />
-
-      <FormSelect
-        control={form.control}
-        name='departmentId'
-        label='Phòng ban'
-        placeholder='Chọn phòng ban'
-        options={departmentOptions}
-        required
-        disabled={readOnly}
-      />
     </Form>
   );
 }

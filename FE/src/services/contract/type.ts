@@ -202,10 +202,14 @@ export type Contract = {
   departmentId: string;
   departmentName: string;
   contractValue: number;
+  vatPercentage: number;
+  contractValueAfterVat?: number;
   draftDate: string;
   signDeadline: string;
-  startDate: string;
-  endDate: string;
+  signingDate: string;
+  effectiveDate: string;
+  completionDate: string;
+  warrantyExpirationDate: string;
   status: string;
   subStatus: string;
   contractName: string;

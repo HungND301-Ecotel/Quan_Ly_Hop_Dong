@@ -19,6 +19,8 @@ import { SignedContentManagementPage } from './catalog/signedContent/page';
 import { ContractStructureCatalogManagementPage } from './catalog/structure/page';
 import { ContractFieldPage } from './catalog/contract-field/page';
 import { ExternalSyncConfigPage } from './server/ExternalSyncConfigPage';
+import { ContractNumberPage } from './catalog/contract-number/page';
+import { ContractAppendixPage } from './catalog/contract-appendix/page';
 
 export const settingRouter: RouteObject = {
   path: '/setting',
@@ -125,6 +127,22 @@ export const settingRouter: RouteObject = {
           },
         },
         {
+          path: 'contract-number',
+          element: <ContractNumberPage />,
+          handle: {
+            title: 'Quản lý số hợp đồng',
+            description: 'Quản lý danh mục số hợp đồng',
+          },
+        },
+        {
+          path: 'contract-appendix',
+          element: <ContractAppendixPage />,
+          handle: {
+            title: 'Quản lý số phụ lục hợp đồng',
+            description: 'Quản lý danh mục số phụ lục hợp đồng',
+          },
+        },
+        {
           path: 'bank-account',
           element: <BankAccountManagementPage />,
           handle: {
@@ -144,8 +162,8 @@ export const settingRouter: RouteObject = {
           path: 'material',
           element: <MaterialManagementPage />,
           handle: {
-            title: 'Quản lý thành phần hợp đồng vật tư',
-            description: 'Quản lý thông tin thành phần vật tư hợp đồng',
+            title: 'Quản lý thành phần hợp đồng vật tư, tài sản',
+            description: 'Quản lý thông tin thành phần vật tư, tài sản hợp đồng',
           },
         },
         {

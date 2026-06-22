@@ -168,8 +168,8 @@ export function EditLevel1CodeAction({ row, table }: DataTableEvent<Level1Code>)
               <FormInput
                 control={form.control}
                 name='description'
-                label='Mô tả'
-                placeholder='Nhập mô tả'
+                label='Ghi chú'
+                placeholder='Nhập ghi chú'
               />
             </FormRow>
           </div>

@@ -7,17 +7,14 @@ import { format } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { Contract } from '@/services/contract/type';
 import {
-  Banknote,
   CalendarDays,
   DollarSignIcon,
   FileBadge,
   FileText,
-  HashIcon,
   Layers,
   LucideIcon,
   ShieldCheck,
   StickyNote,
-  Users,
 } from 'lucide-react';
 
 export type ContractInformationProps = {
@@ -28,37 +25,28 @@ export type ContractInformationProps = {
 function InfoRow({
   label,
   value,
-  icon: Icon,
   highlight = false,
   loading = false,
 }: {
   label: string;
   value: string | React.ReactNode;
-  icon?: LucideIcon;
   highlight?: boolean;
   loading?: boolean;
 }) {
   return (
-    <div className='flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors'>
-      {Icon && (
-        <div className='mt-0.5 p-1.5 rounded-md bg-primary/10 text-primary'>
-          <Icon className='size-4' />
-        </div>
+    <div className='min-w-0'>
+      <dt className='text-[11px] font-medium text-muted-foreground uppercase tracking-wide leading-none'>
+        {label}
+      </dt>
+      {loading ? (
+        <Skeleton className='h-4 w-3/4 rounded bg-muted-foreground/20 mt-1' />
+      ) : (
+        <dd
+          className={`text-[13px] mt-1 leading-snug wrap-break-words ${highlight ? 'font-semibold text-foreground' : 'font-medium text-foreground'}`}
+        >
+          {value || <span className='text-muted-foreground/40'>—</span>}
+        </dd>
       )}
-      <div className='flex-1 min-w-0'>
-        <dt className='text-xs font-medium text-muted-foreground mb-0.5'>
-          {label}
-        </dt>
-        {loading ? (
-          <Skeleton className='h-5 w-3/4 rounded bg-muted-foreground/20' />
-        ) : (
-          <dd
-            className={`text-sm font-medium wrap-break-words ${highlight ? 'font-semibold' : ''}`}
-          >
-            {value || 'N/A'}
-          </dd>
-        )}
-      </div>
     </div>
   );
 }
@@ -66,19 +54,18 @@ function InfoRow({
 function SectionHeader({
   title,
   description,
-  icon: Icon,
 }: {
   title: string;
   description?: string;
   icon: LucideIcon;
 }) {
   return (
-    <div className='flex items-center gap-2 mb-4'>
-      <div className='p-2 rounded-lg bg-primary/10'>
-        <Icon className='size-5 text-primary' />
-      </div>
+    <div className='flex items-center gap-2 mb-3'>
+      <div className='w-0.5 h-3.5 rounded-full bg-primary shrink-0' />
       <div>
-        <h3 className='text-base font-semibold tracking-tight'>{title}</h3>
+        <h3 className='text-[11px] font-semibold text-primary uppercase tracking-widest'>
+          {title}
+        </h3>
         {description && (
           <p className='text-xs text-muted-foreground'>{description}</p>
         )}
@@ -100,7 +87,7 @@ const Section = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <div className='p-6 rounded-lg border space-y-4 bg-blue-50'>
+  <div className='py-4'>
     <SectionHeader title={title} description={description} icon={icon} />
     <div className={cn('space-y-3', className)}>{children}</div>
   </div>
@@ -111,28 +98,7 @@ export function ContractInformation({
   loading,
 }: ContractInformationProps) {
   const getContractFinalValue = () => {
-    let totalItems = 0;
-    if (information?.contractItems && information.contractItems.length > 0) {
-      information.contractItems.forEach((item) => {
-        totalItems += (item.quantity || 0) * (item.price || 0);
-      });
-    } else {
-      totalItems = information?.contractValue || 0;
-    }
-
-    let totalOthers = 0;
-    if (
-      information?.contractOtherItems &&
-      information.contractOtherItems.length > 0
-    ) {
-      information.contractOtherItems.forEach((item) => {
-        totalOthers += (item.quantity || 0) * (item.price || 0);
-      });
-    } else {
-      totalOthers = information?.contractOthersValue || 0;
-    }
-
-    const total = (totalItems || 0) + (totalOthers || 0);
+    const total = information?.contractValue || 0;
 
     let discount = 0;
     const discountVal = information?.discountValue || 0;
@@ -145,255 +111,428 @@ export function ContractInformation({
     return total - discount;
   };
 
+  const getContractAfterTax = () => {
+    return information?.contractValueAfterVat || 0;
+  };
+
   const isRuleContract = [0, 1].includes(information?.contractFormat || 0);
 
   return (
-    <div className='space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-0.5'>
-      {/* 1. Contract Format */}
-      <Section title='Mẫu hợp đồng' icon={FileText}>
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-          <InfoRow
-            label='Định dạng hợp đồng'
-            value={ContractFormat[information?.contractFormat || 0]?.name}
-            loading={loading}
-            highlight
-          />
-          {information?.parentContractId && (
-            <InfoRow
-              label='Gia hạn từ hợp đồng'
-              value={information.parentContractNumber}
-              loading={loading}
-            />
-          )}
-          {[2, 3].includes(information?.contractFormat || 0) && (
-            <InfoRow
-              label='Theo dõi công nợ'
-              value={information?.isDebtTrackingEnabled ? 'Có' : 'Không'}
-              loading={loading}
-            />
-          )}
-          {[2, 3].includes(information?.contractFormat || 0) && (
-            <InfoRow
-              label='Hợp đồng nguyên tắc liên kết'
-              value={
-                information?.childContractRelationships &&
-                  information.childContractRelationships.length > 0
-                  ? information.childContractRelationships
-                    .map((c) => `${c.childContractNumber}`)
-                    .join(', ')
-                  : 'Hợp đồng kinh tế độc lập'
-              }
-              loading={loading}
-            />
-          )}
-        </div>
-      </Section>
-
-      {/* 2. Thông tin hợp đồng */}
-      <Section title='Thông tin hợp đồng' icon={HashIcon}>
-        <div>
-          <div className='grid grid-cols-1 md:grid-cols-3 gap-3'>
-            <InfoRow
-              label='Mã cấp I'
-              value={information?.level1CodeCode}
-              loading={loading}
-            />
-            <InfoRow
-              label='Mã cấp II'
-              value={information?.level2Code}
-              loading={loading}
-            />
-            <InfoRow
-              label='Mã cấp III'
-              value={information?.level3Code}
-              loading={loading}
-            />
-          </div>
-        </div>
-
-        <Separator />
-
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-          <InfoRow
-            label='Loại hợp đồng'
-            value={information?.contractTypeName}
-            loading={loading}
-          />
-          <InfoRow
-            label='Hình thức hợp đồng'
-            value={information?.contractStructureName}
-            loading={loading}
-          />
-          <InfoRow
-            label='Tên/nội dung hợp đồng'
-            value={information?.title}
-            loading={loading}
-            highlight
-          />
-          <InfoRow
-            label='Sổ theo dõi hợp đồng'
-            value={information?.contractRegisterName}
-            loading={loading}
-          />
-        </div>
-
-        <Separator />
-
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-          <InfoRow
-            label='Phòng ban'
-            value={information?.departmentName}
-            loading={loading}
-          />
-          <InfoRow
-            label='Hình thức lựa chọn nhà thầu/nhà cung cấp'
-            value={information?.procurementMethodName}
-            loading={loading}
-          />
-        </div>
-
-        <Separator />
-
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-          <InfoRow
-            label='Số ký hiệu hợp đồng'
-            value={information?.contractNumber}
-            loading={loading}
-            highlight
-          />
-          <InfoRow
-            label='Số ký hiệu PLHĐ'
-            value={information?.appendixNumber}
-            loading={loading}
-          />
-        </div>
-
-        <Separator />
-
-        <InfoRow
-          label='Đối tác/khách hàng'
-          loading={loading}
-          value={
-            <div className='flex flex-col gap-0.5'>
-              <span className='font-semibold'>{information?.partnerName}</span>
-              {information?.partnerDetail?.address && (
-                <span className='text-xs text-muted-foreground'>
-                  <b>Địa chỉ:</b> {information.partnerDetail.address}
-                </span>
-              )}
-              {information?.partnerDetail?.taxCode && (
-                <span className='text-xs text-muted-foreground'>
-                  <b>Mã số thuế:</b> {information.partnerDetail.taxCode}
-                </span>
-              )}
-              {information?.partnerDetail?.contactPerson && (
-                <span className='text-xs text-muted-foreground'>
-                  <b>Người đại diện:</b> {information.partnerDetail.contactPerson}
-                </span>
-              )}
-            </div>
-          }
-        />
-
-        <Separator />
-
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-          <InfoRow
-            label='Ngày ký hợp đồng'
-            value={format.date(information?.startDate || '')}
-            loading={loading}
-          />
-          <InfoRow
-            label='Hiệu lực hết'
-            value={format.date(information?.endDate || '')}
-            loading={loading}
-          />
-        </div>
-      </Section>
-
-      {/* 3. Phân công quản lý */}
-      <Section title='Phân công quản lý' icon={Users}>
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-          {Object.values(ContractRole).map((roleDef) => {
-            const roleUsers = information?.contractUserRoles?.filter(
-              (r) => r.role === roleDef.id
-            ) || [];
-            return (
-              <div
-                key={roleDef.id}
-                className='p-4 rounded-lg border bg-white space-y-2'
-              >
-                <div className='flex items-center gap-2'>
-                  <span className='text-xs font-medium text-muted-foreground'>
-                    {roleDef.name}
-                  </span>
-                </div>
-                {loading ? (
-                  <Skeleton className='h-10 w-full' />
-                ) : roleUsers.length > 0 ? (
-                  <div className='space-y-2'>
-                    {roleUsers.map((user, idx) => (
-                      <div key={user.userId + '-' + idx} className='text-sm border-b last:border-0 pb-1.5 last:pb-0'>
-                        <div className='font-semibold text-foreground'>
-                          {user.fullname}
-                        </div>
-                        <div className='text-xs text-muted-foreground'>
-                          {user.departmentName}
-                          {user.positionName
-                            ? ` / ${user.positionName}`
-                            : ''}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+    <div className='animate-in fade-in slide-in-from-bottom-2 duration-300'>
+      {/* ── Thông tin hợp đồng (Section 1 + 2 gộp chung table) ── */}
+      <Section title='Thông tin hợp đồng' icon={FileText}>
+        <div className='rounded-md border overflow-hidden'>
+          <table className='w-full border-collapse text-sm table-auto'>
+            <tbody>
+              {/* ── Mẫu hợp đồng ── */}
+              <tr>
+                <td
+                  colSpan={4}
+                  className='bg-muted/50 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground border-b'
+                >
+                  Mẫu hợp đồng
+                </td>
+              </tr>
+              <tr>
+                <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                  Định dạng hợp đồng
+                </td>
+                <td className='px-3 py-2 text-sm font-medium text-primary border-b w-1/4'>
+                  {loading ? (
+                    <Skeleton className='h-4 w-28' />
+                  ) : (
+                    ContractFormat[information?.contractFormat || 0]?.name
+                  )}
+                </td>
+                {information?.parentContractId ? (
+                  <>
+                    <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                      Gia hạn từ hợp đồng
+                    </td>
+                    <td className='px-3 py-2 text-sm font-medium border-b w-1/4'>
+                      {loading ? (
+                        <Skeleton className='h-4 w-28' />
+                      ) : (
+                        information.parentContractNumber
+                      )}
+                    </td>
+                  </>
                 ) : (
-                  <div className='text-sm text-muted-foreground italic'>
-                    Chưa phân công
-                  </div>
+                  <td colSpan={2} className='border-b' />
                 )}
-              </div>
-            );
-          })}
+              </tr>
+
+              {[2, 3].includes(information?.contractFormat || 0) && (
+                <tr>
+                  <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                    Theo dõi công nợ
+                  </td>
+                  <td className='px-3 py-2 text-sm font-medium border-b w-1/4'>
+                    {loading ? (
+                      <Skeleton className='h-4 w-16' />
+                    ) : information?.isDebtTrackingEnabled ? (
+                      'Có'
+                    ) : (
+                      'Không'
+                    )}
+                  </td>
+                  <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                    HĐ nguyên tắc liên kết
+                  </td>
+                  <td className='px-3 py-2 text-sm font-medium border-b w-1/4'>
+                    {loading ? (
+                      <Skeleton className='h-4 w-28' />
+                    ) : information?.childContractRelationships?.length ? (
+                      information.childContractRelationships
+                        .map((c) => c.childContractNumber)
+                        .join(', ')
+                    ) : (
+                      'Hợp đồng kinh tế độc lập'
+                    )}
+                  </td>
+                </tr>
+              )}
+
+              {/* ── Thông tin hợp đồng ── */}
+              <tr>
+                <td
+                  colSpan={4}
+                  className='bg-muted/50 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground border-b'
+                >
+                  Thông tin hợp đồng
+                </td>
+              </tr>
+              <tr>
+                <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                  Mã cấp I
+                </td>
+                <td className='px-3 py-2 text-sm font-medium border-b w-1/4'>
+                  {loading ? (
+                    <Skeleton className='h-4 w-20' />
+                  ) : (
+                    information?.level1CodeCode
+                  )}
+                </td>
+                <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                  Mã cấp II
+                </td>
+                <td className='px-3 py-2 text-sm font-medium border-b w-1/4'>
+                  {loading ? (
+                    <Skeleton className='h-4 w-20' />
+                  ) : (
+                    information?.level2Code
+                  )}
+                </td>
+              </tr>
+              <tr>
+                <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                  Mã cấp III
+                </td>
+                <td className='px-3 py-2 text-sm font-medium border-b w-1/4'>
+                  {loading ? (
+                    <Skeleton className='h-4 w-20' />
+                  ) : (
+                    information?.level3Code
+                  )}
+                </td>
+                <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                  Lĩnh vực hợp đồng
+                </td>
+                <td className='px-3 py-2 text-sm font-medium border-b w-1/4'>
+                  {loading ? (
+                    <Skeleton className='h-4 w-28' />
+                  ) : (
+                    information?.contractFieldName
+                  )}
+                </td>
+              </tr>
+              <tr>
+                <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                  Loại hợp đồng
+                </td>
+                <td className='px-3 py-2 text-sm font-medium border-b w-1/4'>
+                  {loading ? (
+                    <Skeleton className='h-4 w-28' />
+                  ) : (
+                    information?.contractTypeName
+                  )}
+                </td>
+                <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                  Hình thức hợp đồng
+                </td>
+                <td className='px-3 py-2 text-sm font-medium border-b w-1/4'>
+                  {loading ? (
+                    <Skeleton className='h-4 w-28' />
+                  ) : (
+                    information?.contractStructureName
+                  )}
+                </td>
+              </tr>
+              <tr>
+                <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                  Tên/nội dung hợp đồng
+                </td>
+                <td
+                  colSpan={3}
+                  className='px-3 py-2 text-sm font-medium text-primary border-b w-1/4'
+                >
+                  {loading ? (
+                    <Skeleton className='h-4 w-full' />
+                  ) : (
+                    information?.title
+                  )}
+                </td>
+              </tr>
+              <tr>
+                <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                  Số ký hiệu HĐ
+                </td>
+                <td className='px-3 py-2 text-sm font-medium text-primary border-b w-1/4'>
+                  {loading ? (
+                    <Skeleton className='h-4 w-28' />
+                  ) : (
+                    information?.contractNumber
+                  )}
+                </td>
+                <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                  Số ký hiệu PLHĐ
+                </td>
+                <td className='px-3 py-2 text-sm font-medium border-b w-1/4'>
+                  {loading ? (
+                    <Skeleton className='h-4 w-28' />
+                  ) : (
+                    information?.appendixNumber
+                  )}
+                </td>
+              </tr>
+              <tr>
+                <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                  Ngày ký HĐ
+                </td>
+                <td className='px-3 py-2 text-sm font-medium border-b w-1/4'>
+                  {loading ? (
+                    <Skeleton className='h-4 w-24' />
+                  ) : (
+                    format.date(information?.signingDate || '')
+                  )}
+                </td>
+                <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                  Ngày hiệu lực
+                </td>
+                <td className='px-3 py-2 text-sm font-medium border-b w-1/4'>
+                  {loading ? (
+                    <Skeleton className='h-4 w-24' />
+                  ) : (
+                    format.date(information?.effectiveDate || '')
+                  )}
+                </td>
+              </tr>
+              <tr>
+                <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                  Ngày hoàn thành HĐ
+                </td>
+                <td className='px-3 py-2 text-sm font-medium border-b w-1/4'>
+                  {loading ? (
+                    <Skeleton className='h-4 w-24' />
+                  ) : (
+                    format.date(information?.completionDate || '')
+                  )}
+                </td>
+                <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                  Ngày hết hạn bảo hành
+                </td>
+                <td className='px-3 py-2 text-sm font-medium border-b w-1/4'>
+                  {loading ? (
+                    <Skeleton className='h-4 w-24' />
+                  ) : (
+                    format.date(information?.warrantyExpirationDate || '')
+                  )}
+                </td>
+              </tr>
+
+              {/* ── Đối tác / Khách hàng ── */}
+              <tr>
+                <td
+                  colSpan={4}
+                  className='bg-muted/50 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground border-b'
+                >
+                  Đối tác / Khách hàng
+                </td>
+              </tr>
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className='px-3 py-3 border-b'>
+                    <Skeleton className='h-12 w-full' />
+                  </td>
+                </tr>
+              ) : information?.partnerName ? (
+                <>
+                  <tr>
+                    <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                      Tên đối tác
+                    </td>
+                    <td className='px-3 py-2 text-sm font-semibold border-b w-1/4'>
+                      {information.partnerName}
+                    </td>
+                    <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                      Mã số thuế
+                    </td>
+                    <td className='px-3 py-2 text-sm font-medium border-b w-1/4'>
+                      {information?.partnerDetail?.taxCode}
+                    </td>
+                  </tr>
+                  {information?.partnerDetail?.address && (
+                    <tr>
+                      <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                        Địa chỉ
+                      </td>
+                      <td colSpan={3} className='px-3 py-2 text-sm border-b'>
+                        {information.partnerDetail.address}
+                      </td>
+                    </tr>
+                  )}
+                  {information?.partnerDetail?.contactPerson && (
+                    <tr>
+                      <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                        Người đại diện
+                      </td>
+                      <td colSpan={3} className='px-3 py-2 text-sm border-b'>
+                        {information.partnerDetail.contactPerson}
+                      </td>
+                    </tr>
+                  )}
+                  <tr>
+                    <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
+                      Hình thức lựa chọn nhà thầu
+                    </td>
+                    <td
+                      colSpan={3}
+                      className='px-3 py-2 text-sm font-medium border-b'
+                    >
+                      {information?.procurementMethodName}
+                    </td>
+                  </tr>
+                </>
+              ) : (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className='px-3 py-2 text-sm text-muted-foreground border-b'
+                  >
+                    —
+                  </td>
+                </tr>
+              )}
+
+              {/* ── Phân công quản lý ── */}
+              <tr>
+                <td
+                  colSpan={4}
+                  className='bg-muted/50 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground border-b'
+                >
+                  Phân công quản lý
+                </td>
+              </tr>
+              {Object.values(ContractRole).reduce<React.ReactNode[]>(
+                (rows, roleDef, i, arr) => {
+                  if (i % 2 === 0) {
+                    const next = arr[i + 1];
+                    const renderCell = (rd: typeof roleDef) => {
+                      const roleData = information?.contractUserRoles?.find(
+                        (r) => r.role === rd.id
+                      );
+                      return (
+                        <>
+                          <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap align-top border-b w-[1%]'>
+                            {rd.name}
+                          </td>
+                          <td className='px-3 py-2 align-top border-b'>
+                            {loading ? (
+                              <Skeleton className='h-8 w-36' />
+                            ) : roleData ? (
+                              <div>
+                                <div className='text-sm font-medium'>
+                                  {roleData.fullname}
+                                </div>
+                                <div className='text-[11px] text-muted-foreground'>
+                                  {roleData.departmentName}
+                                  {roleData.positionName
+                                    ? ` / ${roleData.positionName}`
+                                    : ''}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className='text-sm text-muted-foreground italic'>
+                                Chưa phân công
+                              </span>
+                            )}
+                          </td>
+                        </>
+                      );
+                    };
+                    rows.push(
+                      <tr key={roleDef.id}>
+                        {renderCell(roleDef)}
+                        {next ? (
+                          renderCell(next)
+                        ) : (
+                          <td colSpan={2} className='border-b' />
+                        )}
+                      </tr>
+                    );
+                  }
+                  return rows;
+                },
+                []
+              )}
+            </tbody>
+          </table>
         </div>
       </Section>
 
-      {/* 4. Thông tin tài chính */}
+      {/* ── Thông tin tài chính ── */}
       <Section title='Thông tin tài chính' icon={DollarSignIcon}>
         {[2, 3].includes(information?.contractFormat || 0) && (
-          <div className='p-6 rounded-xl bg-linear-to-br from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20'>
+          <div className='p-4 rounded-md border border-emerald-500/20'>
             <div className='text-sm font-medium text-muted-foreground mb-2'>
               Tổng giá trị hợp đồng (sau thuế)
             </div>
-            <div className='text-3xl font-bold text-emerald-600'>
+            <div className='text-2xl font-bold text-emerald-600'>
               {new Intl.NumberFormat('vi-VN', {
                 style: 'currency',
                 currency: 'VND',
-              }).format(getContractFinalValue())}
+              }).format(getContractAfterTax())}
             </div>
           </div>
         )}
 
         {information?.contractItems && information.contractItems.length > 0 && (
           <>
-            {[2, 3].includes(information?.contractFormat || 0) && <Separator />}
+            {[2, 3].includes(information?.contractFormat || 0) && (
+              <Separator className='my-2' />
+            )}
             <div>
               <div className='text-sm font-medium mb-3'>
                 Danh sách vật tư ({information.contractItems.length} mục)
               </div>
               <div className='space-y-2'>
-                <div className='grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 rounded-lg text-xs font-medium text-muted-foreground'>
+                <div className='grid grid-cols-12 gap-4 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground'>
                   <div className='col-span-3'>Tên vật tư</div>
                   <div className='col-span-2'>Đơn vị tính</div>
                   <div className='col-span-2 text-right'>Đơn giá</div>
-                  {!isRuleContract && <div className='col-span-2 text-right'>Số lượng</div>}
-                  {!isRuleContract && <div className='col-span-3 text-right'>Thành tiền</div>}
+                  {!isRuleContract && (
+                    <div className='col-span-2 text-right'>Số lượng</div>
+                  )}
+                  {!isRuleContract && (
+                    <div className='col-span-3 text-right'>Thành tiền</div>
+                  )}
                 </div>
                 {information.contractItems.map((item, index) => {
                   const total = (item?.quantity || 0) * (item?.price || 0);
                   return (
                     <div
                       key={index}
-                      className='grid grid-cols-12 gap-4 px-4 py-3 rounded-lg border hover:border-primary/50 hover:bg-muted/30 transition-colors'
+                      className='grid grid-cols-12 gap-4 px-3 py-2 rounded-lg border hover:border-primary/50 hover:bg-white transition-colors'
                     >
                       <div className='col-span-3 flex flex-col justify-center'>
                         <span className='text-sm font-medium'>
@@ -404,7 +543,7 @@ export function ContractInformation({
                         </span>
                       </div>
                       <div className='col-span-2 flex items-center text-sm text-muted-foreground'>
-                        {item?.unitOfMeasureName || '—'}  {/* ← thêm */}
+                        {item?.unitOfMeasureName || '—'}
                       </div>
                       <div className='col-span-2 flex items-center justify-end text-sm'>
                         {format.number(item?.price || 0)} đ
@@ -428,48 +567,45 @@ export function ContractInformation({
         )}
       </Section>
 
-      {/* 5. Thành phần hợp đồng khác */}
+      {/* ── Dịch vụ khác ── */}
       {(information?.contractOthersValue ||
         (information?.contractOtherItems &&
           information.contractOtherItems.length > 0)) && (
-          <Section title='Thành phần hợp đồng khác' icon={Layers}>
+          <Section title='Dịch vụ khác' icon={Layers}>
             {information.contractOtherItems &&
               information.contractOtherItems.length > 0 ? (
               <div>
                 <div className='text-sm font-medium mb-3'>
-                  Danh sách thành phần hợp đồng khác ({information.contractOtherItems.length} mục)
+                  Danh sách dịch vụ khác ({information.contractOtherItems.length}{' '}
+                  mục)
                 </div>
                 <div className='space-y-2'>
-                  <div className='grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 rounded-lg text-xs font-medium text-muted-foreground'>
-                    <div className={isRuleContract ? 'col-span-3' : 'col-span-3'}>Thành phần hợp đồng khác</div>
+                  <div className='grid grid-cols-12 gap-4 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground'>
+                    <div className='col-span-5'>Tên dịch vụ khác</div>
                     <div className='col-span-2'>Đơn vị tính</div>
                     <div className='col-span-2 text-right'>Đơn giá</div>
-                    {!isRuleContract && <div className='col-span-2 text-right'>Số lượng</div>}
-                    {!isRuleContract && <div className='col-span-3 text-right'>Thành tiền</div>}
+                    {!isRuleContract && (
+                      <div className='col-span-3 text-right'>Thành tiền</div>
+                    )}
                   </div>
                   {information.contractOtherItems.map((item, index) => {
                     const total = (item?.quantity || 0) * (item?.price || 0);
                     return (
                       <div
                         key={index}
-                        className='grid grid-cols-12 gap-4 px-4 py-3 rounded-lg border hover:border-primary/50 hover:bg-muted/30 transition-colors'
+                        className='grid grid-cols-12 gap-4 px-3 py-2 rounded-lg border hover:border-primary/50 hover:bg-white transition-colors'
                       >
-                        <div className={`${isRuleContract ? 'col-span-3' : 'col-span-3'} flex items-center`}>
+                        <div className='col-span-5 flex items-center'>
                           <span className='text-sm font-medium'>
                             {item.materialName || 'N/A'}
                           </span>
                         </div>
                         <div className='col-span-2 flex items-center text-sm text-muted-foreground'>
-                          {item?.unitOfMeasureName || '—'}  {/* ← thêm */}
+                          {item?.unitOfMeasureName || '—'}
                         </div>
                         <div className='col-span-2 flex items-center justify-end text-sm'>
                           {format.number(item?.price || 0)} đ
                         </div>
-                        {!isRuleContract && (
-                          <div className='col-span-2 flex items-center justify-end text-sm font-medium'>
-                            {item.quantity || 0}
-                          </div>
-                        )}
                         {!isRuleContract && (
                           <div className='col-span-3 flex items-center justify-end text-sm font-semibold text-orange-600'>
                             {format.number(total)} đ
@@ -485,13 +621,12 @@ export function ContractInformation({
                 label='Giá trị thành phần khác'
                 value={`${format.number(information.contractOthersValue || 0)} đ`}
                 loading={loading}
-                icon={Banknote}
               />
             )}
           </Section>
         )}
 
-      {/* 6. Chiết khấu */}
+      {/* ── Chiết khấu ── */}
       {information?.discountValue !== undefined &&
         information.discountValue > 0 && (
           <Section title='Chiết khấu' icon={FileBadge}>
@@ -570,90 +705,83 @@ export function ContractInformation({
         </Section>
       )}
 
-      {/* 8. Bảo lãnh */}
-      {!isRuleContract && information?.contractGuarantee && information.contractGuarantee.length > 0 && (
-        <Section title='Bảo lãnh hợp đồng' icon={ShieldCheck}>
-          <div className='space-y-4'>
-            {information.contractGuarantee.map((guarantee) => {
-              if (!guarantee?.value) return null;
 
-              const guaranteeTypeMap: Record<number, { label: string; colorClass: string; iconColor: string }> = {
-                1: {
-                  label: 'Bảo lãnh thực hiện hợp đồng',
-                  colorClass: 'bg-white',
-                  iconColor: 'text-amber-600',
-                },
-                2: {
-                  label: 'Bảo lãnh bảo hành',
-                  colorClass: 'bg-white',
-                  iconColor: 'text-green-600',
-                },
-                3: {
-                  label: 'Bảo lãnh đặt cọc',
-                  colorClass: 'bg-white',
-                  iconColor: 'text-blue-600',
-                },
-              };
 
-              const { colorClass } = guaranteeTypeMap[guarantee.guaranteeType] ?? {
-                label: 'Bảo lãnh khác',
-                colorClass: 'from-muted/5 to-muted/0',
-                iconColor: 'text-muted-foreground',
-              };
-
-              return (
-                <div
-                  key={guarantee.bankAccount?.id}
-                  className={`p-4 rounded-lg border bg-linear-to-br ${colorClass}`}
-                >
-                  <div className='grid grid-cols-3 gap-3'>
-                    <InfoRow
-                      label='Giá trị'
-                      value={
-                        guarantee.valueType === 1
-                          ? `${guarantee.value}%`
-                          : new Intl.NumberFormat('vi-VN', {
-                            style: 'currency',
-                            currency: 'VND',
-                          }).format(guarantee.value)
-                      }
-                      highlight
-                    />
-                    {guarantee.durationDate && (
-                      <InfoRow
-                        label='Thời hạn'
-                        value={format.date(guarantee.durationDate)}
-                      />
-                    )}
-
-                  </div>
-                  {guarantee.bankAccount?.accountNumber && (
-                    <div className='grid grid-cols-1 md:grid-cols-3 gap-3'>
-                      <InfoRow
-                        label='Ngân hàng'
-                        value={guarantee.bankAccount.bankName}
-                      />
-                      <InfoRow
-                        label='Số tài khoản'
-                        value={guarantee.bankAccount.accountNumber}
-                      />
-                      <InfoRow
-                        label='Chủ tài khoản'
-                        value={guarantee.bankAccount.accountHolder}
-                      />
+      {/* ── Bảo lãnh ── */}
+      {!isRuleContract &&
+        information?.contractGuarantee &&
+        information.contractGuarantee.length > 0 && (
+          <Section title='Bảo lãnh hợp đồng' icon={ShieldCheck}>
+            <div className='space-y-4'>
+              {information.contractGuarantee.map((guarantee) => {
+                if (!guarantee?.value) return null;
+                const guaranteeTypeMap: Record<number, { label: string }> = {
+                  1: { label: 'Bảo lãnh thực hiện hợp đồng' },
+                  2: { label: 'Bảo lãnh bảo hành' },
+                  3: { label: 'Bảo lãnh đặt cọc' },
+                };
+                const guaranteeInfo = guaranteeTypeMap[
+                  guarantee.guaranteeType
+                ] ?? { label: 'Bảo lãnh khác' };
+                return (
+                  <div
+                    key={guarantee.bankAccount?.id}
+                    className='p-3 rounded-md border '
+                  >
+                    <div className='mb-3 text-sm font-semibold text-primary'>
+                      {guaranteeInfo.label}
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </Section>
-      )}
+                    <div className='grid grid-cols-2 gap-3'>
+                      <InfoRow
+                        label='Giá trị'
+                        value={
+                          guarantee.valueType === 1
+                            ? `${guarantee.value}%`
+                            : new Intl.NumberFormat('vi-VN', {
+                              style: 'currency',
+                              currency: 'VND',
+                            }).format(guarantee.value)
+                        }
+                        highlight
+                      />
+                      {guarantee.durationDate && (
+                        <InfoRow
+                          label='Thời hạn'
+                          value={format.date(guarantee.durationDate)}
+                        />
+                      )}
+                      {guarantee.bankAccount?.bankName && (
+                        <InfoRow
+                          label='Ngân hàng'
+                          value={guarantee.bankAccount.bankName}
+                        />
+                      )}
+                      {guarantee.bankAccount?.accountNumber && (
+                        <InfoRow
+                          label='Số tài khoản'
+                          value={guarantee.bankAccount.accountNumber}
+                        />
+                      )}
+                      {guarantee.bankAccount?.accountHolder && (
+                        <div className='col-span-2'>
+                          <InfoRow
+                            label='Chủ tài khoản'
+                            value={guarantee.bankAccount.accountHolder}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Section>
+        )}
 
-      {/* 9. Ghi chú */}
+      {/* ── Ghi chú ── */}
       {information?.notes && (
         <Section title='Ghi chú' icon={StickyNote}>
-          <p className='text-sm whitespace-pre-wrap text-muted-foreground leading-relaxed p-3 rounded-lg bg-muted/30'>
+          <p className='text-sm whitespace-pre-wrap text-muted-foreground leading-relaxed p-3 rounded-lg '>
             {information.notes}
           </p>
         </Section>

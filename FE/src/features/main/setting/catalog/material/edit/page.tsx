@@ -117,10 +117,10 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
       <DialogContent className='flex flex-col gap-0 w-full md:min-w-2xl lg:min-w-4xl px-0 overflow-hidden'>
         <DialogHeader className='gap-1 p-6 pt-0 border-b'>
           <DialogTitle className='text-2xl font-semibold'>
-            {row ? 'Chỉnh sửa' : 'Tạo mới'} thành phần hợp đồng
+            {row ? 'Chỉnh sửa' : 'Tạo mới'} thành vật tư, tài 
           </DialogTitle>
           <DialogDescription>
-            {row ? 'Chỉnh sửa' : 'Tạo mới'} thông tin thành phần hợp đồng
+            {row ? 'Chỉnh sửa' : 'Tạo mới'} thông tin thành vật tư, tài 
           </DialogDescription>
         </DialogHeader>
         <Form
@@ -133,14 +133,14 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
               <FormInput
                 control={form.control}
                 name='materialCode'
-                label='Mã thành phần hợp đồng'
-                placeholder='Nhập mã thành phần hợp đồng'
+                label='Mã vật tư, tài sản'
+                placeholder='Nhập mã vật tư, tài sản'
               />
               <FormInput
                 control={form.control}
                 name='name'
-                label='Tên thành phần hợp đồng'
-                placeholder='Nhập tên thành phần hợp đồng'
+                label='Tên vật tư, tài sản'
+                placeholder='Nhập tên vật tư, tài sản'
               />
             </FormRow>
  
@@ -161,8 +161,8 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
               <FormNumber
                 control={form.control}
                 name='price'
-                label='Đơn giá'
-                placeholder='Nhập đơn giá'
+                label='Đơn giá vật tư'
+                placeholder='Nhập đơn giá, vật tư'
               />
             </FormRow>
           </div>

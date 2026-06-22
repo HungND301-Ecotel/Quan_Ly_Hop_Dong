@@ -137,8 +137,8 @@ export function ContractRegisterEdit({
               <FormInput
                 control={form.control}
                 name='description'
-                label='Mô tả'
-                placeholder='Nhập mô tả sổ theo dõi hợp đồng'
+                label='Ghi chú'
+                placeholder='Nhập ghi chú sổ theo dõi hợp đồng'
               />
             </FormRow>
           </div>

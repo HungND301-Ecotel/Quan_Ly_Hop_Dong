@@ -284,7 +284,7 @@ const Dashboard: React.FC = () => {
       .map(c => ({
         ...c,
         daysLeft: Math.ceil(
-          (new Date(c.endDate ?? '').getTime() - today.getTime()) / oneDayMs
+          (new Date(c.completionDate ?? '').getTime() - today.getTime()) / oneDayMs
         ),
       }))
       .sort((a, b) => a.daysLeft - b.daysLeft)
@@ -662,7 +662,7 @@ const Dashboard: React.FC = () => {
                     </div>
                     <div className='col-span-3 text-right'>
                       <p className='text-sm font-medium text-warning whitespace-nowrap'>Còn {c.daysLeft} ngày</p>
-                      <p className='text-xs text-muted-foreground'>{formatDate(c.endDate ?? '')}</p>
+                      <p className='text-xs text-muted-foreground'>{formatDate(c.completionDate ?? '')}</p>
                     </div>
                   </div>
                 </Link>

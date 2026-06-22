@@ -69,15 +69,25 @@ export const BasicInformationSchema = z
     contractFieldId: z.string().optional().nullable(),
     title: z.string().nonempty({ error: 'Không được để trống' }),
     contractRegisterId: z.string().nonempty({ error: 'Không được để trống' }),
+    contractNumberId: z.string().optional().nullable(),
     contractNumber: z.string().nonempty({ error: 'Không được để trống' }),
+    appendixNumberId: z.string().optional().nullable(),
     appendixNumber: z.string().optional(),
 
     partnerId: z.string().nonempty({ error: 'Không được để trống' }),
 
     contractUserRoles: ContractUserRolesSchema,
 
-    startDate: z.iso.date({ error: 'Ngày không hợp lệ' }),
-    endDate: z.iso.date({ error: 'Ngày không hợp lệ' }),
+    signingDate: z.iso.date('Vui lòng chọn ngày ký hợp đồng'),
+    effectiveDate: z.iso.date('Vui lòng chọn ngày hợp đồng có hiệu lực'),
+    completionDurationDays: z
+      .number({ error: 'Vui lòng nhập thời gian thực hiện' })
+      .min(1, 'Thời gian thực hiện phải lớn hơn 0').optional(),
+    completionDate: z.iso.date('Ngày hoàn thành hợp đồng không hợp lệ'),
+    warrantyDurationDays: z
+      .number({ error: 'Vui lòng nhập thời gian bảo hành' })
+      .min(1, 'Thời gian bảo hành phải lớn hơn 0').optional(),
+    warrantyExpirationDate: z.iso.date('Ngày hết hạn bảo hành không hợp lệ'),
 
     contractFile: z.array(z.file()).nonempty({ error: 'Không được để trống' }),
     attachmentFiles: z.array(z.file()).optional().nullable(),
@@ -97,6 +107,12 @@ export const BasicInformationSchema = z
       .nonnegative({ error: 'Phải lớn hơn 0' })
       .nullable()
       .optional(),
+    vatPercentage: z.coerce
+      .number<number>({ error: 'Số không hợp lệ' })
+      .min(0, { error: 'Phải >= 0' })
+      .max(100, { error: 'Phải <= 100' })
+      .optional()
+      .nullable(),
     contractItems: z.array(
       z.object({
         materialId: z.string().nonempty({ error: 'Không được để trống' }),
@@ -149,29 +165,27 @@ export const BasicInformationSchema = z
 
     notes: z.string().optional(),
   })
-  .superRefine(
-    ({ discountType, discountValue }, ctx) => {
-      // if (!contractValue && contractItems.length === 0) {
-      //   ctx.addIssue({
-      //     code: 'custom',
-      //     message: 'Không được bỏ trống',
-      //     path: ['contractValue'],
-      //   });
-      // }
+  .superRefine(({ discountType, discountValue }, ctx) => {
+    // if (!contractValue && contractItems.length === 0) {
+    //   ctx.addIssue({
+    //     code: 'custom',
+    //     message: 'Không được bỏ trống',
+    //     path: ['contractValue'],
+    //   });
+    // }
 
-      if (
-        discountValue &&
-        discountType == DiscountType.Percent.id &&
-        (discountValue < 0 || discountValue > 100)
-      ) {
-        ctx.addIssue({
-          code: 'custom',
-          message: 'Phải nằm trong khoảng 0-100',
-          path: ['discountValue'],
-        });
-      }
+    if (
+      discountValue &&
+      discountType == DiscountType.Percent.id &&
+      (discountValue < 0 || discountValue > 100)
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Phải nằm trong khoảng 0-100',
+        path: ['discountValue'],
+      });
     }
-  );
+  });
 
 export type BasicInformationValues = z.infer<typeof BasicInformationSchema>;
 
@@ -189,13 +203,19 @@ export const BasicInformationDefault: BasicInformationValues = {
   contractFieldId: '',
   title: '',
   contractRegisterId: '',
+  contractNumberId: '',
   contractNumber: '',
+  appendixNumberId: '',
   appendixNumber: '',
 
   partnerId: '',
 
-  startDate: '',
-  endDate: '',
+  signingDate: '' as unknown as string,
+  effectiveDate: '' as unknown as string,
+  completionDurationDays: undefined,
+  completionDate: '' as unknown as string,
+  warrantyDurationDays: undefined,
+  warrantyExpirationDate: '' as unknown as string,
 
   contractFile: [] as unknown as File[],
   attachmentFiles: undefined,
@@ -206,6 +226,7 @@ export const BasicInformationDefault: BasicInformationValues = {
   contractUserRoles: ContractUserRolesDefault,
 
   contractValue: '' as unknown as number,
+  vatPercentage: '' as unknown as number,
   contractItems: [
     {
       materialId: '',

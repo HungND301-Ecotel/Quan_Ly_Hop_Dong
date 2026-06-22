@@ -1,4 +1,4 @@
-﻿using Application.Dto.Catalog;
+using Application.Dto.Catalog;
 using Domain.Common.Enums;
 using Microsoft.AspNetCore.Http;
 
@@ -50,7 +50,7 @@ public class CreateNewAccountInput
     public string? PhoneNumber { get; set; } = string.Empty;
     public string? Email { get; set; } = string.Empty;
     public string? Password { get; set; }
-    public UserRole UserRole { get; set; }
+    public UserRole? UserRole { get; set; }
     public Guid DepartmentId { get; set; }
     public Guid PositionId { get; set; }
 }

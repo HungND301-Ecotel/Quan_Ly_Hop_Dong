@@ -12,6 +12,7 @@ export const SignPositionsSchema = z.object({
       width: z.coerce.number<number>(),
       height: z.coerce.number<number>(),
       id: z.string().optional(),
+      fileIndex: z.coerce.number<number>().default(0).optional(),
     })
   ),
 });

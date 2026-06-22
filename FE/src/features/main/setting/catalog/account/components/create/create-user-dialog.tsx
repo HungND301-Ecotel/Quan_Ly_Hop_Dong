@@ -37,11 +37,11 @@ export function CreateUserDialog({
         ...values,
         userRole: parseInt(values.userRole),
       });
-      toast.success('Tạo mới người dùng thành công');
+      toast.success('Tạo mới nhân viên thành công');
       setOpen(false);
       refresh();
     } catch {
-      toast.error('Tạo mới người dùng thất bại');
+      toast.error('Tạo mới nhân viên thất bại');
     } finally {
       setIsSubmitting(false);
     }
@@ -57,7 +57,9 @@ export function CreateUserDialog({
       </DialogTrigger>
       <DialogContent className='sm:max-w-175'>
         <DialogHeader>
-          <DialogTitle>Tạo mới người dùng</DialogTitle>
+          <DialogTitle className='text-2xl font-semibold'>
+            Tạo mới nhân viên
+          </DialogTitle>
         </DialogHeader>
         <UserForm
           id='create-user-form'
