@@ -39,7 +39,6 @@ export function EditUserDialog({
     fullname: user.fullname,
     phoneNumber: user.phoneNumber,
     email: user.email,
-    userRole: user.role.toString(),
     positionId: user.positionId,
     departmentId: user.departmentId || '',
   };
@@ -52,7 +51,6 @@ export function EditUserDialog({
         fullname: values.fullname,
         phoneNumber: values.phoneNumber,
         email: values.email,
-        role: parseInt(values.userRole),
         positionId: values.positionId,
         department: values.departmentId,
       });

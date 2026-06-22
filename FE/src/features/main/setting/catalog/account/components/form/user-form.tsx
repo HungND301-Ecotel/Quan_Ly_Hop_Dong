@@ -37,7 +37,6 @@ export function UserForm({
       phoneNumber: '',
       email: '',
       password: '123456',
-      userRole: '',
       departmentId: '',
       positionId: '',
       ...defaultValues,

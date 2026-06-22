@@ -32,7 +32,6 @@ export function UserDetailDialog({
     fullname: user.fullname,
     phoneNumber: user.phoneNumber,
     email: user.email,
-    userRole: user.role.toString(),
     positionId: user.positionId,
     departmentId: user.departmentId || '',
   };

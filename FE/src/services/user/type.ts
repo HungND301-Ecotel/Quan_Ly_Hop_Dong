@@ -50,7 +50,7 @@ export type UpdateUserReq = {
   fullname: string;
   phoneNumber: string;
   email: string;
-  role: number;
+  role?: number;
   positionId: string;
   department: string;
 };

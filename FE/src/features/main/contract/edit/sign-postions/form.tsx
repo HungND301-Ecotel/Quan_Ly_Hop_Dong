@@ -3,8 +3,6 @@ import { PdfViewer } from '@/components/pdf-viewer';
 import { StepperPrev } from '@/components/stepper';
 import { useStepperContext } from '@/components/stepper/context';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -34,7 +32,7 @@ import { SignBox } from '@/features/main/contract/edit/sign-postions/sign-box';
 import { userService } from '@/services/user';
 import { User } from '@/types/user.type';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ChevronDown, FileText, Paperclip, UsersIcon } from 'lucide-react';
+import { FileText, Paperclip, UsersIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { FileCombobox } from '@/components/ui/fileCombobox';

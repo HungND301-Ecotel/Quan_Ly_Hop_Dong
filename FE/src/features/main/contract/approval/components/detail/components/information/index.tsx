@@ -8,18 +8,15 @@ import { format } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { Contract } from '@/services/contract/type';
 import {
-  Banknote,
   Calendar1Icon,
   CalendarDays,
   DollarSignIcon,
   FileBadge,
   FileText,
-  HashIcon,
   Layers,
   LucideIcon,
   ShieldCheck,
   StickyNote,
-  Users,
 } from 'lucide-react';
 
 export type ContractInformationProps = {
@@ -59,11 +56,10 @@ function InfoRow({
 function SectionHeader({
   title,
   description,
-  icon: Icon,
 }: {
   title: string;
   description?: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
 }) {
   return (
     <div className='flex items-center gap-2 mb-3'>

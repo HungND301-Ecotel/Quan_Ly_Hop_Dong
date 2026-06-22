@@ -21,8 +21,6 @@ import { contractTypeService } from '@/services/contract-type';
 import { ContractSignFlow, ContractType } from '@/services/contract/type';
 import { contractFieldService } from '@/services/contract-field';
 import { ContractField } from '@/services/contract-field/type';
-import { departmentService } from '@/services/department';
-import { Department } from '@/services/department/type';
 import { materialService } from '@/services/material';
 import { Material } from '@/services/material/type';
 import { partnerService } from '@/services/partner';
@@ -39,13 +37,11 @@ import {
   FileBadge,
   FileText,
   FileTextIcon,
-  HashIcon,
   Info,
   Layers,
   LucideIcon,
   ShieldCheck,
   StickyNote,
-  Users,
   Workflow,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -196,7 +192,6 @@ export function ContractReviewForm() {
   const [contractFields, setContractFields] = useState<ContractField[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
   const [procurementMethods, setProcurementMethods] = useState<
     ProcurementMethod[]
   >([]);
@@ -255,11 +250,6 @@ export function ContractReviewForm() {
     () => new Map(materials.map((m) => [m.id, m])),
     [materials]
   );
-  const departmentMap = useMemo(
-    () => new Map(departments.map((d) => [d.id, d.name])),
-    [departments]
-  );
-
   const contractStructureMap = useMemo(
     () => new Map(contractStructures.map((cs) => [cs.id, cs.name])),
     [contractStructures]
@@ -300,7 +290,6 @@ export function ContractReviewForm() {
       contractTypeService.getContractTypeList(),
       partnerService.getPartnerList(),
       userService.getUserList(),
-      departmentService.getDepartmentList(),
       procurementMethodService.getProcurementMethodList(),
       ContractRegisterService.getContractRegisterList(),
       materialService.getMaterialList(),
@@ -319,7 +308,6 @@ export function ContractReviewForm() {
           contractTypesData,
           partnersData,
           usersData,
-          departmentsData,
           procurementMethodsData,
           contractRegistersData,
           materialsData,
@@ -334,7 +322,6 @@ export function ContractReviewForm() {
           setContractTypes(contractTypesData || []);
           setPartners(partnersData || []);
           setUsers(usersData || []);
-          setDepartments(departmentsData || []);
           setProcurementMethods(procurementMethodsData || []);
           setContractRegisters(contractRegistersData || []);
           setMaterials(materialsData || []);

@@ -121,7 +121,7 @@ export function DocumentSection({ contract, disabled = false }: DocumentSectionP
     try {
       const payload = {
         contractNumber: contract.contractNumber,
-        contractDate: contract.startDate,
+        contractDate: contract.signingDate,
         sourceConnectionId: conn.id!,
       };
 
@@ -201,8 +201,8 @@ export function DocumentSection({ contract, disabled = false }: DocumentSectionP
                       </div>
                     </div>
                     <span className={`px-2.5 py-1 text-xs rounded-full font-semibold ${conn.isActive
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-500'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-100 text-gray-500'
                       }`}>
                       {conn.isActive ? 'Hoạt động' : 'Không hoạt động'}
                     </span>
