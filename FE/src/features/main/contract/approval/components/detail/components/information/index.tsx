@@ -517,24 +517,19 @@ export function ContractInformation({
               </div>
               <div className='space-y-2'>
                 <div className='grid grid-cols-12 gap-4 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground'>
-                  <div className='col-span-3'>Tên vật tư</div>
+                  <div className='col-span-8'>Tên vật tư</div>
                   <div className='col-span-2'>Đơn vị tính</div>
-                  <div className='col-span-2 text-right'>Đơn giá</div>
                   {!isRuleContract && (
                     <div className='col-span-2 text-right'>Số lượng</div>
                   )}
-                  {!isRuleContract && (
-                    <div className='col-span-3 text-right'>Thành tiền</div>
-                  )}
                 </div>
                 {information.contractItems.map((item, index) => {
-                  const total = (item?.quantity || 0) * (item?.price || 0);
                   return (
                     <div
                       key={index}
                       className='grid grid-cols-12 gap-4 px-3 py-2 rounded-lg border hover:border-primary/50 hover:bg-white transition-colors'
                     >
-                      <div className='col-span-3 flex flex-col justify-center'>
+                      <div className='col-span-8 flex flex-col justify-center'>
                         <span className='text-sm font-medium'>
                           {item.materialName}
                         </span>
@@ -545,17 +540,9 @@ export function ContractInformation({
                       <div className='col-span-2 flex items-center text-sm text-muted-foreground'>
                         {item?.unitOfMeasureName || '—'}
                       </div>
-                      <div className='col-span-2 flex items-center justify-end text-sm'>
-                        {format.number(item?.price || 0)} đ
-                      </div>
                       {!isRuleContract && (
                         <div className='col-span-2 flex items-center justify-end text-sm font-medium'>
                           {item.quantity}
-                        </div>
-                      )}
-                      {!isRuleContract && (
-                        <div className='col-span-3 flex items-center justify-end text-sm font-semibold text-primary'>
-                          {format.number(total)} đ
                         </div>
                       )}
                     </div>
@@ -581,36 +568,23 @@ export function ContractInformation({
                 </div>
                 <div className='space-y-2'>
                   <div className='grid grid-cols-12 gap-4 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground'>
-                    <div className='col-span-5'>Tên dịch vụ khác</div>
-                    <div className='col-span-2'>Đơn vị tính</div>
-                    <div className='col-span-2 text-right'>Đơn giá</div>
-                    {!isRuleContract && (
-                      <div className='col-span-3 text-right'>Thành tiền</div>
-                    )}
+                    <div className='col-span-9'>Tên dịch vụ khác</div>
+                    <div className='col-span-3'>Đơn vị tính</div>
                   </div>
                   {information.contractOtherItems.map((item, index) => {
-                    const total = (item?.quantity || 0) * (item?.price || 0);
                     return (
                       <div
                         key={index}
                         className='grid grid-cols-12 gap-4 px-3 py-2 rounded-lg border hover:border-primary/50 hover:bg-white transition-colors'
                       >
-                        <div className='col-span-5 flex items-center'>
+                        <div className='col-span-9 flex items-center'>
                           <span className='text-sm font-medium'>
                             {item.materialName || 'N/A'}
                           </span>
                         </div>
-                        <div className='col-span-2 flex items-center text-sm text-muted-foreground'>
+                        <div className='col-span-3 flex items-center text-sm text-muted-foreground'>
                           {item?.unitOfMeasureName || '—'}
                         </div>
-                        <div className='col-span-2 flex items-center justify-end text-sm'>
-                          {format.number(item?.price || 0)} đ
-                        </div>
-                        {!isRuleContract && (
-                          <div className='col-span-3 flex items-center justify-end text-sm font-semibold text-orange-600'>
-                            {format.number(total)} đ
-                          </div>
-                        )}
                       </div>
                     );
                   })}
