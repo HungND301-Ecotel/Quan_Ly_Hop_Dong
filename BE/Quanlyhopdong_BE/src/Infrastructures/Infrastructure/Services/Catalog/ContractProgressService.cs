@@ -317,11 +317,12 @@ public class ContractProgressService(
             }
 
             // Check for period overlap
-            var hasOverlap = await _progressRepo.AnyAsync(
-                predicate: p => p.ContractId == request.ContractId &&
-                               ((request.PeriodStart >= p.PeriodStart && request.PeriodStart < p.PeriodEnd) ||
-                                (request.PeriodEnd > p.PeriodStart && request.PeriodEnd <= p.PeriodEnd) ||
-                                (request.PeriodStart <= p.PeriodStart && request.PeriodEnd >= p.PeriodEnd)));
+            // var hasOverlap = await _progressRepo.AnyAsync(
+            //     predicate: p => p.ContractId == request.ContractId &&
+            //                    ((request.PeriodStart >= p.PeriodStart && request.PeriodStart < p.PeriodEnd) ||
+            //                     (request.PeriodEnd > p.PeriodStart && request.PeriodEnd <= p.PeriodEnd) ||
+            //                     (request.PeriodStart <= p.PeriodStart && request.PeriodEnd >= p.PeriodEnd)));
+            var hasOverlap = false;
 
             if (hasOverlap)
             {
@@ -707,11 +708,12 @@ public class ContractProgressService(
                     }
 
                     // Check for period overlap
-                    var hasOverlap = await _progressRepo.AnyAsync(
-                        predicate: p => p.ContractId == item.ContractId &&
-                                       ((item.PeriodStart >= p.PeriodStart && item.PeriodStart < p.PeriodEnd) ||
-                                        (item.PeriodEnd > p.PeriodStart && item.PeriodEnd <= p.PeriodEnd) ||
-                                        (item.PeriodStart <= p.PeriodStart && item.PeriodEnd >= p.PeriodEnd)));
+                    // var hasOverlap = await _progressRepo.AnyAsync(
+                    //     predicate: p => p.ContractId == item.ContractId &&
+                    //                    ((item.PeriodStart >= p.PeriodStart && item.PeriodStart < p.PeriodEnd) ||
+                    //                     (item.PeriodEnd > p.PeriodStart && item.PeriodEnd <= p.PeriodEnd) ||
+                    //                     (item.PeriodStart <= p.PeriodStart && item.PeriodEnd >= p.PeriodEnd)));
+                    var hasOverlap = false;
 
                     if (hasOverlap)
                     {
@@ -830,12 +832,13 @@ public class ContractProgressService(
                         }
 
                         // Check overlap with other progress records (excluding current)
-                        var hasOverlap = await _progressRepo.AnyAsync(
-                            predicate: p => p.ContractId == request.ContractId &&
-                                           p.Id != item.Id.Value &&
-                                           ((item.PeriodStart >= p.PeriodStart && item.PeriodStart < p.PeriodEnd) ||
-                                            (item.PeriodEnd > p.PeriodStart && item.PeriodEnd <= p.PeriodEnd) ||
-                                            (item.PeriodStart <= p.PeriodStart && item.PeriodEnd >= p.PeriodEnd)));
+                        // var hasOverlap = await _progressRepo.AnyAsync(
+                        //     predicate: p => p.ContractId == request.ContractId &&
+                        //                    p.Id != item.Id.Value &&
+                        //                    ((item.PeriodStart >= p.PeriodStart && item.PeriodStart < p.PeriodEnd) ||
+                        //                     (item.PeriodEnd > p.PeriodStart && item.PeriodEnd <= p.PeriodEnd) ||
+                        //                     (item.PeriodStart <= p.PeriodStart && item.PeriodEnd >= p.PeriodEnd)));
+                        var hasOverlap = false;
 
                         if (hasOverlap)
                         {
@@ -845,11 +848,12 @@ public class ContractProgressService(
                     else
                     {
                         // Check overlap for new progress
-                        var hasOverlap = await _progressRepo.AnyAsync(
-                            predicate: p => p.ContractId == request.ContractId &&
-                                           ((item.PeriodStart >= p.PeriodStart && item.PeriodStart < p.PeriodEnd) ||
-                                            (item.PeriodEnd > p.PeriodStart && item.PeriodEnd <= p.PeriodEnd) ||
-                                            (item.PeriodStart <= p.PeriodStart && item.PeriodEnd >= p.PeriodEnd)));
+                        // var hasOverlap = await _progressRepo.AnyAsync(
+                        //     predicate: p => p.ContractId == request.ContractId &&
+                        //                    ((item.PeriodStart >= p.PeriodStart && item.PeriodStart < p.PeriodEnd) ||
+                        //                     (item.PeriodEnd > p.PeriodStart && item.PeriodEnd <= p.PeriodEnd) ||
+                        //                     (item.PeriodStart <= p.PeriodStart && item.PeriodEnd >= p.PeriodEnd)));
+                        var hasOverlap = false;
 
                         if (hasOverlap)
                         {
@@ -1042,12 +1046,13 @@ public class ContractProgressService(
             }
 
             // Check for period overlap (excluding current record)
-            var hasOverlap = await _progressRepo.AnyAsync(
-                predicate: p => p.ContractId == progress.ContractId &&
-                               p.Id != request.Id &&
-                               ((request.PeriodStart >= p.PeriodStart && request.PeriodStart < p.PeriodEnd) ||
-                                (request.PeriodEnd > p.PeriodStart && request.PeriodEnd <= p.PeriodEnd) ||
-                                (request.PeriodStart <= p.PeriodStart && request.PeriodEnd >= p.PeriodEnd)));
+            // var hasOverlap = await _progressRepo.AnyAsync(
+            //     predicate: p => p.ContractId == progress.ContractId &&
+            //                    p.Id != request.Id &&
+            //                    ((request.PeriodStart >= p.PeriodStart && request.PeriodStart < p.PeriodEnd) ||
+            //                     (request.PeriodEnd > p.PeriodStart && request.PeriodEnd <= p.PeriodEnd) ||
+            //                     (request.PeriodStart <= p.PeriodStart && request.PeriodEnd >= p.PeriodEnd)));
+            var hasOverlap = false;
 
             if (hasOverlap)
             {
@@ -1481,11 +1486,12 @@ public class ContractProgressService(
             }
 
             // Check for period overlap
-            var hasOverlap = await _progressRepo.AnyAsync(
-                predicate: p => p.ContractId == request.ContractId &&
-                               ((request.PeriodStart >= p.PeriodStart && request.PeriodStart < p.PeriodEnd) ||
-                                (request.PeriodEnd > p.PeriodStart && request.PeriodEnd <= p.PeriodEnd) ||
-                                (request.PeriodStart <= p.PeriodStart && request.PeriodEnd >= p.PeriodEnd)));
+            // var hasOverlap = await _progressRepo.AnyAsync(
+            //     predicate: p => p.ContractId == request.ContractId &&
+            //                    ((request.PeriodStart >= p.PeriodStart && request.PeriodStart < p.PeriodEnd) ||
+            //                     (request.PeriodEnd > p.PeriodStart && request.PeriodEnd <= p.PeriodEnd) ||
+            //                     (request.PeriodStart <= p.PeriodStart && request.PeriodEnd >= p.PeriodEnd)));
+            var hasOverlap = false;
 
             if (hasOverlap)
             {
@@ -1663,11 +1669,12 @@ public class ContractProgressService(
                 {
                     // ADD NEW
                     // Check for period overlap
-                    var hasOverlap = await _progressRepo.AnyAsync(
-                        predicate: p => p.ContractId == request.ContractId &&
-                                       ((request.PeriodStart >= p.PeriodStart && request.PeriodStart < p.PeriodEnd) ||
-                                        (request.PeriodEnd > p.PeriodStart && request.PeriodEnd <= p.PeriodEnd) ||
-                                        (request.PeriodStart <= p.PeriodStart && request.PeriodEnd >= p.PeriodEnd)));
+                    // var hasOverlap = await _progressRepo.AnyAsync(
+                    //     predicate: p => p.ContractId == request.ContractId &&
+                    //                    ((request.PeriodStart >= p.PeriodStart && request.PeriodStart < p.PeriodEnd) ||
+                    //                     (request.PeriodEnd > p.PeriodStart && request.PeriodEnd <= p.PeriodEnd) ||
+                    //                     (request.PeriodStart <= p.PeriodStart && request.PeriodEnd >= p.PeriodEnd)));
+                    var hasOverlap = false;
 
                     if (hasOverlap)
                     {
@@ -1773,12 +1780,13 @@ public class ContractProgressService(
                     }
 
                     // Check overlap with other progress records (excluding current)
-                    var hasOverlap = await _progressRepo.AnyAsync(
-                        predicate: p => p.ContractId == request.ContractId &&
-                                       p.Id != request.Id.Value &&
-                                       ((request.PeriodStart >= p.PeriodStart && request.PeriodStart < p.PeriodEnd) ||
-                                        (request.PeriodEnd > p.PeriodStart && request.PeriodEnd <= p.PeriodEnd) ||
-                                        (request.PeriodStart <= p.PeriodStart && request.PeriodEnd >= p.PeriodEnd)));
+                    // var hasOverlap = await _progressRepo.AnyAsync(
+                    //     predicate: p => p.ContractId == request.ContractId &&
+                    //                    p.Id != request.Id.Value &&
+                    //                    ((request.PeriodStart >= p.PeriodStart && request.PeriodStart < p.PeriodEnd) ||
+                    //                     (request.PeriodEnd > p.PeriodStart && request.PeriodEnd <= p.PeriodEnd) ||
+                    //                     (request.PeriodStart <= p.PeriodStart && request.PeriodEnd >= p.PeriodEnd)));
+                    var hasOverlap = false;
 
                     if (hasOverlap)
                     {
