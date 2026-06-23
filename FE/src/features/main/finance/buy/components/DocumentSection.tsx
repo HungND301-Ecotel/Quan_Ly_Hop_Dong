@@ -434,7 +434,7 @@ function EmptyState({ icon, message, hint }: { icon: React.ReactNode; message: s
   );
 }
 
-function SyncResultBadges({ result }: { result: SyncResult }) {
+export function SyncResultBadges({ result }: { result: SyncResult }) {
   return (
     <div className='flex items-center gap-1 flex-wrap'>
       <Badge variant='secondary' className='gap-1 text-xs h-6'>

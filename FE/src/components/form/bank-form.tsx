@@ -220,38 +220,29 @@ export function BankAccountSelect({
 
   return (
     <div className='flex gap-2 items-end col-span-full'>
-      <div className='flex flex-col gap-1.5 flex-1'>
+      <div className='flex flex-col gap-1.5 flex-1 min-w-0'>
         <Label className='text-sm font-medium'>{label}</Label>
         <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
+          <PopoverTrigger asChild className='w-full min-w-0 overflow-hidden'>
             <Button
               type='button'
               variant='outline'
               role='combobox'
               aria-expanded={open}
-              className='w-full justify-between h-10 font-normal'
+              className='w-full justify-between h-10 font-normal gap-2 overflow-hidden'
             >
-              {selected ? (
-                <span className='flex flex-col items-start text-left'>
-                  <span className='font-medium text-sm'>
-                    {selected.accountNumber} — {selected.bankName}
-                  </span>
-                  <span className='text-xs text-muted-foreground'>
-                    {selected.accountHolder}
-                  </span>
-                </span>
-              ) : (
-                <span className='text-muted-foreground'>
-                  Tìm kiếm theo số TK, chủ TK, ngân hàng...
-                </span>
-              )}
-              <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+              <div className='truncate flex-1 min-w-0 text-left text-sm'>
+                {selected
+                  ? `${selected.accountNumber} — ${selected.bankName} · ${selected.accountHolder}`
+                  : 'Tìm kiếm theo số TK, chủ TK, ngân hàng...'}
+              </div>
+              <ChevronsUpDown className='h-4 w-4 shrink-0 opacity-50' />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className='w-100 p-0' align='start'>
+          <PopoverContent className='w-[var(--radix-popover-trigger-width)] p-0' align='start'>
             <Command>
               <CommandInput placeholder='Tìm số TK, chủ TK, ngân hàng...' />
-              <CommandList>
+              <CommandList onWheel={(e) => e.stopPropagation()}>
                 <CommandEmpty>Không tìm thấy tài khoản nào.</CommandEmpty>
                 <CommandGroup>
                   {accounts.map((account) => (

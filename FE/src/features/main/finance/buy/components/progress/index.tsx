@@ -70,10 +70,14 @@ import {
   CalendarCheckIcon,
   CalendarIcon,
   ConstructionIcon,
+  Database,
   EditIcon,
   EyeIcon,
+  FileTextIcon,
   HistoryIcon,
+  Loader2,
   PlusIcon,
+  RefreshCwIcon,
   SaveIcon,
   Trash2Icon,
   TrendingUpIcon,
@@ -97,6 +101,12 @@ import {
   ContractProgressFormSchema,
   ContractProgressFormValues,
 } from './schema';
+import { SyncResult } from '@/services/contract-payment/type';
+import { useExternalSyncConnections } from '@/hooks/useExternalSyncConnections';
+import { ExternalSyncConnection } from '@/services/server';
+import { SyncResultBadges } from '../DocumentSection';
+import { cn } from '@/lib/utils';
+import { contractService } from '@/services/contract';
 
 // contractQuantity hiển thị = executedQuantity + remainingQuantity (= tổng được phép của kỳ này)
 // remainingQuantity (validate max khi user nhập) = contractQuantity - 0
@@ -182,6 +192,22 @@ export function ProgressSection({
   const { getContractProgressDetail, getYearlySummary, getWorkInProgress } =
     contractProgressService;
 
+  const [contractInfo, setContractInfo] = useState<{
+    contractNumber: string;
+    effectiveDate: string;
+  } | null>(null);
+
+  useEffect(() => {
+    contractService.getContractDetail(contractId).then((res) => {
+      if (res) {
+        setContractInfo({
+          contractNumber: res.contractNumber,
+          effectiveDate: res.effectiveDate,
+        });
+      }
+    });
+  }, [contractId]);
+
   const [progressDetail, setProgressDetail] = useState<{
     fromDate: string;
     toDate: string;
@@ -203,6 +229,46 @@ export function ProgressSection({
   const [workInProgress, setWorkInProgress] = useState<WorkInProgress>();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [showConnectionPicker, setShowConnectionPicker] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
+
+  const { connections, loading: loadingConnections, loadConnections } =
+    useExternalSyncConnections();
+
+  useEffect(() => {
+    if (showConnectionPicker) {
+      loadConnections();
+    }
+  }, [showConnectionPicker, loadConnections]);
+
+  const handleSelectConnection = async (conn: ExternalSyncConnection) => {
+    setShowConnectionPicker(false);
+    setSyncing(true);
+    setSyncResult(null);
+
+    try {
+      const payload = {
+        contractNumber: contractInfo?.contractNumber ?? '',
+        contractDate: contractInfo?.effectiveDate ?? '',
+        sourceConnectionId: conn.id!,
+      };
+
+      const result = await contractPaymentService.syncInvoice(payload);
+      setSyncResult(result ?? null);
+      toast.success('Đồng bộ hóa đơn thành công');
+
+      // Refresh 3 bảng sau khi đồng bộ
+      progressTable.refresh();
+      yearSummaryTable.refresh();
+      workInProgressTable.refresh();
+    } catch {
+      toast.error('Đồng bộ hóa đơn thất bại');
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const progressColumns: ColumnDef<ContractProgress>[] = useMemo(
     () => [
@@ -334,12 +400,93 @@ export function ProgressSection({
 
   return (
     <div className='space-y-8'>
+      <Dialog open={showConnectionPicker} onOpenChange={setShowConnectionPicker}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Database className="w-5 h-5" />
+              Chọn kết nối đồng bộ
+            </DialogTitle>
+            <DialogDescription>
+              Chọn cổng kết nối để đồng bộ hóa đơn và thuế
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            {loadingConnections ? (
+              <div className="flex justify-center items-center gap-2 py-8 text-muted-foreground">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Đang tải danh sách kết nối...</span>
+              </div>
+            ) : connections.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Database className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">Chưa có kết nối nào được cấu hình</p>
+              </div>
+            ) : (
+              connections.map((conn) => (
+                <button
+                  key={conn.id}
+                  onClick={() => handleSelectConnection(conn)}
+                  disabled={!conn.isActive}
+                  className="w-full text-left p-4 rounded-lg border hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-100 rounded-md">
+                        <Database className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm text-slate-900">
+                          {conn.connection.server}
+                          <span className="text-slate-400 font-normal">:{conn.connection.port}</span>
+                        </p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {conn.connection.database} · {conn.connection.userId}
+                        </p>
+                      </div>
+                    </div>
+                    <span className={`px-2.5 py-1 text-xs rounded-full font-semibold ${conn.isActive
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-100 text-gray-500'
+                      }`}>
+                      {conn.isActive ? 'Hoạt động' : 'Không hoạt động'}
+                    </span>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <section className='space-y-3'>
         <div className='flex items-center justify-between gap-4'>
           <div className='flex items-center gap-2 text-xl font-semibold text-blue-600'>
             <ActivityIcon className='size-5' />
             <h3>Tình hình thực hiện hợp đồng</h3>
           </div>
+        </div>
+
+        <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
+          <div className="flex items-center gap-2">
+            <FileTextIcon className="size-4 text-blue-600" />
+            <span className="text-sm font-medium">Hóa đơn:</span>
+            {syncResult
+              ? <SyncResultBadges result={syncResult} />
+              : <span className="text-xs text-muted-foreground">—</span>
+            }
+          </div>
+          <Button
+            size='sm'
+            variant='default'
+            onClick={() => setShowConnectionPicker(true)}
+            disabled={syncing || !contractInfo}
+            className='gap-1.5 shrink-0'
+          >
+            <RefreshCwIcon className={cn('size-4', syncing && 'animate-spin')} />
+            {syncing ? 'Đang đồng bộ...' : 'Đồng bộ hóa đơn'}
+          </Button>
         </div>
 
         <DataTable dataTable={progressTable}>
@@ -1050,98 +1197,98 @@ function ProgressFormDialog({
             {fields && fields.length > 0 && (
               <div>
                 <h4 className='font-semibold mb-4'>Danh sách vật tư / thành phần hợp đồng</h4>
-              {loadingItems ? (
-                <div className='text-center py-8 text-muted-foreground'>
-                  Đang tải danh sách vật tư...
-                </div>
-              ) : (
-                <div className='overflow-x-auto -mx-1'>
-                  <Table className='w-full'>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Mã thành phần hợp đồng</TableHead>
-                        <TableHead>Tên thành phần hợp đồng</TableHead>
-                        <TableHead>Đơn giá (đ)</TableHead>
-                        <TableHead>Khối lượng hợp đồng</TableHead>
-                        <TableHead>Thành tiền hợp đồng (đ)</TableHead>
-                        <TableHead>Khối lượng thực hiện</TableHead>
-                        <TableHead>Khối lượng chưa thực hiện</TableHead>
-                        <TableHead>Thành tiền thực hiện (đ)</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {fields?.map((field, index) => {
-                        const currentItem = watchedItems?.[index];
-                        const currentQty = Number(currentItem?.currentExecutedQuantity) || 0;
-                        const unitPrice = Number(field.unitPrice) || 0;
-                        // maxQty = remainingQuantity đã được tính đúng lần 1/lần 2+ trong mapApiContractItemToUi
-                        const maxQty = Number(field.remainingQuantity) || 0;
-                        // nextQty = executedQuantity của lần N+1 cho vật tư này (nếu có)
-                        const nextQty = nextProgressItemMap[field.contractItemId] ?? 0;
+                {loadingItems ? (
+                  <div className='text-center py-8 text-muted-foreground'>
+                    Đang tải danh sách vật tư...
+                  </div>
+                ) : (
+                  <div className='overflow-x-auto -mx-1'>
+                    <Table className='w-full'>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Mã thành phần hợp đồng</TableHead>
+                          <TableHead>Tên thành phần hợp đồng</TableHead>
+                          <TableHead>Đơn giá (đ)</TableHead>
+                          <TableHead>Khối lượng hợp đồng</TableHead>
+                          <TableHead>Thành tiền hợp đồng (đ)</TableHead>
+                          <TableHead>Khối lượng thực hiện</TableHead>
+                          <TableHead>Khối lượng chưa thực hiện</TableHead>
+                          <TableHead>Thành tiền thực hiện (đ)</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {fields?.map((field, index) => {
+                          const currentItem = watchedItems?.[index];
+                          const currentQty = Number(currentItem?.currentExecutedQuantity) || 0;
+                          const unitPrice = Number(field.unitPrice) || 0;
+                          // maxQty = remainingQuantity đã được tính đúng lần 1/lần 2+ trong mapApiContractItemToUi
+                          const maxQty = Number(field.remainingQuantity) || 0;
+                          // nextQty = executedQuantity của lần N+1 cho vật tư này (nếu có)
+                          const nextQty = nextProgressItemMap[field.contractItemId] ?? 0;
 
-                        const isOverMax = currentQty > maxQty;
-                        // Cảnh báo nếu nhập thấp hơn lần N+1 đã dùng
-                        const isUnderNext = hasNextProgress && nextQty > 0 && currentQty < nextQty;
-                        const hasError = isOverMax || isUnderNext;
+                          const isOverMax = currentQty > maxQty;
+                          // Cảnh báo nếu nhập thấp hơn lần N+1 đã dùng
+                          const isUnderNext = hasNextProgress && nextQty > 0 && currentQty < nextQty;
+                          const hasError = isOverMax || isUnderNext;
 
-                        const unexecuted = hasError ? null : maxQty - currentQty;
+                          const unexecuted = hasError ? null : maxQty - currentQty;
 
-                        return (
-                          <TableRow key={field.id}>
-                            <TableCell>{field.itemCode}</TableCell>
-                            <TableCell>{field.itemName}</TableCell>
-                            <TableCell>{format.number(unitPrice)}</TableCell>
-                            {/* Khối lượng HĐ: contractQuantity đã được map đúng lần 1/2+ */}
-                            <TableCell>
-                              {format.number(field.contractQuantity)} {field.unit}
-                            </TableCell>
-                            <TableCell>{format.number(field.contractAmount)}</TableCell>
-                            <TableCell>
-                              <div className='space-y-1'>
-                                <FormNumber
-                                  control={form.control}
-                                  name={`contractProgressItems.${index}.currentExecutedQuantity`}
-                                  placeholder='Nhập khối lượng thực hiện'
-                                  className={hasError ? 'border-destructive' : ''}
-                                />
-                                {/* Vượt quá khối lượng hợp đồng */}
-                                {isOverMax && (
-                                  <p className='text-xs text-destructive'>
-                                    Vượt quá khối lượng cho phép ({format.number(maxQty)})
-                                  </p>
+                          return (
+                            <TableRow key={field.id}>
+                              <TableCell>{field.itemCode}</TableCell>
+                              <TableCell>{field.itemName}</TableCell>
+                              <TableCell>{format.number(unitPrice)}</TableCell>
+                              {/* Khối lượng HĐ: contractQuantity đã được map đúng lần 1/2+ */}
+                              <TableCell>
+                                {format.number(field.contractQuantity)} {field.unit}
+                              </TableCell>
+                              <TableCell>{format.number(field.contractAmount)}</TableCell>
+                              <TableCell>
+                                <div className='space-y-1'>
+                                  <FormNumber
+                                    control={form.control}
+                                    name={`contractProgressItems.${index}.currentExecutedQuantity`}
+                                    placeholder='Nhập khối lượng thực hiện'
+                                    className={hasError ? 'border-destructive' : ''}
+                                  />
+                                  {/* Vượt quá khối lượng hợp đồng */}
+                                  {isOverMax && (
+                                    <p className='text-xs text-destructive'>
+                                      Vượt quá khối lượng cho phép ({format.number(maxQty)})
+                                    </p>
+                                  )}
+                                  {/* Thấp hơn lần N+1 đã dùng */}
+                                  {!isOverMax && isUnderNext && (
+                                    <p className='text-xs text-destructive'>
+                                      Không thể chỉnh sửa vì khối lượng lần thực hiện sau bị thiếu hụt, vui lòng sửa hợp lý (tối thiểu {format.number(nextQty)})
+                                    </p>
+                                  )}
+                                </div>
+                              </TableCell>
+                              {/* KL chưa thực hiện */}
+                              <TableCell>
+                                {hasError ? (
+                                  <span className='text-destructive font-medium'>—</span>
+                                ) : (
+                                  format.number(unexecuted)
                                 )}
-                                {/* Thấp hơn lần N+1 đã dùng */}
-                                {!isOverMax && isUnderNext && (
-                                  <p className='text-xs text-destructive'>
-                                    Không thể chỉnh sửa vì khối lượng lần thực hiện sau bị thiếu hụt, vui lòng sửa hợp lý (tối thiểu {format.number(nextQty)})
-                                  </p>
+                              </TableCell>
+                              {/* Thành tiền: không tính nếu có lỗi */}
+                              <TableCell>
+                                {hasError ? (
+                                  <span className='text-destructive font-medium'>—</span>
+                                ) : (
+                                  format.number(currentQty * unitPrice)
                                 )}
-                              </div>
-                            </TableCell>
-                            {/* KL chưa thực hiện */}
-                            <TableCell>
-                              {hasError ? (
-                                <span className='text-destructive font-medium'>—</span>
-                              ) : (
-                                format.number(unexecuted)
-                              )}
-                            </TableCell>
-                            {/* Thành tiền: không tính nếu có lỗi */}
-                            <TableCell>
-                              {hasError ? (
-                                <span className='text-destructive font-medium'>—</span>
-                              ) : (
-                                format.number(currentQty * unitPrice)
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </div>
             )}
 
             <div className='grid grid-cols-2 gap-4'>
