@@ -585,10 +585,10 @@ export function ContractBasicInformationForm() {
           schedules:
             contract.paymentSchedules && contract.paymentSchedules.length > 0
               ? contract.paymentSchedules.map((schedule) => ({
-                  amountType: schedule.amountType,
-                  amount: schedule.amount,
-                  days: schedule.days,
-                }))
+                amountType: schedule.amountType,
+                amount: schedule.amount,
+                days: schedule.days,
+              }))
               : [{ amountType: 0, amount: 0, days: 30 }],
         },
         contractGuarantee: {
@@ -970,49 +970,49 @@ export function ContractBasicInformationForm() {
           <FormGroupHeader className='flex justify-between items-center'>
             <div className='flex flex-col gap-1'>
               <FormGroupLabel>Giá trị hợp đồng</FormGroupLabel>
-                <div className='flex flex-col gap-3 p-4 rounded-lg border bg-muted/30 w-fit min-w-[500px]'>
-                  {/* Dòng 1: Trước thuế */}
-                  <div className='flex items-center gap-3'>
-                    <span className='text-sm font-medium w-52 shrink-0'>
-                      Giá trị hợp đồng (trước thuế)
-                    </span>
-                    <div className='w-48'>
-                      <FormNumber
-                        control={form.control}
-                        name='contractValue'
-                        placeholder='Nhập giá trị hợp đồng'
-                      />
-                    </div>
-                    <span className='text-sm font-semibold'>VNĐ</span>
+              <div className='flex flex-col gap-3 p-4 rounded-lg border bg-muted/30 w-fit min-w-[500px]'>
+                {/* Dòng 1: Trước thuế */}
+                <div className='flex items-center gap-3'>
+                  <span className='text-sm font-medium w-52 shrink-0'>
+                    Giá trị hợp đồng (trước thuế)
+                  </span>
+                  <div className='w-48'>
+                    <FormNumber
+                      control={form.control}
+                      name='contractValue'
+                      placeholder='Nhập giá trị hợp đồng'
+                    />
                   </div>
-
-                  {/* Dòng 2: VAT */}
-                  <div className='flex items-center gap-3'>
-                    <span className='text-sm font-medium w-52 shrink-0'>
-                      Thuế VAT (%)
-                    </span>
-                    <div className='w-48'>
-                      <FormNumber
-                        control={form.control}
-                        name='vatPercentage'
-                        placeholder='Nhập % VAT'
-                      />
-                    </div>
-                    <span className='text-sm text-muted-foreground shrink-0'>
-                      = {format.number(getVatAmount())} VNĐ
-                    </span>
-                  </div>
-
-                  {/* Dòng 3: Sau thuế */}
-                  <div className='flex items-center gap-3 border-t pt-3'>
-                    <span className='text-sm font-medium w-52 shrink-0'>
-                      Giá trị hợp đồng (sau thuế)
-                    </span>
-                    <span className='font-bold text-primary text-base'>
-                      {format.number(getContractAfterTax())} VNĐ
-                    </span>
-                  </div>
+                  <span className='text-sm font-semibold'>VNĐ</span>
                 </div>
+
+                {/* Dòng 2: VAT */}
+                <div className='flex items-center gap-3'>
+                  <span className='text-sm font-medium w-52 shrink-0'>
+                    Thuế VAT (%)
+                  </span>
+                  <div className='w-48'>
+                    <FormNumber
+                      control={form.control}
+                      name='vatPercentage'
+                      placeholder='Nhập % VAT'
+                    />
+                  </div>
+                  <span className='text-sm text-muted-foreground shrink-0'>
+                    = {format.number(getVatAmount())} VNĐ
+                  </span>
+                </div>
+
+                {/* Dòng 3: Sau thuế */}
+                <div className='flex items-center gap-3 border-t pt-3'>
+                  <span className='text-sm font-medium w-52 shrink-0'>
+                    Giá trị hợp đồng (sau thuế)
+                  </span>
+                  <span className='font-bold text-primary text-base'>
+                    {format.number(getContractAfterTax())} VNĐ
+                  </span>
+                </div>
+              </div>
             </div>
           </FormGroupHeader>
 
@@ -1068,6 +1068,14 @@ export function ContractBasicInformationForm() {
                   (m) => m.id === watchedMaterialId
                 );
 
+                const allContractItems = form.watch('contractItems') || [];
+                const selectedMaterialIdsInOtherRows = allContractItems
+                  .map((item, idx) => idx !== index ? item.materialId : null)
+                  .filter(Boolean);
+                const availableMaterials = materials.filter(
+                  (m) => !selectedMaterialIdsInOtherRows.includes(m.id)
+                );
+
                 return (
                   <FormRow key={index}>
                     <div className='size-10 aspect-square rounded-lg mt-8 bg-primary border flex items-center justify-center text-primary-foreground'>
@@ -1079,7 +1087,7 @@ export function ContractBasicInformationForm() {
                         name={`contractItems.${index}.materialId`}
                         label='Vật tư'
                         placeholder='Chọn vật tư'
-                        materials={materials}
+                        materials={availableMaterials}
                         isLoading={isCatalogLoading}
                       />
                     </div>
@@ -1152,6 +1160,13 @@ export function ContractBasicInformationForm() {
               </div>
 
               {contractOtherItems?.map((_, index) => {
+                const allOtherItems = form.watch('contractOtherItems') || [];
+                const selectedOtherIdsInOtherRows = allOtherItems
+                  .map((item, idx) => idx !== index ? item.materialId : null)
+                  .filter(Boolean);
+                const availableOtherMaterials = otherMaterials.filter(
+                  (m) => !selectedOtherIdsInOtherRows.includes(m.id)
+                );
                 return (
                   <FormRow key={index}>
                     <div className='size-10 aspect-square rounded-lg mt-8 bg-primary border flex items-center justify-center text-primary-foreground'>
@@ -1163,7 +1178,7 @@ export function ContractBasicInformationForm() {
                         name={`contractOtherItems.${index}.materialId`}
                         label='Dịch vụ khác'
                         placeholder='Chọn dịch vụ khác'
-                        options={otherMaterials.map((material) => ({
+                        options={availableOtherMaterials.map((material) => ({
                           value: material.id,
                           label: `${material.materialCode} - ${material.name}`,
                         }))}
@@ -1234,7 +1249,7 @@ export function ContractBasicInformationForm() {
 
         {/* Bảo lãnh, bảo hành, đặt cọc */}
         {!isRuleContract && (
-          <FormRow className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
+          <FormRow className='grid grid-cols-1 lg:grid-cols-3 gap-4 min-w-0'>
             {(
               [
                 { name: 'performanceBondGuarantee', title: 'Bảo lãnh' },
@@ -1249,7 +1264,7 @@ export function ContractBasicInformationForm() {
               }[]
             ).map(({ name, title }) => {
               return (
-                <FormGroup key={name}>
+                <FormGroup key={name} className='min-w-0 overflow-hidden'>
                   <FormGroupHeader>
                     <FormGroupLabel>{title}</FormGroupLabel>
                   </FormGroupHeader>

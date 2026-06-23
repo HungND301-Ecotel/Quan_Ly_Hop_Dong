@@ -201,8 +201,8 @@ export function DocumentSection({ contract, disabled = false }: DocumentSectionP
                       </div>
                     </div>
                     <span className={`px-2.5 py-1 text-xs rounded-full font-semibold ${conn.isActive
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-500'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-100 text-gray-500'
                       }`}>
                       {conn.isActive ? 'Hoạt động' : 'Không hoạt động'}
                     </span>
@@ -434,7 +434,7 @@ function EmptyState({ icon, message, hint }: { icon: React.ReactNode; message: s
   );
 }
 
-function SyncResultBadges({ result }: { result: SyncResult }) {
+export function SyncResultBadges({ result }: { result: SyncResult }) {
   return (
     <div className='flex items-center gap-1 flex-wrap'>
       <Badge variant='secondary' className='gap-1 text-xs h-6'>

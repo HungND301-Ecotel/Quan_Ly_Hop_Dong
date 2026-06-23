@@ -121,7 +121,7 @@ export function VirtualMaterialSelect<T extends FieldValues>({
                     </div>
 
                     {/* Virtual list */}
-                    <div ref={parentRef} className='h-54 overflow-auto'>
+                    <div ref={parentRef} className='h-54 overflow-auto' onWheel={(e) => e.stopPropagation()}>
                         {filtered.length === 0 ? (
                             <div className='p-4 text-center text-sm text-muted-foreground'>
                                 Không tìm thấy.
