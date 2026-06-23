@@ -644,34 +644,16 @@ export function ContractBasicInformationForm() {
 
   const watchedDiscountType = form.watch('discountType');
   const watchedDiscountValue = form.watch('discountValue');
+  const isRuleContract = [0, 1].includes(contractFormat?.contractFormat || 0);
+  const watchedContractNumberId = form.watch('contractNumberId');
+  const filteredAppendixs = contractAppendixs.filter(
+    appendix => appendix.contractNumberId === watchedContractNumberId
+  );
 
   const watchedEffectiveDate = form.watch('effectiveDate');
   const watchedCompletionDurationDays = form.watch('completionDurationDays');
   const watchedCompletionDate = form.watch('completionDate');
   const watchedWarrantyDurationDays = form.watch('warrantyDurationDays');
-
-  const watchedContractNumberId = form.watch('contractNumberId');
-  const watchedAppendixNumberId = form.watch('appendixNumberId');
-  const filteredAppendixs = contractAppendixs.filter(
-    (appendix) => appendix.contractNumberId === watchedContractNumberId
-  );
-  // Sync contractNumber string khi chọn từ catalog
-  useEffect(() => {
-    if (isResettingForm.current) return;
-    const found = contractNumbers.find((f) => f.id === watchedContractNumberId);
-    form.setValue('contractNumber', found?.number ?? '');
-    // Reset appendix khi đổi contract
-    form.setValue('appendixNumberId', '');
-    form.setValue('appendixNumber', '');
-  }, [watchedContractNumberId]);
-
-  // Sync appendixNumber string khi chọn từ catalog
-  useEffect(() => {
-    if (isResettingForm.current) return;
-    const found = filteredAppendixs.find((f) => f.id === watchedAppendixNumberId);
-    form.setValue('appendixNumber', found?.appendixNumber ?? '');
-  }, [watchedAppendixNumberId]);
-
 
   // Ngày hoàn thành hợp đồng = Ngày hiệu lực + Thời gian thực hiện
   useEffect(() => {
@@ -685,7 +667,6 @@ export function ContractBasicInformationForm() {
     const warrantyStartDate = addDays(watchedCompletionDate, 1);
     form.setValue('warrantyExpirationDate', addDays(warrantyStartDate, watchedWarrantyDurationDays));
   }, [watchedCompletionDate, watchedWarrantyDurationDays]);
-  const isRuleContract = [0, 1].includes(contractFormat?.contractFormat || 0);
 
   const getVatAmount = () => {
     const beforeTax = getContractFinalValue();
@@ -715,56 +696,47 @@ export function ContractBasicInformationForm() {
       contractAppendixService.getContractAppendixList(),
     ]);
 
-    promises
-      .then(
-        ([
-          contractTypes,
-          contractRegisters,
-          partners,
-          procurementMethods,
-          users,
-          materials,
-          otherMaterials,
-          departments,
-          _positions,
-          level1CodesData,
-          contractStructuresData,
-          contractFieldsData,
-          contractNumbersData,
-          contractAppendixsData,
-        ]) => {
-          setContractTypes(contractTypes || []);
-          setContractRegisters(contractRegisters || []);
-          setPartners(partners || []);
-          setProcurementMethods(procurementMethods || []);
-          setUsers(users || []);
-          setMaterials(materials || []);
-          setOtherMaterials(otherMaterials || []);
-          setDepartments(departments || []);
-          setLevel1Codes(level1CodesData || []);
-          setContractStructures(contractStructuresData || []);
-          setContractFields(contractFieldsData || []);
-          setContractNumbers(contractNumbersData || []);
-          setContractAppendixs(contractAppendixsData || []);
-        }
-      )
-      .finally(() => {
-        setIsCatalogLoading(false);
-      });
+    promises.then(
+      ([
+        contractTypes,
+        contractRegisters,
+        partners,
+        procurementMethods,
+        users,
+        materials,
+        otherMaterials,
+        departments,
+        _positions,
+        level1CodesData,
+        contractStructuresData,
+        contractFieldsData,
+        contractNumbersData,
+        contractAppendixsData,
+      ]) => {
+        setContractTypes(contractTypes || []);
+        setContractRegisters(contractRegisters || []);
+        setPartners(partners || []);
+        setProcurementMethods(procurementMethods || []);
+        setUsers(users || []);
+        console.log('form.tsx loaded materials count:', (materials || []).length);
+        console.log('form.tsx loaded otherMaterials count:', (otherMaterials || []).length);
+        setMaterials(materials || []);
+        setOtherMaterials(otherMaterials || []);
+        setDepartments(departments || []);
+        setLevel1Codes(level1CodesData || []);
+        setContractStructures(contractStructuresData || []);
+        setContractFields(contractFieldsData || []);
+        setContractNumbers(contractNumbersData || []);
+        setContractAppendixs(contractAppendixsData || []);
+      }
+    ).finally(() => {
+      setIsCatalogLoading(false);
+    });
   }, []);
-
-
 
   const getContractFinalValue = () => {
     return form.watch('contractValue') || 0;
   };
-
-
-
-
-
-
-
 
   const watchedLevel1CodeId = form.watch('level1CodeId');
   const watchedLevel3CodeId = form.watch('level3CodeId');
