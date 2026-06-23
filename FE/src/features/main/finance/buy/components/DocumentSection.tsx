@@ -121,7 +121,7 @@ export function DocumentSection({ contract, disabled = false }: DocumentSectionP
     try {
       const payload = {
         contractNumber: contract.contractNumber,
-        contractDate: contract.signingDate,
+        contractDate: contract.effectiveDate,
         sourceConnectionId: conn.id!,
       };
 

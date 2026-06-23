@@ -35,7 +35,7 @@ import { ContractInformation } from './components/information';
 import { ContractReject } from './components/reject';
 import { ContractEvidence } from './components/evidence';
 import { contractPaymentService } from '@/services/contract-payment';
-import { ProgressSectionNew } from '@/features/main/finance/buy/components/progress/FileFakeData/ProgressSectionNew';
+import { ProgressSection } from '@/features/main/finance/buy/components/progress';
 import { PaymentSection } from '@/features/main/finance/buy/components/payment';
 
 export type ContractDetailProps = {
@@ -161,7 +161,7 @@ export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
             </TabsContent>
             <TabsContent value='progress'>
               {detail.data && (
-                <ProgressSectionNew
+                <ProgressSection
                   contractId={row.original.id}
                   contractValue={detail.data?.contractValue ?? 0}
                 />

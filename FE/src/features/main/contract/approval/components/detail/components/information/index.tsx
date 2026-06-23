@@ -675,69 +675,7 @@ export function ContractInformation({
         </Section>
       )}
 
-      {/* 8. Bảo lãnh */}
-      {!isRuleContract && information?.contractGuarantee && information.contractGuarantee.length > 0 && (
-        <Section title='Bảo lãnh hợp đồng' icon={ShieldCheck}>
-          <div className='space-y-4'>
-            {information.contractGuarantee.map((guarantee) => {
-              if (!guarantee?.value) return null;
 
-              const guaranteeTypeMap: Record<number, { label: string; colorClass: string; iconColor: string }> = {
-                1: {
-                  label: 'Bảo lãnh thực hiện hợp đồng',
-                  colorClass: 'bg-white',
-                  iconColor: 'text-amber-600',
-                },
-                2: {
-                  label: 'Bảo lãnh bảo hành',
-                  colorClass: 'bg-white',
-                  iconColor: 'text-green-600',
-                },
-                3: {
-                  label: 'Bảo lãnh đặt cọc',
-                  colorClass: 'bg-white',
-                  iconColor: 'text-blue-600',
-                },
-              };
-
-              const { colorClass } = guaranteeTypeMap[guarantee.guaranteeType] ?? {
-                label: 'Bảo lãnh khác',
-                colorClass: 'from-muted/5 to-muted/0',
-                iconColor: 'text-muted-foreground',
-              };
-
-              return (
-                <div
-                  key={guarantee.bankAccount?.id}
-                  className={`p-4 rounded-lg border bg-linear-to-br ${colorClass}`}
-                >
-                  <div className='grid grid-cols-3 gap-3'>
-                    <InfoRow
-                      label='Giá trị'
-                      value={
-                        guarantee.valueType === 1
-                          ? `${guarantee.value}%`
-                          : new Intl.NumberFormat('vi-VN', {
-                            style: 'currency',
-                            currency: 'VND',
-                          }).format(guarantee.value)
-                      }
-                      highlight
-                    />
-                    {guarantee.durationDate && (
-                      <InfoRow
-                        label='Thời hạn'
-                        value={format.date(guarantee.durationDate)}
-                      />
-                    )}
-
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Section>
-      )}
 
       {/* ── Bảo lãnh ── */}
       {!isRuleContract &&

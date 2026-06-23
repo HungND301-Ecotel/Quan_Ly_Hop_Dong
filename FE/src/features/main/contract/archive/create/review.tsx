@@ -577,10 +577,28 @@ export function ContractArchiveReviewForm() {
                   loading={loading}
                 />
                 <InfoRow
-                  label='Hiệu lực hết'
+                  label='Ngày hợp đồng có hiệu lực'
+                  value={
+                    basicInformation?.effectiveDate
+                      ? new Date(basicInformation.effectiveDate).toLocaleDateString('vi-VN')
+                      : undefined
+                  }
+                  loading={loading}
+                />
+                <InfoRow
+                  label='Ngày hoàn thành hợp đồng'
                   value={
                     basicInformation?.completionDate
                       ? new Date(basicInformation.completionDate).toLocaleDateString('vi-VN')
+                      : undefined
+                  }
+                  loading={loading}
+                />
+                <InfoRow
+                  label='Ngày hết hạn bảo hành'
+                  value={
+                    basicInformation?.warrantyExpirationDate
+                      ? new Date(basicInformation.warrantyExpirationDate).toLocaleDateString('vi-VN')
                       : undefined
                   }
                   loading={loading}

@@ -802,10 +802,11 @@ export function ContractBasicInformationForm() {
         message: 'Phải nhỏ hơn giá trị hợp đồng',
       });
     }
-    setBasicInformation(data);
+    // BE chỉ nhận 4 ngày tuyệt đối, không cần gửi số ngày (duration)
+    const { completionDurationDays, warrantyDurationDays, ...payload } = data;
+    setBasicInformation(payload as BasicInformationValues);
     nextStep();
   };
-
 
   if (isCatalogLoading || (isUpdate && loading)) {
     return (

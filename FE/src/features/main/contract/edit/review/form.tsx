@@ -974,20 +974,23 @@ export function ContractReviewForm() {
                       </div>
                       <div className='space-y-2'>
                         <div className='grid grid-cols-12 gap-4 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground'>
-                          <div className='col-span-6'>Tên vật tư</div>
-                          <div className='col-span-3'>Đơn vị tính</div>
+                          <div className='col-span-5'>Tên vật tư</div>
+                          <div className='col-span-2'>Đơn vị tính</div>
+                          <div className='col-span-2 text-right'>Đơn giá</div>
                           <div className='col-span-3 text-right'>
-                            Số lượng
+                            Thành tiền
                           </div>
                         </div>
                         {basicInformation.contractItems.map((item, index) => {
                           const material = materialMap.get(item.materialId);
+                          const total =
+                            (item.quantity || 0) * (material?.price || 0);
                           return (
                             <div
                               key={index}
                               className='grid grid-cols-12 gap-4 px-3 py-2 rounded-lg border hover:border-primary/50 hover:bg-white transition-colors'
                             >
-                              <div className='col-span-6 flex flex-col justify-center'>
+                              <div className='col-span-5 flex flex-col justify-center'>
                                 <span className='text-sm font-medium'>
                                   {material?.name || 'N/A'}
                                 </span>
@@ -997,11 +1000,14 @@ export function ContractReviewForm() {
                                   </span>
                                 )}
                               </div>
-                              <div className='col-span-3 flex items-center text-sm text-muted-foreground'>
+                              <div className='col-span-2 flex items-center text-sm text-muted-foreground'>
                                 {material?.unitOfMeasureName || '—'}
                               </div>
+                              <div className='col-span-2 flex items-center justify-end text-sm'>
+                                {format.number(material?.price || 0)} đ
+                              </div>
                               <div className='col-span-3 flex items-center justify-end text-sm font-semibold text-primary'>
-                                {item.quantity || 0}
+                                {format.number(total)} đ
                               </div>
                             </div>
                           );
@@ -1221,7 +1227,7 @@ export function ContractReviewForm() {
           </TabsContent >
 
           {/* ── Tab: Luồng ký duyệt ── */}
-          <TabsContent value='flows' className='mt-4'>
+          < TabsContent value='flows' className='mt-4' >
             <div className='p-6 rounded-lg border bg-card space-y-4'>
               <SectionHeader
                 title='Luồng ký duyệt'
@@ -1261,7 +1267,7 @@ export function ContractReviewForm() {
           </TabsContent >
 
           {/* ── Tab: Tài liệu ── */}
-          <TabsContent value='documents' className='mt-4'>
+          < TabsContent value='documents' className='mt-4' >
             <div className='p-6 rounded-lg border bg-card space-y-4'>
               <SectionHeader
                 title='Xem trước tài liệu'
