@@ -70,8 +70,8 @@ import { userService } from '@/services/user';
 import { User } from '@/types/user.type';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, PlusIcon, Save, Trash2Icon, XIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { Controller, useFieldArray, useForm } from 'react-hook-form';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { BankAccountSelect } from '@/components/form/bank-form';
 import { Level1Code } from '@/services/level1code/type';
@@ -523,7 +523,6 @@ export function ContractBasicInformationForm() {
     ]);
 
     promises.then(([files, attachments]) => {
-      console.log('contract.paymentSchedules:', contract.paymentSchedules);
       isResettingForm.current = true;
       if (contract.level1CodeId) {
         level2CodeService
@@ -626,6 +625,16 @@ export function ContractBasicInformationForm() {
     name: 'contractItems',
   });
 
+  const watchedContractItems = useWatch({ control: form.control, name: 'contractItems' }) || [];
+  const availableMaterialsByIndex = useMemo(() => {
+    return watchedContractItems.map((_, index) => {
+      const excludedIds = watchedContractItems
+        .map((item, idx) => (idx !== index ? item.materialId : null))
+        .filter(Boolean);
+      return materials.filter((m) => !excludedIds.includes(m.id));
+    });
+  }, [materials, watchedContractItems]);
+
   const {
     fields: contractOtherItems,
     append: appendContractOtherItem,
@@ -634,6 +643,16 @@ export function ContractBasicInformationForm() {
     control: form.control,
     name: 'contractOtherItems',
   });
+
+  const watchedContractOtherItems = useWatch({ control: form.control, name: 'contractOtherItems' }) || [];
+  const availableOtherMaterialsByIndex = useMemo(() => {
+    return watchedContractOtherItems.map((_, index) => {
+      const excludedIds = watchedContractOtherItems
+        .map((item, idx) => (idx !== index ? item.materialId : null))
+        .filter(Boolean);
+      return otherMaterials.filter((m) => !excludedIds.includes(m.id));
+    });
+  }, [otherMaterials, watchedContractOtherItems]);
 
   const {
     replace: replacePaymentSchedules,
@@ -646,9 +665,26 @@ export function ContractBasicInformationForm() {
   const watchedDiscountValue = form.watch('discountValue');
   const isRuleContract = [0, 1].includes(contractFormat?.contractFormat || 0);
   const watchedContractNumberId = form.watch('contractNumberId');
+  const watchedAppendixNumberId = form.watch('appendixNumberId');
   const filteredAppendixs = contractAppendixs.filter(
     appendix => appendix.contractNumberId === watchedContractNumberId
   );
+
+  useEffect(() => {
+    if (isResettingForm.current) return;
+    if (contractNumbers.length === 0) return;
+    const selected = contractNumbers.find((f) => f.id === watchedContractNumberId);
+    form.setValue('contractNumber', selected?.number ?? '');
+    form.setValue('appendixNumberId', '');
+    form.setValue('appendixNumber', '');
+  }, [watchedContractNumberId, contractNumbers]);
+
+  useEffect(() => {
+    if (isResettingForm.current) return;
+    if (contractAppendixs.length === 0) return;
+    const selected = contractAppendixs.find((f) => f.id === watchedAppendixNumberId);
+    form.setValue('appendixNumber', selected?.appendixNumber ?? '');
+  }, [watchedAppendixNumberId, contractAppendixs]);
 
   const watchedEffectiveDate = form.watch('effectiveDate');
   const watchedCompletionDurationDays = form.watch('completionDurationDays');
@@ -718,8 +754,6 @@ export function ContractBasicInformationForm() {
         setPartners(partners || []);
         setProcurementMethods(procurementMethods || []);
         setUsers(users || []);
-        console.log('form.tsx loaded materials count:', (materials || []).length);
-        console.log('form.tsx loaded otherMaterials count:', (otherMaterials || []).length);
         setMaterials(materials || []);
         setOtherMaterials(otherMaterials || []);
         setDepartments(departments || []);
@@ -1033,20 +1067,12 @@ export function ContractBasicInformationForm() {
               </div>
 
               {contractItems?.map((_, index) => {
-                const watchedMaterialId = form.watch(
-                  `contractItems.${index}.materialId`
-                );
+                const watchedMaterialId = watchedContractItems[index]?.materialId;
                 const selectedMaterial = materials.find(
                   (m) => m.id === watchedMaterialId
                 );
 
-                const allContractItems = form.watch('contractItems') || [];
-                const selectedMaterialIdsInOtherRows = allContractItems
-                  .map((item, idx) => idx !== index ? item.materialId : null)
-                  .filter(Boolean);
-                const availableMaterials = materials.filter(
-                  (m) => !selectedMaterialIdsInOtherRows.includes(m.id)
-                );
+                const availableMaterials = availableMaterialsByIndex[index] || materials;
 
                 return (
                   <FormRow key={index}>
@@ -1132,13 +1158,7 @@ export function ContractBasicInformationForm() {
               </div>
 
               {contractOtherItems?.map((_, index) => {
-                const allOtherItems = form.watch('contractOtherItems') || [];
-                const selectedOtherIdsInOtherRows = allOtherItems
-                  .map((item, idx) => idx !== index ? item.materialId : null)
-                  .filter(Boolean);
-                const availableOtherMaterials = otherMaterials.filter(
-                  (m) => !selectedOtherIdsInOtherRows.includes(m.id)
-                );
+                const availableOtherMaterials = availableOtherMaterialsByIndex[index] || otherMaterials;
                 return (
                   <FormRow key={index}>
                     <div className='size-10 aspect-square rounded-lg mt-8 bg-primary border flex items-center justify-center text-primary-foreground'>

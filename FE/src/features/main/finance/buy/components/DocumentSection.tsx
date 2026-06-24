@@ -68,9 +68,45 @@ type Payment = {
 type DocumentSectionProps = {
   contract: Contract;
   disabled?: boolean;
+  invoiceRef?: React.RefObject<HTMLDivElement | null>;
+  taxRef?: React.RefObject<HTMLDivElement | null>;
 };
 
-export function DocumentSection({ contract, disabled = false }: DocumentSectionProps) {
+function PaymentCountdown({ paymentDate }: { paymentDate: string | null }) {
+  if (!paymentDate) return <span className='text-muted-foreground text-sm'>—</span>;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(paymentDate);
+  due.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+  // Đã qua hạn
+  if (diffDays < 0) return null;
+
+  // Còn hơn 15 ngày — không hiển thị
+  if (diffDays > 15) return null;
+
+  // Còn 0–15 ngày
+  const color =
+    diffDays === 0
+      ? 'bg-red-100 text-red-700 border-red-200'
+      : diffDays <= 5
+        ? 'bg-orange-100 text-orange-700 border-orange-200'
+        : 'bg-yellow-100 text-yellow-700 border-yellow-200';
+
+  const label =
+    diffDays === 0 ? 'Hôm nay' : `Còn ${diffDays} ngày`;
+
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${color}`}>
+      {label}
+    </span>
+  );
+}
+
+export function DocumentSection({ contract, disabled = false, invoiceRef, taxRef }: DocumentSectionProps) {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [showConnectionPicker, setShowConnectionPicker] = useState(false);
@@ -249,177 +285,183 @@ export function DocumentSection({ contract, disabled = false }: DocumentSectionP
       </div>
 
       {/* ── Hóa đơn ── */}
-      <Card className='overflow-hidden'>
-        <CardHeader className='px-5 py-4 border-b bg-muted/30'>
-          <div className='flex items-center gap-2.5'>
-            <div className='flex items-center justify-center size-8 rounded-md bg-blue-50 text-blue-600'>
-              <FileTextIcon className='size-4' />
+      <div ref={invoiceRef}>
+        <Card className='overflow-hidden'>
+          <CardHeader className='px-5 py-4 border-b bg-muted/30'>
+            <div className='flex items-center gap-2.5'>
+              <div className='flex items-center justify-center size-8 rounded-md bg-blue-50 text-blue-600'>
+                <FileTextIcon className='size-4' />
+              </div>
+              <div>
+                <p className='text-sm font-semibold leading-none'>Hóa đơn</p>
+                {!dataLoading && (
+                  <p className='text-xs text-muted-foreground mt-0.5'>
+                    {payments.length} đợt thanh toán
+                  </p>
+                )}
+              </div>
             </div>
-            <div>
-              <p className='text-sm font-semibold leading-none'>Hóa đơn</p>
-              {!dataLoading && (
-                <p className='text-xs text-muted-foreground mt-0.5'>
-                  {payments.length} đợt thanh toán
-                </p>
-              )}
-            </div>
-          </div>
-        </CardHeader>
+          </CardHeader>
 
-        <CardContent className='p-0'>
-          {dataLoading ? (
-            <TableSkeleton cols={5} />
-          ) : payments.length === 0 ? (
-            <EmptyState
-              icon={<FileTextIcon className='size-6' />}
-              message='Chưa có dữ liệu hóa đơn'
-              hint='Nhấn "Đồng bộ" để tải về từ hệ thống'
-            />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className='bg-muted/20 hover:bg-muted/20'>
-                  <TableHead className='w-14 text-center pl-5'>Đợt</TableHead>
-                  <TableHead>Số hóa đơn</TableHead>
-                  <TableHead>Ngày hóa đơn</TableHead>
-                  <TableHead>Ngày thanh toán</TableHead>
-                  <TableHead className='text-right pr-5'>Số tiền</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {payments.map((p) => (
-                  <TableRow key={p.id} className='hover:bg-muted/30'>
-                    <TableCell className='text-center pl-5'>
-                      <span className='inline-flex items-center justify-center size-6 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold'>
-                        {p.periodNumber}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {p.invoice?.numberInvoice ? (
-                        <span className='font-mono text-sm font-medium'>{p.invoice.numberInvoice}</span>
-                      ) : (
-                        <span className='text-muted-foreground text-sm'>—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className='text-sm text-muted-foreground'>
-                      {p.invoice?.dateInvoice
-                        ? new Date(p.invoice.dateInvoice).toLocaleDateString('vi-VN')
-                        : <span className='text-muted-foreground'>—</span>}
-                    </TableCell>
-                    <TableCell className='text-sm text-muted-foreground'>
-                      {p.paymentDate
-                        ? new Date(p.paymentDate).toLocaleDateString('vi-VN')
-                        : <span className='text-muted-foreground'>—</span>}
-                    </TableCell>
-                    <TableCell className='text-right pr-5'>
-                      <span className='text-sm font-semibold tabular-nums'>
-                        {format.number(p.amount)}&nbsp;đ
-                      </span>
-                    </TableCell>
+          <CardContent className='p-0'>
+            {dataLoading ? (
+              <TableSkeleton cols={5} />
+            ) : payments.length === 0 ? (
+              <EmptyState
+                icon={<FileTextIcon className='size-6' />}
+                message='Chưa có dữ liệu hóa đơn'
+                hint='Nhấn "Đồng bộ" để tải về từ hệ thống'
+              />
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className='bg-muted/20 hover:bg-muted/20'>
+                    <TableHead className='w-14 text-center pl-5'>Đợt</TableHead>
+                    <TableHead>Số hóa đơn</TableHead>
+                    <TableHead>Ngày hóa đơn</TableHead>
+                    <TableHead>Số tiền</TableHead>
+                    <TableHead>Ngày thanh toán</TableHead>
+                    <TableHead>Đến hạn</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {payments.map((p) => (
+                    <TableRow key={p.id} className='hover:bg-muted/30'>
+                      <TableCell className='text-center pl-5'>
+                        <span className='inline-flex items-center justify-center size-6 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold'>
+                          {p.periodNumber}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {p.invoice?.numberInvoice ? (
+                          <span className='font-mono text-sm font-medium'>{p.invoice.numberInvoice}</span>
+                        ) : (
+                          <span className='text-muted-foreground text-sm'>—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className='text-sm text-muted-foreground'>
+                        {p.invoice?.dateInvoice
+                          ? new Date(p.invoice.dateInvoice).toLocaleDateString('vi-VN')
+                          : <span className='text-muted-foreground'>—</span>}
+                      </TableCell>
+                      <TableCell className='text-sm font-semibold tabular-nums'>
+                        {format.number(p.amount)}&nbsp;đ
+                      </TableCell>
+                      <TableCell className='text-sm text-muted-foreground'>
+                        {p.paymentDate
+                          ? new Date(p.paymentDate).toLocaleDateString('vi-VN')
+                          : <span className='text-muted-foreground'>—</span>}
+                      </TableCell>
+                      <TableCell>
+                        <PaymentCountdown paymentDate={p.paymentDate} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* ── Thuế ── */}
-      <Card className='overflow-hidden'>
-        <CardHeader className='px-5 py-4 border-b bg-muted/30'>
-          <div className='flex items-center gap-2.5'>
-            <div className='flex items-center justify-center size-8 rounded-md bg-emerald-50 text-emerald-600'>
-              <ReceiptIcon className='size-4' />
+      <div ref={taxRef}>
+        <Card className='overflow-hidden'>
+          <CardHeader className='px-5 py-4 border-b bg-muted/30'>
+            <div className='flex items-center gap-2.5'>
+              <div className='flex items-center justify-center size-8 rounded-md bg-emerald-50 text-emerald-600'>
+                <ReceiptIcon className='size-4' />
+              </div>
+              <div>
+                <p className='text-sm font-semibold leading-none'>Thuế</p>
+                {!dataLoading && (
+                  <p className='text-xs text-muted-foreground mt-0.5'>
+                    {payments.filter((p) => p.tax).length} đợt có dữ liệu thuế
+                  </p>
+                )}
+              </div>
             </div>
-            <div>
-              <p className='text-sm font-semibold leading-none'>Thuế</p>
-              {!dataLoading && (
-                <p className='text-xs text-muted-foreground mt-0.5'>
-                  {payments.filter((p) => p.tax).length} đợt có dữ liệu thuế
-                </p>
-              )}
-            </div>
-          </div>
-        </CardHeader>
+          </CardHeader>
 
-        <CardContent className='p-0'>
-          {dataLoading ? (
-            <TableSkeleton cols={6} />
-          ) : payments.length === 0 ? (
-            <EmptyState
-              icon={<ReceiptIcon className='size-6' />}
-              message='Chưa có dữ liệu thuế'
-              hint='Nhấn "Đồng bộ" để tải về từ hệ thống'
-            />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className='bg-muted/20 hover:bg-muted/20'>
-                  <TableHead className='w-14 text-center pl-5'>Đợt</TableHead>
-                  <TableHead>Mã số thuế</TableHead>
-                  <TableHead>Ngày khai thuế</TableHead>
-                  <TableHead className='text-right'>Doanh thu chịu thuế</TableHead>
-                  <TableHead className='text-right'>Thuế suất</TableHead>
-                  <TableHead className='text-right pr-5'>Tiền thuế VAT</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {payments.map((p) => (
-                  <TableRow key={p.id} className='hover:bg-muted/30'>
-                    <TableCell className='text-center pl-5'>
-                      <span className='inline-flex items-center justify-center size-6 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold'>
-                        {p.periodNumber}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {p.tax?.taxCode ? (
-                        <span className='font-mono text-sm font-medium'>{p.tax.taxCode}</span>
-                      ) : (
-                        <span className='text-muted-foreground text-sm'>—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className='text-sm text-muted-foreground'>
-                      {p.tax?.declarationDate
-                        ? new Date(p.tax.declarationDate).toLocaleDateString('vi-VN')
-                        : <span className='text-muted-foreground'>—</span>}
-                    </TableCell>
-                    <TableCell className='text-right'>
-                      {p.tax?.taxableRevenue != null ? (
-                        <span className='text-sm tabular-nums'>
-                          {format.number(p.tax.taxableRevenue)}&nbsp;đ
-                        </span>
-                      ) : (
-                        <span className='text-muted-foreground text-sm'>—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className='text-right'>
-                      {p.tax?.vatRate != null ? (
-                        <Badge
-                          variant={p.tax.vatRate === 0 ? 'secondary' : 'default'}
-                          className='font-mono tabular-nums'
-                        >
-                          {(p.tax.vatRate * 100).toFixed(0)}%
-                        </Badge>
-                      ) : (
-                        <span className='text-muted-foreground text-sm'>—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className='text-right pr-5'>
-                      {p.tax?.vatAmount != null ? (
-                        <span className='text-sm font-semibold tabular-nums'>
-                          {format.number(p.tax.vatAmount)}&nbsp;đ
-                        </span>
-                      ) : (
-                        <span className='text-muted-foreground text-sm'>—</span>
-                      )}
-                    </TableCell>
+          <CardContent className='p-0'>
+            {dataLoading ? (
+              <TableSkeleton cols={6} />
+            ) : payments.length === 0 ? (
+              <EmptyState
+                icon={<ReceiptIcon className='size-6' />}
+                message='Chưa có dữ liệu thuế'
+                hint='Nhấn "Đồng bộ" để tải về từ hệ thống'
+              />
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className='bg-muted/20 hover:bg-muted/20'>
+                    <TableHead className='w-14 text-center pl-5'>Đợt</TableHead>
+                    <TableHead>Mã số thuế</TableHead>
+                    <TableHead>Ngày khai thuế</TableHead>
+                    <TableHead className='text-right'>Doanh thu chịu thuế</TableHead>
+                    <TableHead className='text-right'>Thuế suất</TableHead>
+                    <TableHead className='text-right pr-5'>Tiền thuế VAT</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {payments.map((p) => (
+                    <TableRow key={p.id} className='hover:bg-muted/30'>
+                      <TableCell className='text-center pl-5'>
+                        <span className='inline-flex items-center justify-center size-6 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold'>
+                          {p.periodNumber}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {p.tax?.taxCode ? (
+                          <span className='font-mono text-sm font-medium'>{p.tax.taxCode}</span>
+                        ) : (
+                          <span className='text-muted-foreground text-sm'>—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className='text-sm text-muted-foreground'>
+                        {p.tax?.declarationDate
+                          ? new Date(p.tax.declarationDate).toLocaleDateString('vi-VN')
+                          : <span className='text-muted-foreground'>—</span>}
+                      </TableCell>
+                      <TableCell className='text-right'>
+                        {p.tax?.taxableRevenue != null ? (
+                          <span className='text-sm tabular-nums'>
+                            {format.number(p.tax.taxableRevenue)}&nbsp;đ
+                          </span>
+                        ) : (
+                          <span className='text-muted-foreground text-sm'>—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className='text-right'>
+                        {p.tax?.vatRate != null ? (
+                          <Badge
+                            variant={p.tax.vatRate === 0 ? 'secondary' : 'default'}
+                            className='font-mono tabular-nums'
+                          >
+                            {(p.tax.vatRate * 100).toFixed(0)}%
+                          </Badge>
+                        ) : (
+                          <span className='text-muted-foreground text-sm'>—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className='text-right pr-5'>
+                        {p.tax?.vatAmount != null ? (
+                          <span className='text-sm font-semibold tabular-nums'>
+                            {format.number(p.tax.vatAmount)}&nbsp;đ
+                          </span>
+                        ) : (
+                          <span className='text-muted-foreground text-sm'>—</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
