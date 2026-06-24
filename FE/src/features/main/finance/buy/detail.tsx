@@ -187,11 +187,30 @@ export function EconomicContractDetail({
                   <ContractDocuments
                     loading={detail.loading}
                     documents={[
-                      ...(detail.data?.filePath && detail.data?.contractName
-                        ? [{ url: detail.data.filePath, name: detail.data.contractName, group: 'origin' as const }]
+                      ...(detail.data?.filePath
+                        ? detail.data.filePath
+                          .split(';')
+                          .filter(Boolean)
+                          .map((url, i) => ({
+                            url,
+                            name: detail.data?.contractName
+                              ? `${detail.data.contractName}${i > 0 ? ` (${i + 1})` : ''}`
+                              : url,
+                            group: 'origin' as const,
+                          }))
                         : []),
-                      ...(detail.data?.signedFilePath && detail.data.signedFilePath !== detail.data.filePath
-                        ? [{ url: detail.data.signedFilePath, name: detail.data.contractName, group: 'signed' as const }]
+                      ...(detail.data?.signedFilePath
+                        ? detail.data.signedFilePath
+                          .split(';')
+                          .filter(Boolean)
+                          .filter((url) => url !== detail.data?.filePath)
+                          .map((url, i) => ({
+                            url,
+                            name: detail.data?.contractName
+                              ? `${detail.data.contractName} (đã ký${i > 0 ? ` ${i + 1}` : ''})`
+                              : url,
+                            group: 'signed' as const,
+                          }))
                         : []),
                       ...(detail.data?.attachments ?? []).map((a) => ({
                         url: a.filePath,

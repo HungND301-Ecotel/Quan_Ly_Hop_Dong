@@ -672,6 +672,7 @@ export function ContractBasicInformationForm() {
 
   useEffect(() => {
     if (isResettingForm.current) return;
+    if (contractNumbers.length === 0) return;
     const selected = contractNumbers.find((f) => f.id === watchedContractNumberId);
     form.setValue('contractNumber', selected?.number ?? '');
     form.setValue('appendixNumberId', '');
@@ -680,6 +681,7 @@ export function ContractBasicInformationForm() {
 
   useEffect(() => {
     if (isResettingForm.current) return;
+    if (contractAppendixs.length === 0) return;
     const selected = contractAppendixs.find((f) => f.id === watchedAppendixNumberId);
     form.setValue('appendixNumber', selected?.appendixNumber ?? '');
   }, [watchedAppendixNumberId, contractAppendixs]);
