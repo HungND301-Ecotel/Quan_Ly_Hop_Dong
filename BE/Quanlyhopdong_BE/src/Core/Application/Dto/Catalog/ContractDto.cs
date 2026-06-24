@@ -52,6 +52,14 @@ public class ShortContractDto
     public bool IsArchiveContract { get; set; }
     public List<ContractSigningFlowDto>? SigningFlows { get; set; }
     public List<ContractUserRoleDto> ContractUserRoles { get; set; } = new List<ContractUserRoleDto>();
+    public List<InvoiceDueSoonDto> InvoicesDueSoon { get; set; } = new List<InvoiceDueSoonDto>();
+}
+public class InvoiceDueSoonDto
+{
+    public string NumberInvoice { get; set; } = string.Empty;
+    public DateTimeOffset DateInvoice { get; set; }
+    public DateTimeOffset DueDate { get; set; }
+    public decimal Amount { get; set; }
 }
 public class ContractDto
 {

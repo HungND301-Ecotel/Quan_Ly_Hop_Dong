@@ -1111,6 +1111,9 @@ public partial class ContractService(
                 .Include(x => x.ProcurementMethod)
                 .Include(x => x.ContractRegister)
                 .Include(x => x.ContractField)
+                .Include(x => x.PaymentSchedules)
+                .Include(x => x.ContractPayments).ThenInclude(cp => cp.Invoice)
+                .Include(x => x.ContractPayments).ThenInclude(cp => cp.PaymentSchedule)
                 .Where(x => (x.IsDebtTrackingEnabled == isDebtTrackingEnabled || isDebtTrackingEnabled == null));
 
         if (onlyCurrentUserVisible)
@@ -1200,6 +1203,33 @@ public partial class ContractService(
                 item.ContractStructureName = contract.ContractStructureCatalog?.Name ?? string.Empty;
                 item.Title = contract.SignedContent?.Title;
                 item.IsArchiveContract = contract.Status == ContractStatus.Archive;
+
+                item.InvoicesDueSoon = new List<InvoiceDueSoonDto>();
+                if (contract.IsDebtTrackingEnabled && contract.ContractPayments != null)
+                {
+                    foreach (var payment in contract.ContractPayments)
+                    {
+                        if (payment.Invoice != null && (payment.PaymentSchedule == null || payment.PaymentSchedule.PaymentStatus == PaymentStatus.Unpaid))
+                        {
+                            var T = payment.PaymentSchedule?.Days ?? contract.PaymentSchedules.FirstOrDefault()?.Days ?? 0;
+                            if (T > 0)
+                            {
+                                var dueDate = payment.Invoice.DateInvoice.AddDays(T);
+                                var today = DateTimeOffset.UtcNow;
+                                if (dueDate >= today && dueDate <= today.AddDays(T))
+                                {
+                                    item.InvoicesDueSoon.Add(new InvoiceDueSoonDto
+                                    {
+                                        NumberInvoice = payment.Invoice.NumberInvoice,
+                                        DateInvoice = payment.Invoice.DateInvoice,
+                                        DueDate = dueDate,
+                                        Amount = payment.Amount
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             if (signingFlowMap.TryGetValue(item.Id, out var flows))
