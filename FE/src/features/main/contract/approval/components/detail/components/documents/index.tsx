@@ -8,7 +8,9 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -17,7 +19,7 @@ import { FolderCodeIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export type ContractDocumentsProps = {
-  documents?: { url: string; name: string }[];
+  documents?: { url: string; name: string; group?: 'origin' | 'signed' | 'attachment' }[];
   loading?: boolean;
 };
 
@@ -33,9 +35,11 @@ export function ContractDocuments({
   }, [documents, loading]);
 
   if (loading) {
-    <div className='h-32 w-full border-4 border-dashed flex items-center justify-center'>
-      <Spinner />
-    </div>;
+    return (
+      <div className='h-32 w-full border-4 border-dashed flex items-center justify-center'>
+        <Spinner />
+      </div>
+    );
   }
 
   if (!documents || documents.length === 0) {
@@ -52,25 +56,54 @@ export function ContractDocuments({
     );
   }
 
+  const originDocs = documents.filter((d) => d.group === 'origin');
+  const signedDocs = documents.filter((d) => d.group === 'signed');
+  const attachmentDocs = documents.filter((d) => d.group === 'attachment' || !d.group);
+
   return (
     <div className='flex flex-col gap-3 h-full flex-1'>
-      <Select
-        value={selectedFile}
-        onValueChange={setSelectedFile}
-        defaultValue={documents?.[0]?.url || ''}
-      >
+      <Select value={selectedFile} onValueChange={setSelectedFile}>
         <SelectTrigger className='w-full data-[size=default]:h-10'>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {documents.map(
-            ({ url, name }) =>
-              url &&
-              name && (
-                <SelectItem key={url} value={url}>
-                  {name}
-                </SelectItem>
-              )
+          {originDocs.length > 0 && (
+            <SelectGroup>
+              <SelectLabel>Hợp đồng gốc</SelectLabel>
+              {originDocs.map(({ url, name }) =>
+                url && name ? (
+                  <SelectItem key={url} value={url}>
+                    {name}
+                  </SelectItem>
+                ) : null
+              )}
+            </SelectGroup>
+          )}
+
+          {signedDocs.length > 0 && (
+            <SelectGroup>
+              <SelectLabel>Hợp đồng đã ký</SelectLabel>
+              {signedDocs.map(({ url, name }) =>
+                url && name ? (
+                  <SelectItem key={url} value={url}>
+                    {name}
+                  </SelectItem>
+                ) : null
+              )}
+            </SelectGroup>
+          )}
+
+          {attachmentDocs.length > 0 && (
+            <SelectGroup>
+              <SelectLabel>Đính kèm</SelectLabel>
+              {attachmentDocs.map(({ url, name }) =>
+                url && name ? (
+                  <SelectItem key={url} value={url}>
+                    {name}
+                  </SelectItem>
+                ) : null
+              )}
+            </SelectGroup>
           )}
         </SelectContent>
       </Select>

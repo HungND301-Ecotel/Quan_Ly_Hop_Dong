@@ -128,7 +128,7 @@ export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
               </TabsTrigger>
               <TabsTrigger value='progress' className='flex items-center gap-2'>
                 <ActivityIcon className='size-4' />
-                <span className='hidden md:inline'>Tiến độ hợp đồng</span>
+                <span className='hidden md:inline'>Tiến độ thực hiện hợp đồng</span>
               </TabsTrigger>
               <TabsTrigger value='payment' className='flex items-center gap-2'>
                 <CreditCardIcon className='size-4' />
@@ -203,11 +203,13 @@ export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
                     return contractUrls.map((url, i) => ({
                       name: contractNames[i] || `File hợp đồng ${i + 1}`,
                       url,
+                      group: detail.data?.signedFilePath ? 'signed' as const : 'origin' as const,
                     }));
                   })(),
                   ...(detail.data?.attachments || []).map((attachment) => ({
                     name: attachment.fileName,
                     url: attachment.filePath,
+                    group: 'attachment' as const,
                   })),
                 ]}
               />

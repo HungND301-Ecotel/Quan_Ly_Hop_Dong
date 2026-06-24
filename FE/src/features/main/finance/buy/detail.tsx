@@ -20,7 +20,7 @@ import {
   LayoutGridIcon,
   XIcon,
 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { ContractInformation } from '../../contract/approval/components/detail/components/information';
 import { PaymentSection } from './components/payment';
 import { ProgressSection } from './components/progress';
@@ -29,6 +29,7 @@ import { DataTableEvent } from '@/components/data-table/types';
 import { contractService } from '@/services/contract';
 import { useAuthContext } from '@/features/context';
 import { DocumentSection } from './components/DocumentSection';
+import { ContractDocuments } from '../../contract/approval/components/detail/components/documents';
 
 export type EconomicContractDetailProps = {
   contract: Contract;
@@ -47,6 +48,18 @@ export function EconomicContractDetail({
   const [open, setOpen] = useState(false);
 
   const { user } = useAuthContext();
+
+  const invoiceRef = useRef<HTMLDivElement>(null);
+  const taxRef = useRef<HTMLDivElement>(null);
+
+  const scrollToInvoice = useCallback(() => {
+    invoiceRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  const scrollToTax = useCallback(() => {
+    taxRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
 
   const detailService = useCallback(() => {
     if (!open) return;
@@ -93,7 +106,7 @@ export function EconomicContractDetail({
               </TabsTrigger>
               <TabsTrigger value='progress' className='gap-2'>
                 <ActivityIcon className='size-4' />
-                <span>Tiến độ hợp đồng</span>
+                <span>Tiến độ thực hiện hợp đồng</span>
               </TabsTrigger>
               <TabsTrigger value='payment' className='gap-2'>
                 <CreditCardIcon className='size-4' />
@@ -139,13 +152,24 @@ export function EconomicContractDetail({
 
               <TabsContent value='payment'>
                 {tab === 'payment' && (
-                  <PaymentSection
-                    contractId={contract.id}
-                    contractValue={contract.contractValue}
-                    onSaved={callback}
-                    onNavigateToDocument={() => setTab('document')}
-                    disabled={!canUpdateProgress}
-                  />
+                  <>
+                    <PaymentSection
+                      contractId={contract.id}
+                      contractValue={contract.contractValue}
+                      onSaved={callback}
+                      onNavigateToInvoice={scrollToInvoice}
+                      onNavigateToTax={scrollToTax}
+                      disabled={!canUpdateProgress}
+                    />
+                    <div className='mt-8'>
+                      <DocumentSection
+                        contract={contract}
+                        disabled={!canSyncDocument}
+                        invoiceRef={invoiceRef}
+                        taxRef={taxRef}
+                      />
+                    </div>
+                  </>
                 )}
               </TabsContent>
 
@@ -160,7 +184,22 @@ export function EconomicContractDetail({
 
               <TabsContent value='document'>
                 {tab === 'document' && (
-                  <DocumentSection contract={contract} disabled={!canSyncDocument} />
+                  <ContractDocuments
+                    loading={detail.loading}
+                    documents={[
+                      ...(detail.data?.filePath && detail.data?.contractName
+                        ? [{ url: detail.data.filePath, name: detail.data.contractName, group: 'origin' as const }]
+                        : []),
+                      ...(detail.data?.signedFilePath && detail.data.signedFilePath !== detail.data.filePath
+                        ? [{ url: detail.data.signedFilePath, name: detail.data.contractName, group: 'signed' as const }]
+                        : []),
+                      ...(detail.data?.attachments ?? []).map((a) => ({
+                        url: a.filePath,
+                        name: a.fileName,
+                        group: 'attachment' as const,
+                      })),
+                    ]}
+                  />
                 )}
               </TabsContent>
             </div>

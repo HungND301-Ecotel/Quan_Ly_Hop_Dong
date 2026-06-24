@@ -154,7 +154,8 @@ type CreateColumnsOptions = {
   contractId: string;
   onSaved?: () => void;
   onNavigateToProgress?: () => void;
-  onNavigateToDocument?: () => void;
+  onNavigateToInvoice?: () => void;
+  onNavigateToTax?: () => void;
   disabled?: boolean;
 };
 
@@ -162,17 +163,18 @@ export const createColumns = ({
   contractId,
   onSaved,
   onNavigateToProgress,
-  onNavigateToDocument,
+  onNavigateToInvoice,
+  onNavigateToTax,
   disabled,
 }: CreateColumnsOptions): ColumnDef<PaymentInstallment>[] => {
   return [
-    // Kỳ — số thứ tự
+    // STT
     {
-      accessorKey: 'period',
-      header: 'Kỳ',
+      id: 'stt',
+      header: 'STT',
       cell: ({ row }) => (
         <span className='font-bold whitespace-nowrap'>
-          Kỳ {row.original.period}
+          {row.index + 1}
         </span>
       ),
     },
@@ -195,42 +197,30 @@ export const createColumns = ({
         <FileList files={row.original.documents.acceptanceMinute} />
       ),
     },
-    // Hóa đơn
+    // Cột Hóa đơn
     {
       accessorKey: 'documents.invoice',
       header: 'Hóa đơn',
-      cell: () => {
-        return (
-          <Button
-            size='sm'
-            variant='outline'
-            type='button'
-            className='gap-2'
-            onClick={onNavigateToDocument}
-          >
-            <span>Xem</span>
-          </Button>
-        );
-      },
+      cell: () => (
+        <Button size='sm' variant='outline' type='button' className='gap-2'
+          onClick={onNavigateToInvoice}   // ← riêng
+        >
+          <span>Xem</span>
+        </Button>
+      ),
     },
 
-    // Thay cột Thuế
+    // Cột Thuế
     {
       accessorKey: 'documents.tax',
       header: 'Thuế',
-      cell: () => {
-        return (
-          <Button
-            size='sm'
-            variant='outline'
-            type='button'
-            className='gap-2'
-            onClick={onNavigateToDocument}
-          >
-            <span>Xem</span>
-          </Button>
-        );
-      },
+      cell: () => (
+        <Button size='sm' variant='outline' type='button' className='gap-2'
+          onClick={onNavigateToTax}       // ← riêng
+        >
+          <span>Xem</span>
+        </Button>
+      ),
     },
     // Kế hoạch thanh toán (gộp thời gian + số tiền kế hoạch)
     {
@@ -247,43 +237,17 @@ export const createColumns = ({
         </div>
       ),
     },
-    // Thanh toán thực tế (gộp ngày + số tiền thực tế)
-    {
-      id: 'actual',
-      header: 'Thanh toán thực tế',
-      cell: ({ row }) => {
-        const date = row.original.actualPaymentDate;
-        const amount = row.original.actualPaymentAmount;
-        return (
-          <div className='space-y-0.5'>
-            <div className='text-xs text-muted-foreground whitespace-nowrap'>
-              {date
-                ? dateFnsFormat(new Date(date), 'dd/MM/yyyy', { locale: vi })
-                : '—'}
-            </div>
-            <div
-              className={
-                amount > 0
-                  ? 'font-semibold text-emerald-600 whitespace-nowrap'
-                  : 'text-muted-foreground'
-              }
-            >
-              {amount > 0 ? format.number(amount) : '—'}
-            </div>
-          </div>
-        );
-      },
-    },
     // Hành động
     {
       id: 'actions',
-      header: '',
+      header: 'Hành động',
       cell: ({ row }) => (
         <PaymentEditDialog
           installment={row.original}
           contractId={contractId}
           onSaved={onSaved}
-          onNavigateToDocument={onNavigateToDocument} // ← thêm
+          onNavigateToInvoice={onNavigateToInvoice}
+          onNavigateToTax={onNavigateToTax}
           disabled={disabled}
         />
       ),

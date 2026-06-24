@@ -216,7 +216,8 @@ export type PaymentEditDialogProps = {
   installment: PaymentInstallment;
   contractId: string;
   onSaved?: () => void;
-  onNavigateToDocument?: () => void; // ← thêm
+  onNavigateToInvoice?: () => void;
+  onNavigateToTax?: () => void;
   disabled?: boolean;
 };
 
@@ -224,7 +225,8 @@ export function PaymentEditDialog({
   installment,
   contractId,
   onSaved,
-  onNavigateToDocument,
+  onNavigateToInvoice,
+  onNavigateToTax,
   disabled = false,
 }: PaymentEditDialogProps) {
   const [open, setOpen] = useState(false);
@@ -317,9 +319,6 @@ export function PaymentEditDialog({
         <DialogHeader>
           <DialogTitle className='text-lg'>
             Chỉnh sửa thanh toán hợp đồng
-            <span className='ml-2 text-lg font-normal text-muted-foreground'>
-              — Kỳ {installment.period}
-            </span>
           </DialogTitle>
         </DialogHeader>
 
@@ -393,20 +392,34 @@ export function PaymentEditDialog({
                   title='Tài liệu đính kèm'
                   description='Biên bản nghiệm thu'
                 />
-                {/* Nút chuyển sang tab Thông tin chứng từ */}
-                <Button
-                  type='button'
-                  variant='outline'
-                  size='sm'
-                  className='gap-1.5 shrink-0'
-                  onClick={() => {
-                    setOpen(false);
-                    onNavigateToDocument?.();
-                  }}
-                >
-                  <FileTextIcon className='size-3.5' />
-                  Xem hóa đơn &amp; thuế
-                </Button>
+                <div className='flex items-center gap-2'>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    className='gap-1.5 shrink-0'
+                    onClick={() => {
+                      setOpen(false);
+                      setTimeout(() => onNavigateToInvoice?.(), 150);
+                    }}
+                  >
+                    <FileTextIcon className='size-3.5' />
+                    Xem hóa đơn
+                  </Button>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    className='gap-1.5 shrink-0'
+                    onClick={() => {
+                      setOpen(false);
+                      setTimeout(() => onNavigateToTax?.(), 150);
+                    }}
+                  >
+                    <FileTextIcon className='size-3.5' />
+                    Xem thuế
+                  </Button>
+                </div>
               </div>
 
               <FileUploadSection

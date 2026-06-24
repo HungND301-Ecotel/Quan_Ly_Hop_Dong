@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { Material } from '@/services/material/type';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChevronDownIcon, Loader2 } from 'lucide-react';
-import { useMemo, useRef, useState, useLayoutEffect } from 'react';
+import { useMemo, useRef, useState, useLayoutEffect, memo } from 'react';
 import { FieldValues, useController } from 'react-hook-form';
 
 export type VirtualMaterialSelectProps<T extends FieldValues> = FormControlProps<T> & {
@@ -20,7 +20,7 @@ export type VirtualMaterialSelectProps<T extends FieldValues> = FormControlProps
     isLoading?: boolean;
 };
 
-export function VirtualMaterialSelect<T extends FieldValues>({
+function VirtualMaterialSelectInner<T extends FieldValues>({
     control,
     name,
     label,
@@ -43,8 +43,6 @@ export function VirtualMaterialSelect<T extends FieldValues>({
                 m.materialCode.toLowerCase().includes(lower)
         );
     }, [search, materials]);
-
-    console.log("VirtualMaterialSelect render. materials count:", materials?.length, "filtered count:", filtered?.length, "search:", JSON.stringify(search), "isLoading:", isLoading);
 
     const rowVirtualizer = useVirtualizer({
         count: filtered.length,
@@ -177,3 +175,4 @@ export function VirtualMaterialSelect<T extends FieldValues>({
         </Field>
     );
 }
+export const VirtualMaterialSelect = memo(VirtualMaterialSelectInner) as typeof VirtualMaterialSelectInner;
