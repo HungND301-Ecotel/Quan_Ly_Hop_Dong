@@ -107,6 +107,7 @@ import { ExternalSyncConnection } from '@/services/server';
 import { SyncResultBadges } from '../DocumentSection';
 import { cn } from '@/lib/utils';
 import { contractService } from '@/services/contract';
+import { FormDate } from '@/components/form/form-date';
 
 // contractQuantity hiển thị = executedQuantity + remainingQuantity (= tổng được phép của kỳ này)
 // remainingQuantity (validate max khi user nhập) = contractQuantity - 0
@@ -787,7 +788,6 @@ function ProgressFormDialog({
   const [loadingItems, setLoadingItems] = useState(false);
   const [invoices, setInvoices] = useState<{ label: string; value: string }[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
-  const [dueDays, setDueDays] = useState<number>(30);
   // executedQuantity của lần N+1 theo contractItemId
   const [nextProgressItemMap, setNextProgressItemMap] = useState<NextProgressItemMap>({});
   const hasNextProgress = Object.keys(nextProgressItemMap).length > 0;
@@ -804,6 +804,7 @@ function ProgressFormDialog({
     defaultValue: fields,
   });
 
+  const watchedPeriodStart = form.watch('periodStart');
 
   useEffect(() => {
     if (!open) return;
@@ -828,14 +829,10 @@ function ProgressFormDialog({
         const schedulesPromise = contractPaymentService.getPaymentSchedules(contractId);
 
         if (isEdit && progress) {
-          const [detail, schedules] = await Promise.all([
+          const [detail] = await Promise.all([
             contractProgressService.getContractProgressDetail(contractId),
             schedulesPromise,
           ]);
-          const days = schedules?.[0]?.days ?? 30;
-          setDueDays(days);
-
-
 
           const allProgresses = detail?.contractProgresses || [];
           setAllProgresses(allProgresses);
@@ -892,8 +889,6 @@ function ProgressFormDialog({
         ]);
 
         const availableSchedules = schedules || [];
-        const days = availableSchedules?.[0]?.days ?? 30;
-        setDueDays(days);
 
         if (availableSchedules.length > 0) {
           if (
@@ -998,38 +993,6 @@ function ProgressFormDialog({
     const amount = Number(watchedExecutedAmount) || 0;
     return amount > invoiceInfo.remainingInvoiceAmount;
   }, [invoiceInfo, watchedExecutedAmount]);
-
-  useEffect(() => {
-    if (!watchedPaymentId || payments.length === 0) {
-      return;
-    }
-
-    const selectedPayment = payments.find((p) => p.id === watchedPaymentId);
-    const invoiceDateStr = selectedPayment?.invoice?.dateInvoice;
-
-    let startDate = new Date();
-    if (invoiceDateStr) {
-      const parsedDate = new Date(invoiceDateStr);
-      if (!Number.isNaN(parsedDate.getTime()) && parsedDate.getFullYear() > 1970) {
-        startDate = parsedDate;
-      }
-    }
-
-    const year = startDate.getFullYear();
-    const month = String(startDate.getMonth() + 1).padStart(2, '0');
-    const day = String(startDate.getDate()).padStart(2, '0');
-    const periodStartStr = `${year}-${month}-${day}`;
-
-    const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + dueDays);
-    const endYear = endDate.getFullYear();
-    const endMonth = String(endDate.getMonth() + 1).padStart(2, '0');
-    const endDay = String(endDate.getDate()).padStart(2, '0');
-    const periodEndStr = `${endYear}-${endMonth}-${endDay}`;
-
-    form.setValue('periodStart', periodStartStr);
-    form.setValue('periodEnd', periodEndStr);
-  }, [watchedPaymentId, payments, dueDays, form]);
 
   const onSubmit = async (data: ContractProgressFormValues) => {
     if (data.contractPaymentId) {
@@ -1147,15 +1110,20 @@ function ProgressFormDialog({
                 placeholder='Chọn số hóa đơn'
                 options={invoices}
               />
+              <FormDate
+                control={form.control}
+                name='periodStart'
+                label='Từ ngày'
+                placeholder='Chọn ngày thực hiện'
+              />
+              <FormDate
+                control={form.control}
+                name='periodEnd'
+                label='Đến ngày'
+                placeholder='Chọn ngày thực hiện'
+                minDate={watchedPeriodStart || null}
+              />
               <div className='flex flex-col gap-1.5'>
-                <label className='text-sm font-semibold text-slate-700'>Thời gian thực hiện</label>
-                <div className='h-10 px-3 py-2 bg-muted text-foreground border rounded-md flex items-center justify-between text-sm'>
-                  <span>{form.watch('periodStart') ? format.date(form.watch('periodStart')) : '—'}</span>
-                  <span className='text-muted-foreground'>đến</span>
-                  <span>{form.watch('periodEnd') ? format.date(form.watch('periodEnd')) : '—'}</span>
-                </div>
-              </div>
-              <div className='space-y-1 col-span-2'>
                 <FormNumber
                   control={form.control}
                   name='executedAmount'
@@ -1208,19 +1176,15 @@ function ProgressFormDialog({
                         <TableRow>
                           <TableHead>Mã thành phần hợp đồng</TableHead>
                           <TableHead>Tên thành phần hợp đồng</TableHead>
-                          <TableHead>Đơn giá (đ)</TableHead>
                           <TableHead>Khối lượng hợp đồng</TableHead>
-                          <TableHead>Thành tiền hợp đồng (đ)</TableHead>
                           <TableHead>Khối lượng thực hiện</TableHead>
                           <TableHead>Khối lượng chưa thực hiện</TableHead>
-                          <TableHead>Thành tiền thực hiện (đ)</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {fields?.map((field, index) => {
                           const currentItem = watchedItems?.[index];
                           const currentQty = Number(currentItem?.currentExecutedQuantity) || 0;
-                          const unitPrice = Number(field.unitPrice) || 0;
                           // maxQty = remainingQuantity đã được tính đúng lần 1/lần 2+ trong mapApiContractItemToUi
                           const maxQty = Number(field.remainingQuantity) || 0;
                           // nextQty = executedQuantity của lần N+1 cho vật tư này (nếu có)
@@ -1237,12 +1201,10 @@ function ProgressFormDialog({
                             <TableRow key={field.id}>
                               <TableCell>{field.itemCode}</TableCell>
                               <TableCell>{field.itemName}</TableCell>
-                              <TableCell>{format.number(unitPrice)}</TableCell>
                               {/* Khối lượng HĐ: contractQuantity đã được map đúng lần 1/2+ */}
                               <TableCell>
                                 {format.number(field.contractQuantity)} {field.unit}
                               </TableCell>
-                              <TableCell>{format.number(field.contractAmount)}</TableCell>
                               <TableCell>
                                 <div className='space-y-1'>
                                   <FormNumber
@@ -1271,14 +1233,6 @@ function ProgressFormDialog({
                                   <span className='text-destructive font-medium'>—</span>
                                 ) : (
                                   format.number(unexecuted)
-                                )}
-                              </TableCell>
-                              {/* Thành tiền: không tính nếu có lỗi */}
-                              <TableCell>
-                                {hasError ? (
-                                  <span className='text-destructive font-medium'>—</span>
-                                ) : (
-                                  format.number(currentQty * unitPrice)
                                 )}
                               </TableCell>
                             </TableRow>

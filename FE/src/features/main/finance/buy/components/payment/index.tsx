@@ -19,7 +19,8 @@ export type PaymentSectionProps = {
   contractId: string;
   contractValue: number;
   onSaved?: () => void;
-  onNavigateToDocument?: () => void;
+  onNavigateToInvoice?: () => void;
+  onNavigateToTax?: () => void;
   disabled?: boolean;
 };
 
@@ -29,7 +30,8 @@ const ensureUniqueFilePaths = (paths: string[]) =>
 export function PaymentSection({
   contractId,
   onSaved,
-  onNavigateToDocument,
+  onNavigateToInvoice,
+  onNavigateToTax,
   disabled = false,
 }: PaymentSectionProps) {
   const [liquidationFile, setLiquidationFile] = useState<string | undefined>();
@@ -88,17 +90,14 @@ export function PaymentSection({
   }, [contractId]);
 
   const columns = useMemo(
-    () =>
-      createColumns({
-        contractId,
-        onSaved: () => {
-          table.refresh?.();
-          onSaved?.();
-        },
-        onNavigateToDocument,
-        disabled,
-      }),
-    [contractId, onNavigateToDocument, disabled]
+    () => createColumns({
+      contractId,
+      onSaved: () => { table.refresh?.(); onSaved?.(); },
+      onNavigateToInvoice,
+      onNavigateToTax,
+      disabled,
+    }),
+    [contractId, onNavigateToInvoice, onNavigateToTax, disabled]
   );
 
   const table = useDataTable<PaymentInstallment>({

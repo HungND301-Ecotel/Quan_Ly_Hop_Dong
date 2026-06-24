@@ -8,7 +8,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, startOfDay, isBefore, isAfter } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -20,10 +20,14 @@ export type FormDateProps<T extends FieldValues> = FormControlProps<T> & {
   readonly?: boolean;
   required?: boolean;
   className?: string;
+  minDate?: Date | string | null;
+  maxDate?: Date | string | null;
 };
 
 function parseISODate(value: unknown): Date | null {
-  if (!value || typeof value !== 'string') return null;
+  if (!value) return null;
+  if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
+  if (typeof value !== 'string') return null;
   try {
     const date = parseISO(value);
     return isNaN(date.getTime()) ? null : date;
@@ -40,10 +44,14 @@ function FormDateInput<T extends FieldValues>({
   field,
   placeholder,
   readonly,
+  minDate,
+  maxDate,
 }: {
   field: ControllerRenderProps<T>;
   placeholder?: string;
   readonly?: boolean;
+  minDate?: Date | string | null;
+  maxDate?: Date | string | null;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -52,9 +60,24 @@ function FormDateInput<T extends FieldValues>({
     ? format(parsedDate, 'dd/MM/yyyy', { locale: vi })
     : '';
 
+  const parsedMinDate = parseISODate(minDate as any);
+  const parsedMaxDate = parseISODate(maxDate as any);
+
   const handleCalendarSelect = (date: Date | undefined) => {
     field.onChange(date ? toISODateString(date) : undefined);
     setOpen(false);
+  };
+
+  // ✅ Chặn các ngày trước minDate / sau maxDate
+  const isDateDisabled = (date: Date) => {
+    const day = startOfDay(date);
+    if (parsedMinDate && isBefore(day, startOfDay(parsedMinDate))) {
+      return true;
+    }
+    if (parsedMaxDate && isAfter(day, startOfDay(parsedMaxDate))) {
+      return true;
+    }
+    return false;
   };
 
   return (
@@ -80,6 +103,7 @@ function FormDateInput<T extends FieldValues>({
           locale={vi}
           selected={parsedDate ?? undefined}
           onSelect={handleCalendarSelect}
+          disabled={isDateDisabled}
         />
       </PopoverContent>
     </Popover>
@@ -94,6 +118,8 @@ export function FormDate<T extends FieldValues>({
   readonly,
   required,
   className,
+  minDate,
+  maxDate,
 }: FormDateProps<T>) {
   const { field, fieldState } = useController({ control, name });
 
@@ -109,6 +135,8 @@ export function FormDate<T extends FieldValues>({
         field={field}
         placeholder={placeholder}
         readonly={readonly}
+        minDate={minDate}
+        maxDate={maxDate}
       />
       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
     </Field>
