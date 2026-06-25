@@ -3,7 +3,7 @@ import { useDataTableContext } from '@/components/data-table/context';
 import { ContractStatus, ContractSubStatus } from '@/constants/contract-status';
 import { ContractEdit } from '@/features/main/contract/edit';
 import { format } from '@/lib/format';
-import { cn } from '@/lib/utils';
+import { cn, parseDateLocal } from '@/lib/utils';
 import { Contract, InvoicesDueSoon } from '@/services/contract/type';
 import { ColumnDef } from '@tanstack/react-table';
 import { EconomicContractDetail } from './detail';
@@ -137,8 +137,7 @@ export const EconomicContractColumns: ColumnDef<Contract>[] = [
 
       const filtered = (invoices ?? [])
         .map((inv: InvoicesDueSoon) => {
-          const due = new Date(inv.dueDate);
-          due.setHours(0, 0, 0, 0);
+          const due = parseDateLocal(inv.dueDate);
           const daysLeft = Math.ceil((due.getTime() - today.getTime()) / 86_400_000);
           return { ...inv, daysLeft };
         })
