@@ -4,8 +4,8 @@ import { useDataTableContext } from '@/components/data-table/context';
 import { ContractStatus, ContractSubStatus } from '@/constants/contract-status';
 import { ContractEdit } from '@/features/main/contract/edit';
 import { format } from '@/lib/format';
-import { cn } from '@/lib/utils';
-import { Contract } from '@/services/contract/type';
+import { cn, parseDateLocal } from '@/lib/utils';
+import { Contract, InvoicesDueSoon } from '@/services/contract/type';
 import { ColumnDef } from '@tanstack/react-table';
 import { ContractDetail } from './approval/components/detail';
 import { ContractComplete } from './edit/complete/ContractComplete';
@@ -136,6 +136,40 @@ export const ContractColumns: ColumnDef<Contract>[] = [
               {ContractSubStatus['Overdue']?.title ?? 'Đã quá hạn'}
             </p>
           )}
+        </div>
+      );
+    },
+  },
+  {
+    id: 'invoicesDueSoon',
+    header: () => <span className='w-full flex justify-center'>Hóa đơn sắp đến hạn</span>,
+    cell: ({ row }) => {
+      const invoices = row.original.invoicesDueSoon;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const filtered = (invoices ?? [])
+        .map((inv: InvoicesDueSoon) => {
+          const due = parseDateLocal(inv.dueDate);
+          const daysLeft = Math.ceil((due.getTime() - today.getTime()) / 86_400_000);
+          return { ...inv, daysLeft };
+        })
+        .filter((inv: InvoicesDueSoon & { daysLeft: number }) => inv.daysLeft >= 0 && inv.daysLeft <= 15)
+        .sort((a: InvoicesDueSoon & { daysLeft: number }, b: InvoicesDueSoon & { daysLeft: number }) => a.daysLeft - b.daysLeft);
+
+      if (filtered.length === 0) return <span className='text-muted-foreground text-xs flex justify-center'>Không có hóa đơn</span>;
+
+      return (
+        <div className='flex flex-col gap-1 items-center'>
+          {filtered.map((inv: InvoicesDueSoon & { daysLeft: number }) => (
+            <div
+              key={inv.numberInvoice}
+              className='inline-flex items-center gap-1.5 text-xs rounded-md px-2 py-0.5 w-fit whitespace-nowrap bg-amber-50 border border-amber-200'
+            >
+              <span className='font-medium text-amber-800'>{inv.numberInvoice}</span>
+              <span className='text-amber-700'>— còn {inv.daysLeft} ngày</span>
+            </div>
+          ))}
         </div>
       );
     },

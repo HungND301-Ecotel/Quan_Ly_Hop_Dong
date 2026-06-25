@@ -39,25 +39,25 @@ export function SpecialContent() {
       contractService.getContractPaymentDueSoon(),
     ]).then(([allRes, expiredRes, paymentRes]) => {
       setCounts({
-        all:        allRes.status     === 'fulfilled' ? (allRes.value?.length     ?? 0) : undefined,
-        expired:    expiredRes.status === 'fulfilled' ? (expiredRes.value?.length ?? 0) : undefined,
+        all: allRes.status === 'fulfilled' ? (allRes.value?.length ?? 0) : undefined,
+        expired: expiredRes.status === 'fulfilled' ? (expiredRes.value?.length ?? 0) : undefined,
         paymentDue: paymentRes.status === 'fulfilled' ? (paymentRes.value?.length ?? 0) : undefined,
       });
     });
   }, []);
 
   const getCurrentTab = () => {
-    if (location.pathname === '/contract/all')          return 'all';
-    if (location.pathname === '/contract/expired')      return 'expired';
-    if (location.pathname === '/contract/payment-due')  return 'payment-due';
+    if (location.pathname === '/contract/all') return 'all';
+    if (location.pathname === '/contract/expired') return 'expired';
+    if (location.pathname === '/contract/payment-due') return 'payment-due';
     return 'all';
   };
 
   const handleTabChange = (value: string) => {
     switch (value) {
-      case 'all':          navigate('/contract/all');          break;
-      case 'expired':      navigate('/contract/expired');      break;
-      case 'payment-due':  navigate('/contract/payment-due');  break;
+      case 'all': navigate('/contract/all'); break;
+      case 'expired': navigate('/contract/expired'); break;
+      case 'payment-due': navigate('/contract/payment-due'); break;
     }
   };
 

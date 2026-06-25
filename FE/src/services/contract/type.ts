@@ -169,6 +169,13 @@ export type ChildContractRelationship = {
   relationType: number;
 };
 
+export type InvoicesDueSoon = {
+  numberInvoice: string;
+  dateInvoice: string;
+  dueDate: string;
+  amount: number;
+};
+
 export type Contract = {
   level1CodeId: string;
   level1CodeCode: string;
@@ -278,6 +285,7 @@ export type Contract = {
   };
   childContractRelationships?: ChildContractRelationship[];
   attachments: ContractAttachment[] | null;
+  invoicesDueSoon?: InvoicesDueSoon[];
 };
 
 export type ContractSignHistory = {
