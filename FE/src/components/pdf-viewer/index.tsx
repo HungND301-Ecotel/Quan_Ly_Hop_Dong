@@ -32,10 +32,7 @@ import { RenderParameters } from 'pdfjs-dist/types/src/display/api';
 import { MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.min.mjs',
-    import.meta.url
-  ).href;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 }
 
 export type PdfViewerProps = {
