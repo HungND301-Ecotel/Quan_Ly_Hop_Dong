@@ -12,6 +12,7 @@ public class MaterialDto
     public Guid? UnitOfMeasureId { get; set; }
     public string? UnitOfMeasureName { get; set; }
     public decimal? Price { get; set; }
+    public string? Description { get; set; }
 }
 
 public class CreateMaterialDto
@@ -22,6 +23,7 @@ public class CreateMaterialDto
     public Guid? MaterialGroupId { get; set; }
     public Guid? UnitOfMeasureId { get; set; }
     public decimal? Price { get; set; }
+    public string? Description { get; set; }
 }
 
 public class ExternalMaterialSyncItemDto

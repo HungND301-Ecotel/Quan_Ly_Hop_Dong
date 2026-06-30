@@ -15,6 +15,10 @@ export const OTHER_MATERIAL_COLUMNS: ColumnDef<Material>[] = [
     header: 'Tên dịch vụ khác',
   },
   {
+    accessorKey: 'description',
+    header: 'Ghi chú',
+  },
+  {
     id: 'action',
     header: () => <div className='text-right w-full pr-4'>Thao tác</div>,
     cell: (props) => (

@@ -13,7 +13,7 @@ public class CreateMaterialCommandHandler(IUnitOfWork _unitOfWork) : IRequestHan
     public async Task<bool> Handle(CreateMaterialCommand request, CancellationToken cancellationToken)
     {
         var dto = request.CreateModel;
-        await repo.InsertAsync(Domain.Entities.Category.Material.Create(dto.MaterialCode, dto.Name, dto.UnitOfMeasureId, dto.Price, dto.IsOtherMaterial, "", dto.MaterialGroupId, false), cancellationToken);
+        await repo.InsertAsync(Domain.Entities.Category.Material.Create(dto.MaterialCode, dto.Name, dto.UnitOfMeasureId, dto.Price, dto.IsOtherMaterial, dto.Description ?? "", dto.MaterialGroupId, false), cancellationToken);
         await _unitOfWork.SaveChangesAsync();
         return true;
     }

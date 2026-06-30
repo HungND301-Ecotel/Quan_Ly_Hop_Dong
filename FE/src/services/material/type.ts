@@ -7,6 +7,7 @@ export type Material = {
   price?: number | null;
   isOtherMaterial?: boolean;
   isSynced?: boolean;
+  description: string | null;
 };
 
 export type CreateMaterialReq = {
@@ -15,6 +16,7 @@ export type CreateMaterialReq = {
   unitOfMeasureId?: string | null;
   price?: number | null;
   isOtherMaterial?: boolean;
+  description?: string | null;
 };
 
 export type UpdateMaterialReq = {
@@ -24,4 +26,5 @@ export type UpdateMaterialReq = {
   unitOfMeasureId?: string | null;
   price?: number | null;
   isOtherMaterial?: boolean;
+  description?: string | null;
 };
