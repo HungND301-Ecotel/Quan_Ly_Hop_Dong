@@ -1,6 +1,8 @@
 import { DataTableEvent } from '@/components/data-table/types';
 import { Form } from '@/components/form/form';
 import { FormInput } from '@/components/form/form-input';
+import { FormRow } from '@/components/form/form-row';
+import { FormTextArea } from '@/components/form/form-text-area';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -54,6 +56,8 @@ export function EditContractStructureCatalogAction({
     if (!detail.data) return;
     form.reset({
       name: detail.data.name,
+      code: detail.data.code,
+      description: detail.data.description ?? '',
     });
   }, [detail.data, form]);
 
@@ -120,12 +124,28 @@ export function EditContractStructureCatalogAction({
           className='flex flex-col overflow-hidden'
         >
           <div className='flex-1 p-6 flex flex-col gap-6'>
-            <FormInput
-              control={form.control}
-              name='name'
-              label='Tên hình thức hợp đồng'
-              placeholder='Nhập tên hình thức hợp đồng'
-            />
+            <FormRow>
+              <FormInput
+                control={form.control}
+                name='name'
+                label='Tên hình thức hợp đồng'
+                placeholder='Nhập tên hình thức hợp đồng'
+              />
+              <FormInput
+                control={form.control}
+                name='code'
+                label='Mã hình thức hợp đồng'
+                placeholder='Nhập mã hình thức hợp đồng'
+              />
+            </FormRow>
+            <FormRow>
+              <FormTextArea
+                control={form.control}
+                name='description'
+                label='Ghi chú'
+                placeholder='Nhập ghi chú'
+              />
+            </FormRow>
           </div>
 
           <div className='flex justify-end items-center gap-3 p-4 px-6 pb-0 border-t'>

@@ -3,11 +3,11 @@ using MediatR;
 
 namespace Application.Catalog.ContractStructureCatalogs.Commands;
 
-public record UpdateContractStructureCatalogCommand(Guid Id, string Name, bool IsActive) : IRequest<bool>;
+public record UpdateContractStructureCatalogCommand(Guid Id, string Name, string Code, string? Description, bool IsActive) : IRequest<bool>;
 
 public class UpdateContractStructureCatalogCommandHandler(IContractStructureCatalogService service)
     : IRequestHandler<UpdateContractStructureCatalogCommand, bool>
 {
     public async Task<bool> Handle(UpdateContractStructureCatalogCommand request, CancellationToken cancellationToken)
-        => await service.UpdateAsync(request.Id, request.Name, request.IsActive);
+        => await service.UpdateAsync(request.Id, request.Name, request.Code, request.Description, request.IsActive);
 }
