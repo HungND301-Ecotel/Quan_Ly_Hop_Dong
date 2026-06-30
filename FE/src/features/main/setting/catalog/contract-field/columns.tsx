@@ -8,12 +8,16 @@ import { ContractFieldUpsert } from './upsert';
 export const CONTRACT_FIELD_COLUMNS: ColumnDef<ContractField>[] = [
   DataTableSelectColumn as ColumnDef<ContractField>,
   {
+    accessorKey: 'code',
+    header: 'Mã lĩnh vực hợp đồng',
+  },
+  {
     accessorKey: 'name',
-    header: 'Lĩnh vực hợp đồng',
+    header: 'Tên lĩnh vực hợp đồng',
   },
   {
     accessorKey: 'description',
-    header: 'Mô tả',
+    header: 'Ghi chú',
   },
   {
     id: 'action',

@@ -1,6 +1,7 @@
 import { DataTableEvent } from '@/components/data-table/types';
 import { Form } from '@/components/form/form';
 import { FormInput } from '@/components/form/form-input';
+import { FormRow } from '@/components/form/form-row';
 import { FormTextArea } from '@/components/form/form-text-area';
 import { Button } from '@/components/ui/button';
 import {
@@ -45,6 +46,7 @@ export function ContractFieldDetail({
     if (detail.data) {
       form.reset({
         name: detail.data.name,
+        code: detail.data.code,
         description: detail.data.description || '',
       });
     }
@@ -69,16 +71,24 @@ export function ContractFieldDetail({
         </DialogHeader>
         <Form context={form} className='flex flex-col overflow-hidden'>
           <div className='flex-1 p-6 flex flex-col gap-6'>
-            <FormInput
-              control={form.control}
-              name='name'
-              label='Lĩnh vực hợp đồng'
-              disabled
-            />
+            <FormRow>
+              <FormInput
+                control={form.control}
+                name='name'
+                label='Tên lĩnh vực hợp đồng'
+                disabled
+              />
+              <FormInput
+                control={form.control}
+                name='code'
+                label='Mã lĩnh vực hợp đồng'
+                disabled
+              />
+            </FormRow>
             <FormTextArea
               control={form.control}
               name='description'
-              label='Mô tả'
+              label='Ghi chú'
               disabled
             />
           </div>

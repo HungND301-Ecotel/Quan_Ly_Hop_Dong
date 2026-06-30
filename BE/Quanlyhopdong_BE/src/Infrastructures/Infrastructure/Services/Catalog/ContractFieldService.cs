@@ -15,7 +15,13 @@ public class ContractFieldService(IUnitOfWork unitOfWork) : IContractFieldServic
 
     public async Task<bool> CreateContractField(CreateContractFieldDto createModel)
     {
-        var entity = ContractField.Create(createModel.Name, createModel.Description);
+        var isDuplicateCode = await _contractFieldRepo.AnyAsync(x => x.Code.ToLower() == createModel.Code.Trim().ToLower());
+        if (isDuplicateCode)
+        {
+            throw new BadRequestException("Code already exists");
+        }
+
+        var entity = ContractField.Create(createModel.Name, createModel.Code, createModel.Description);
         await _contractFieldRepo.InsertAsync(entity);
         await unitOfWork.SaveChangesAsync();
         return true;
@@ -85,10 +91,15 @@ public class ContractFieldService(IUnitOfWork unitOfWork) : IContractFieldServic
     {
         var contractField = await _contractFieldRepo.GetFirstOrDefaultAsync(
             predicate: c => c.Id == updateModel.Id,
-            disableTracking: true) ?? throw new BadRequestException("Invalid id");
+            disableTracking: false) ?? throw new BadRequestException("Invalid id");
 
-        contractField.Update(updateModel.Name, updateModel.Description);
-        _contractFieldRepo.Update(contractField);
+        var isDuplicateCode = await _contractFieldRepo.AnyAsync(x => x.Code.ToLower() == updateModel.Code.Trim().ToLower() && x.Id != updateModel.Id);
+        if (isDuplicateCode)
+        {
+            throw new BadRequestException("Code already exists");
+        }
+
+        contractField.Update(updateModel.Name, updateModel.Code, updateModel.Description);
         await unitOfWork.SaveChangesAsync();
         return true;
     }

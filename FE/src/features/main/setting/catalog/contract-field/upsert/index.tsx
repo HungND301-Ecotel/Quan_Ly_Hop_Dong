@@ -1,6 +1,7 @@
 import { DataTableEvent } from '@/components/data-table/types';
 import { Form } from '@/components/form/form';
 import { FormInput } from '@/components/form/form-input';
+import { FormRow } from '@/components/form/form-row';
 import { FormTextArea } from '@/components/form/form-text-area';
 import { Button } from '@/components/ui/button';
 import {
@@ -53,6 +54,7 @@ export function ContractFieldUpsert({
     if (detail.data) {
       form.reset({
         name: detail.data.name,
+        code: detail.data.code,
         description: detail.data.description || '',
       });
     }
@@ -121,12 +123,20 @@ export function ContractFieldUpsert({
           className='flex flex-col overflow-hidden'
         >
           <div className='flex-1 p-6 flex flex-col gap-6'>
-            <FormInput
-              control={form.control}
-              name='name'
-              label='Lĩnh vực hợp đồng'
-              placeholder='Nhập lĩnh vực hợp đồng'
-            />
+            <FormRow>
+              <FormInput
+                control={form.control}
+                name='name'
+                label='Tên lĩnh vực hợp đồng'
+                placeholder='Nhập tên lĩnh vực hợp đồng'
+              />
+              <FormInput
+                control={form.control}
+                name='code'
+                label='Mã lĩnh vực hợp đồng'
+                placeholder='Nhập mã lĩnh vực hợp đồng'
+              />
+            </FormRow>
             <FormTextArea
               control={form.control}
               name='description'
