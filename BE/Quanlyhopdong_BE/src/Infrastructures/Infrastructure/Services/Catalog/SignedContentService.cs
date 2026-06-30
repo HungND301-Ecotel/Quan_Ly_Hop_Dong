@@ -28,7 +28,8 @@ public class SignedContentService(IUnitOfWork unitOfWork) : ISignedContentServic
             Id = x.Id,
             Title = x.Title,
             Level3CodeId = x.Level3CodeId,
-            Level3CodeName = x.Level3Code.Code
+            Level3CodeName = x.Level3Code.Code,
+            Description = x.Description
         }).ToList();
     }
 
@@ -50,7 +51,8 @@ public class SignedContentService(IUnitOfWork unitOfWork) : ISignedContentServic
             Id = entity.Id,
             Title = entity.Title,
             Level3CodeId = entity.Level3CodeId,
-            Level3CodeName = entity.Level3Code.Code
+            Level3CodeName = entity.Level3Code.Code,
+            Description = entity.Description
         };
     }
 
@@ -68,7 +70,7 @@ public class SignedContentService(IUnitOfWork unitOfWork) : ISignedContentServic
         }).ToList();
     }
 
-    public async Task<Guid> CreateAsync(string title, Guid level3CodeId)
+    public async Task<Guid> CreateAsync(string title, Guid level3CodeId, string? description)
     {
         // Validate Level3Code exists
         var level3Code = await _level3CodeRepo.FindAsync(level3CodeId);
@@ -84,13 +86,13 @@ public class SignedContentService(IUnitOfWork unitOfWork) : ISignedContentServic
             throw new ConflictException("Level3Code đã được gắn với SignedContent khác");
         }
 
-        var entity = SignedContent.Create(title, level3CodeId);
+        var entity = SignedContent.Create(title, level3CodeId, description);
         await _signedContentRepo.InsertAsync(entity);
         await unitOfWork.SaveChangesAsync();
         return entity.Id;
     }
 
-    public async Task<bool> UpdateAsync(Guid id, string title, Guid level3CodeId)
+    public async Task<bool> UpdateAsync(Guid id, string title, Guid level3CodeId, string? description)
     {
         var entity = await _signedContentRepo.GetFirstOrDefaultAsync(
             predicate: x => x.Id == id,
@@ -115,7 +117,7 @@ public class SignedContentService(IUnitOfWork unitOfWork) : ISignedContentServic
             throw new ConflictException("Level3Code đã được gắn với SignedContent khác");
         }
 
-        entity.Update(title, level3CodeId);
+        entity.Update(title, level3CodeId, description);
         _signedContentRepo.Update(entity);
         await unitOfWork.SaveChangesAsync();
         return true;

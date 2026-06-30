@@ -6,6 +6,7 @@ public class SignedContentDto
     public string Title { get; set; } = string.Empty;
     public Guid Level3CodeId { get; set; }
     public string Level3CodeName { get; set; } = string.Empty;
+    public string? Description { get; set; }
 }
 
 public class SignedContentLookupDto
@@ -18,6 +19,7 @@ public class CreateSignedContentRequest
 {
     public string Title { get; set; } = string.Empty;
     public Guid Level3CodeId { get; set; }
+    public string? Description { get; set; }
 }
 
 public class UpdateSignedContentRequest
@@ -25,4 +27,5 @@ public class UpdateSignedContentRequest
     public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public Guid Level3CodeId { get; set; }
+    public string? Description { get; set; }
 }

@@ -38,14 +38,14 @@ public class SignedContentsController : BaseAuthController
     [HttpPost]
     public async Task<IActionResult> CreateSignedContentAsync([FromBody] CreateSignedContentRequest createModel)
     {
-        Guid result = await Mediator.Send(new CreateSignedContentCommand(createModel.Title, createModel.Level3CodeId));
+        Guid result = await Mediator.Send(new CreateSignedContentCommand(createModel.Title, createModel.Level3CodeId, createModel.Description));
         return Ok(result, MessageCommon.CreateSuccess);
     }
 
     [HttpPut]
     public async Task<IActionResult> UpdateSignedContentAsync([FromBody] UpdateSignedContentRequest updateModel)
     {
-        bool result = await Mediator.Send(new UpdateSignedContentCommand(updateModel.Id, updateModel.Title, updateModel.Level3CodeId));
+        bool result = await Mediator.Send(new UpdateSignedContentCommand(updateModel.Id, updateModel.Title, updateModel.Level3CodeId, updateModel.Description));
         return Ok(result, MessageCommon.UpdateSuccess);
     }
 
