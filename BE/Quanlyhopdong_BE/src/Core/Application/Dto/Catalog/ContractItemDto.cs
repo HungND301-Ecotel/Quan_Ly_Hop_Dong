@@ -1,4 +1,4 @@
-﻿namespace Application.Dto.Catalog;
+namespace Application.Dto.Catalog;
 
 public class ContractItemDto
 {
@@ -18,10 +18,12 @@ public class UpdateContractItemDto
     public Guid Id { get; set; }
     public Guid MaterialId { get; set; }
     public decimal Quantity { get; set; }
+    public decimal Price { get; set; }
 }
 
 public class CreateContractItemDto
 {
     public Guid MaterialId { get; set; }
     public decimal Quantity { get; set; }
+    public decimal Price { get; set; }
 }

@@ -12,7 +12,7 @@ namespace Domain.Entities.Identity;
 public class User : AuditableEntity<Guid>, IAggregateRoot
 {
     // Main constructor with required fields
-    public User(string userName, string? email, string? phoneNumber, string? fullname, Guid positionId, UserRole? role)
+    public User(string userName, string? email, string? phoneNumber, string? fullname, Guid positionId, UserRole? role, string? employeeCode = null, string? note = null)
     {
         SetUserName(userName);
         if (!string.IsNullOrEmpty(email))
@@ -30,6 +30,8 @@ public class User : AuditableEntity<Guid>, IAggregateRoot
         PositionId = positionId;
         Role = role;
         IsVerifiedEmail = false;
+        EmployeeCode = employeeCode;
+        Note = note;
         //SetPassword(passwordHash);
 
         // Add domain event for entity creation
@@ -146,6 +148,12 @@ public class User : AuditableEntity<Guid>, IAggregateRoot
     [MaxLength(50)]
     public string? RegisterProvider { get; private set; }
 
+    [MaxLength(50)]
+    public string? EmployeeCode { get; private set; }
+
+    [MaxLength(500)]
+    public string? Note { get; private set; }
+
     // Navigation properties
     [ForeignKey("PositionId")]
     public virtual Position? Position { get; protected set; }
@@ -160,13 +168,15 @@ public class User : AuditableEntity<Guid>, IAggregateRoot
     public virtual IReadOnlyCollection<ContractUserRole> ContractUserRoles => _contractUserRoles.AsReadOnly();
 
     // Domain methods - all state changes go through these methods
-    public void Update(string email, string phoneNumber, string? fullname, Guid positionId, UserRole role)
+    public void Update(string email, string phoneNumber, string? fullname, Guid positionId, UserRole role, string? employeeCode, string? note)
     {
         UpdateName(fullname);
         SetPhoneNumber(phoneNumber);
         SetEmail(email);
         Role = role;
-        positionId = positionId;
+        PositionId = positionId;
+        EmployeeCode = employeeCode;
+        Note = note;
     }
 
     #region Constructors

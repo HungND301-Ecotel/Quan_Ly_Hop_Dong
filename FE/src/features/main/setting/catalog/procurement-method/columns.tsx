@@ -15,6 +15,10 @@ export const PROCUREMENT_METHOD_COLUMNS: ColumnDef<ProcurementMethod>[] = [
     header: 'Tên hình thức',
   },
   {
+    accessorKey: 'description',
+    header: 'Ghi chú',
+  },
+  {
     header: () => <div className='text-right w-full pr-4'>Thao tác</div>,
     id: 'action',
     cell: ({ row, table }) => (

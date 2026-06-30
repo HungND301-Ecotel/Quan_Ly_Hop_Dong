@@ -13,9 +13,8 @@ public class UpdateMaterialCommandHandler(IUnitOfWork _unitOfWork) : IRequestHan
     private readonly IWriteRepository<Domain.Entities.Category.Material> repo = _unitOfWork.GetRepository<Domain.Entities.Category.Material>();
     public async Task<bool> Handle(UpdateMaterialCommand request, CancellationToken cancellationToken)
     {
-        var entity = await repo.GetFirstOrDefaultAsync(predicate: p => p.Id == request.UpdateModel.Id) ?? throw new BadRequestException("Invalid Id");
-        entity.Update(request.UpdateModel.MaterialCode, request.UpdateModel.Name, request.UpdateModel.UnitOfMeasureId, request.UpdateModel.Price, request.UpdateModel.IsOtherMaterial, "", request.UpdateModel.MaterialGroupId, entity.IsSynced);
-        repo.Update(entity);
+        var entity = await repo.GetFirstOrDefaultAsync(predicate: p => p.Id == request.UpdateModel.Id, disableTracking: false) ?? throw new BadRequestException("Invalid Id");
+        entity.Update(request.UpdateModel.MaterialCode, request.UpdateModel.Name, request.UpdateModel.UnitOfMeasureId, request.UpdateModel.Price, request.UpdateModel.IsOtherMaterial, request.UpdateModel.Description ?? "", request.UpdateModel.MaterialGroupId, entity.IsSynced);
         await _unitOfWork.SaveChangesAsync();
         return true;
     }

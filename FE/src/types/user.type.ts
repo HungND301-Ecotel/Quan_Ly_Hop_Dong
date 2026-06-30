@@ -16,6 +16,8 @@ export type User = {
   role: string;
   positionId: string;
   positionName: string | null;
+  employeeCode?: string;
+  note?: string;
 };
 
 type UserSignature = {

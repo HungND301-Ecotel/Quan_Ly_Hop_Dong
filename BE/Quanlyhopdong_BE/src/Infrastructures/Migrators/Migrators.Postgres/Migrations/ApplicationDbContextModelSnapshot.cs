@@ -1140,6 +1140,10 @@ namespace Migrators.PostgreSQL.Migrations
                     b.Property<DateTimeOffset?>("DeletedOn")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<Guid>("LastModifiedBy")
                         .HasColumnType("uuid");
 
@@ -1316,6 +1320,10 @@ namespace Migrators.PostgreSQL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uuid");
 
@@ -1430,6 +1438,10 @@ namespace Migrators.PostgreSQL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uuid");
 
@@ -1441,6 +1453,10 @@ namespace Migrators.PostgreSQL.Migrations
 
                     b.Property<DateTimeOffset?>("DeletedOn")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
@@ -1531,6 +1547,10 @@ namespace Migrators.PostgreSQL.Migrations
 
                     b.Property<DateTimeOffset?>("DeletedOn")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<Guid>("LastModifiedBy")
                         .HasColumnType("uuid");
@@ -1848,11 +1868,20 @@ namespace Migrators.PostgreSQL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("PartnerContractCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<string>("Phone")
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("PositionId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("Position")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
 
                     b.Property<string>("TaxCode")
                         .HasColumnType("text");
@@ -1860,8 +1889,6 @@ namespace Migrators.PostgreSQL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BankId");
-
-                    b.HasIndex("PositionId");
 
                     b.ToTable("Partners");
                 });
@@ -1887,6 +1914,10 @@ namespace Migrators.PostgreSQL.Migrations
 
                     b.Property<DateTimeOffset?>("DeletedOn")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<Guid>("LastModifiedBy")
                         .HasColumnType("uuid");
@@ -2295,6 +2326,10 @@ namespace Migrators.PostgreSQL.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<string>("EmployeeCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("Fullname")
                         .IsRequired()
                         .HasMaxLength(120)
@@ -2330,6 +2365,10 @@ namespace Migrators.PostgreSQL.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -3148,13 +3187,7 @@ namespace Migrators.PostgreSQL.Migrations
                         .WithMany()
                         .HasForeignKey("BankId");
 
-                    b.HasOne("Domain.Entities.Identity.Position", "Position")
-                        .WithMany()
-                        .HasForeignKey("PositionId");
-
                     b.Navigation("Bank");
-
-                    b.Navigation("Position");
                 });
 
             modelBuilder.Entity("Domain.Entities.Identity.DepartmentModulePermission", b =>

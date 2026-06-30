@@ -1,11 +1,13 @@
 import { Button } from '@/components/ui/button';
+import { useAuthContext } from '@/features/context';
 import { User } from '@/types/user.type';
 import { Row, Table } from '@tanstack/react-table';
-import { EyeIcon, SquarePenIcon, Trash2Icon } from 'lucide-react';
+import { EyeIcon, KeyRoundIcon, SquarePenIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
 import { DeleteUserDialog } from './components/delete/delete-user-dialog';
 import { UserDetailDialog } from './components/detail/user-detail-dialog';
 import { EditUserDialog } from './components/edit/edit-user-dialog';
+import { ResetPasswordDialog } from './components/reset/reset-password-dialog';
 
 interface AccountActionCellProps {
   row: Row<User>;
@@ -15,9 +17,12 @@ interface AccountActionCellProps {
 export function AccountActionCell({ row, table }: AccountActionCellProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { positions, departments, refresh } = (table.options.meta as any) || {};
+  const { user } = useAuthContext();
+  const isAdmin = user?.role === '0' || user?.role === 'Admin';
   const [open, setOpen] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openDetail, setOpenDetail] = useState(false);
+  const [openReset, setOpenReset] = useState(false);
 
   return (
     <>
@@ -38,6 +43,17 @@ export function AccountActionCell({ row, table }: AccountActionCellProps) {
         >
           <SquarePenIcon className='size-4' />
         </Button>
+        {isAdmin && (
+          <Button
+            variant='ghost'
+            size='icon'
+            onClick={() => setOpenReset(true)}
+            className='size-8 p-0 hover:text-primary hover:bg-primary/10'
+            title='Reset mật khẩu'
+          >
+            <KeyRoundIcon className='size-4' />
+          </Button>
+        )}
         <Button
           variant='ghost'
           size='icon'
@@ -75,6 +91,14 @@ export function AccountActionCell({ row, table }: AccountActionCellProps) {
           onOpenChange={setOpenDetail}
           positions={positions || []}
           departments={departments || []}
+        />
+      )}
+
+      {openReset && (
+        <ResetPasswordDialog
+          user={row.original}
+          open={openReset}
+          onOpenChange={setOpenReset}
         />
       )}
     </>

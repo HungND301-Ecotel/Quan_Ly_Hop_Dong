@@ -42,6 +42,8 @@ export function EditUserDialog({
     userRole: user.role.toString(),
     positionId: user.positionId,
     departmentId: user.departmentId || '',
+    employeeCode: user.employeeCode || '',
+    note: user.note || '',
   };
 
   const handleSubmit = async (values: CreateUserFormValues) => {
@@ -55,6 +57,8 @@ export function EditUserDialog({
         role: parseInt(values.userRole),
         positionId: values.positionId,
         department: values.departmentId,
+        employeeCode: values.employeeCode,
+        note: values.note,
       });
       toast.success('Cập nhật người dùng thành công');
       onOpenChange(false);

@@ -12,6 +12,8 @@ export const createUserSchema = z.object({
   userRole: z.string().min(1, 'Vui lòng chọn vai trò'),
   departmentId: z.string().min(1, 'Vui lòng chọn phòng ban'),
   positionId: z.string().min(1, 'Vui lòng chọn chức vụ'),
+  employeeCode: z.string().optional(),
+  note: z.string().optional(),
 });
 
 export type CreateUserFormValues = z.infer<typeof createUserSchema>;

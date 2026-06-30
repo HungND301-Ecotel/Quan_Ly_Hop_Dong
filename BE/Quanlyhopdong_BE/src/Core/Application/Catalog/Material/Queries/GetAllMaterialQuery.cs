@@ -12,7 +12,8 @@ public record class GetAllMaterialQuery(
     bool IsOtherMaterial = false,
     int? PageNumber = null,
     int? PageSize = null,
-    string? Keyword = null) : IRequest<object>;
+    string? Keyword = null,
+    bool? IsSynced = null) : IRequest<object>;
 
 public class GetAllMaterialQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetAllMaterialQuery, object>
 {
@@ -21,11 +22,27 @@ public class GetAllMaterialQueryHandler(IUnitOfWork unitOfWork) : IRequestHandle
     {
         Expression<Func<Domain.Entities.Category.Material, bool>> predicate = m => m.IsOtherMaterial == request.IsOtherMaterial;
 
+        if (request.IsSynced.HasValue)
+        {
+            var isSynced = request.IsSynced.Value;
+            predicate = m => m.IsOtherMaterial == request.IsOtherMaterial && m.IsSynced == isSynced;
+        }
+
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var keyword = request.Keyword.Trim().ToLower();
-            predicate = m => m.IsOtherMaterial == request.IsOtherMaterial && 
-                             (m.Name.ToLower().Contains(keyword) || m.MaterialCode.ToLower().Contains(keyword));
+            if (request.IsSynced.HasValue)
+            {
+                var isSynced = request.IsSynced.Value;
+                predicate = m => m.IsOtherMaterial == request.IsOtherMaterial && 
+                                 m.IsSynced == isSynced && 
+                                 (m.Name.ToLower().Contains(keyword) || m.MaterialCode.ToLower().Contains(keyword));
+            }
+            else
+            {
+                predicate = m => m.IsOtherMaterial == request.IsOtherMaterial && 
+                                 (m.Name.ToLower().Contains(keyword) || m.MaterialCode.ToLower().Contains(keyword));
+            }
         }
 
         if (request.PageNumber.HasValue && request.PageSize.HasValue)

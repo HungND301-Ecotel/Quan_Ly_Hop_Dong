@@ -26,14 +26,14 @@ public class ContractStructureCatalogController : BaseAuthController
     [HttpPost]
     public async Task<IActionResult> CreateAsync([FromBody] CreateContractStructureCatalogRequest createModel)
     {
-        var result = await Mediator.Send(new CreateContractStructureCatalogCommand(createModel.Name));
+        var result = await Mediator.Send(new CreateContractStructureCatalogCommand(createModel.Name, createModel.Code, createModel.Description));
         return Ok(result, MessageCommon.CreateSuccess);
     }
 
     [HttpPut]
     public async Task<IActionResult> UpdateAsync([FromBody] ContractStructureCatalogDto updateModel)
     {
-        var result = await Mediator.Send(new UpdateContractStructureCatalogCommand(updateModel.Id, updateModel.Name, updateModel.IsActive));
+        var result = await Mediator.Send(new UpdateContractStructureCatalogCommand(updateModel.Id, updateModel.Name, updateModel.Code, updateModel.Description, updateModel.IsActive));
         return Ok(result, MessageCommon.UpdateSuccess);
     }
 

@@ -1,4 +1,4 @@
-﻿using Application.Catalog.Users.Commands;
+using Application.Catalog.Users.Commands;
 using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Common.Repositories;
@@ -104,7 +104,9 @@ public class UserService(
             RegisterProvider = user.RegisterProvider,
             Signatures = user.UserSignatures.Adapt<List<UserSignatureDto>>(),
             DepartmentId = user.UserDepartments.FirstOrDefault()!.DepartmentId,
-            DepartmentName = user.UserDepartments.FirstOrDefault()!.Department.Name
+            DepartmentName = user.UserDepartments.FirstOrDefault()!.Department.Name,
+            EmployeeCode = user.EmployeeCode,
+            Note = user.Note
         };
     }
 
@@ -136,7 +138,9 @@ public class UserService(
             RegisterProvider = user.RegisterProvider,
             Signatures = user.UserSignatures.Adapt<List<UserSignatureDto>>(),
             DepartmentId = user.UserDepartments.FirstOrDefault()!.DepartmentId,
-            DepartmentName = user.UserDepartments.FirstOrDefault()!.Department.Name
+            DepartmentName = user.UserDepartments.FirstOrDefault()!.Department.Name,
+            EmployeeCode = user.EmployeeCode,
+            Note = user.Note
         };
         return result;
     }
@@ -174,7 +178,7 @@ public class UserService(
             _userDepartmentRepository.Delete(user.UserDepartments);
 
             user.Update(updateUser.Email, updateUser.PhoneNumber, updateUser.Fullname,
-                        updateUser.PositionId, updateUser.Role);
+                        updateUser.PositionId, updateUser.Role, updateUser.EmployeeCode, updateUser.Note);
             user.AddUserDepartment(user.UserDepartments.Select(u => UserDepartment.Create(u.DepartmentId, u.IsPrimary)));
             _userRepository.Update(user);
             await unitOfWork.SaveChangesAsync();
@@ -230,7 +234,7 @@ public class UserService(
             account.Password = AppConsts.DefaultPassword;
         }
 
-        var newAccount = new User(account.UserName, account.Email.Trim(), account.PhoneNumber, account.Fullname, account.PositionId, account.UserRole);
+        var newAccount = new User(account.UserName, account.Email.Trim(), account.PhoneNumber, account.Fullname, account.PositionId, account.UserRole, account.EmployeeCode, account.Note);
         newAccount.SetPassword(Utils.ComputeHash(account.Password));
         newAccount.AddUserDepartment(UserDepartment.Create(account.DepartmentId, true));
 

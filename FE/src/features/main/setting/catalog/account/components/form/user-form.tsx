@@ -1,6 +1,7 @@
 import { Form } from '@/components/form/form';
 import { FormInput } from '@/components/form/form-input';
 import { FormSelect } from '@/components/form/form-select';
+import { FormTextArea } from '@/components/form/form-text-area';
 import { Department } from '@/services/department/type';
 import { Position } from '@/services/postion/type';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -40,6 +41,8 @@ export function UserForm({
       userRole: '',
       departmentId: '',
       positionId: '',
+      employeeCode: '',
+      note: '',
       ...defaultValues,
     },
   });
@@ -141,6 +144,29 @@ export function UserForm({
       ) : (
         <div />
       )}
+
+      {/* Row 6: Mã nhân viên */}
+      <FormInput
+        control={form.control}
+        name='employeeCode'
+        label='Mã nhân viên'
+        placeholder='Nhập mã nhân viên'
+        disabled={readOnly}
+      />
+
+      <div />
+
+      {/* Row 7: Ghi chú */}
+      <div className='col-span-2'>
+        <FormTextArea
+          control={form.control}
+          name='note'
+          label='Ghi chú'
+          placeholder='Nhập ghi chú'
+          disabled={readOnly}
+          className='h-20'
+        />
+      </div>
     </Form>
   );
 }

@@ -20,5 +20,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Avatar).HasMaxLength(256);
         builder.Property(u => u.PasswordResetToken).HasMaxLength(256);
         builder.Property(u => u.RegisterProvider).HasMaxLength(50);
+        builder.Property(u => u.EmployeeCode).HasMaxLength(50);
+        builder.Property(u => u.Note).HasMaxLength(500);
     }
 }

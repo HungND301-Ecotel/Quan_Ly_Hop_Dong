@@ -3,6 +3,7 @@ import { Form } from '@/components/form/form';
 import { FormInput } from '@/components/form/form-input';
 import { FormSelect } from '@/components/form/form-select';
 import { FormRow } from '@/components/form/form-row';
+import { FormTextArea } from '@/components/form/form-text-area';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -58,6 +59,7 @@ export function EditSignedContentAction({ row, table }: DataTableEvent<SignedCon
     form.reset({
       title: detail.data.title,
       level3CodeId: detail.data.level3CodeId,
+      description: detail.data.description ?? '',
     });
   }, [detail.data, form]);
 
@@ -138,6 +140,14 @@ export function EditSignedContentAction({ row, table }: DataTableEvent<SignedCon
                     value: c.id,
                   })) ?? []
                 }
+              />
+            </FormRow>
+            <FormRow>
+              <FormTextArea
+                control={form.control}
+                name='description'
+                label='Ghi chú'
+                placeholder='Nhập ghi chú'
               />
             </FormRow>
           </div>

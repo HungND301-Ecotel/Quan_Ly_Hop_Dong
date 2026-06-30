@@ -15,6 +15,10 @@ export const DEPARTMENT_COLUMNS: ColumnDef<Department>[] = [
     header: 'Mã phòng ban',
   },
   {
+    accessorKey: 'description',
+    header: 'Ghi chú',
+  },
+  {
     id: 'action',
     header: () => <div className='text-right w-full pr-4'>Thao tác</div>,
     cell: (props) => {

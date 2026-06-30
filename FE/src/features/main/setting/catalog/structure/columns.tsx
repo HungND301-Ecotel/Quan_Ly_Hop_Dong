@@ -7,8 +7,16 @@ import { EditContractStructureCatalogAction } from './edit/page';
 export const CONTRACT_STRUCTURE_CATALOG_COLUMNS: ColumnDef<ContractStructureCatalog>[] = [
   DataTableSelectColumn as ColumnDef<ContractStructureCatalog>,
   {
+    accessorKey: 'code',
+    header: 'Mã hình thức hợp đồng',
+  },
+  {
     accessorKey: 'name',
     header: 'Tên hình thức hợp đồng',
+  },
+  {
+    accessorKey: 'description',
+    header: 'Ghi chú',
   },
   {
     accessorKey: 'isActive',

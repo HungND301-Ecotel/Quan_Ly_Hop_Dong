@@ -9,6 +9,8 @@ export type User = {
   positionId: string;
   positionName: string;
   isVerifiedPhone: boolean | null;
+  employeeCode?: string;
+  note?: string;
   isVerifiedEmail: boolean | null;
   registerProvider: string | null;
   departments: {
@@ -43,6 +45,8 @@ export type CreateUserReq = {
   userRole: number;
   departmentId: string;
   positionId: string;
+  employeeCode?: string;
+  note?: string;
 };
 
 export type UpdateUserReq = {
@@ -53,4 +57,6 @@ export type UpdateUserReq = {
   role: number;
   positionId: string;
   department: string;
+  employeeCode?: string;
+  note?: string;
 };

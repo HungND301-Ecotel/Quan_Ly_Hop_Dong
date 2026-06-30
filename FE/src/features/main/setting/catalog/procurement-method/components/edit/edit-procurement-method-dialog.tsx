@@ -31,6 +31,7 @@ export function EditProcurementMethodDialog({
   const defaultValues: Partial<CreateProcurementMethodValues> = {
     code: procurement_method.code,
     name: procurement_method.name,
+    description: procurement_method.description || '',
   };
 
   const handleSubmit = async (values: CreateProcurementMethodValues) => {
@@ -40,6 +41,7 @@ export function EditProcurementMethodDialog({
         id: procurement_method.id,
         code: values.code,
         name: values.name,
+        description: values.description || null,
       });
       toast.success('Cập nhật phương thức thành công');
       onOpenChange(false);

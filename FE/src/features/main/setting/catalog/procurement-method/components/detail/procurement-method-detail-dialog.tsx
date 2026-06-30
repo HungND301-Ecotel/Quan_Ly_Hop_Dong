@@ -24,6 +24,7 @@ export function ProcurementMethodDetailDialog({
   const defaultValues: Partial<CreateProcurementMethodValues> = {
     code: procurement_method.code,
     name: procurement_method.name,
+    description: procurement_method.description || '',
   };
 
   return (

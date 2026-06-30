@@ -15,6 +15,10 @@ export const SIGNED_CONTENT_COLUMNS: ColumnDef<SignedContent>[] = [
     header: 'Mã cấp 3',
   },
   {
+    accessorKey: 'description',
+    header: 'Ghi chú',
+  },
+  {
     id: 'action',
     header: () => <div className='text-right w-full pr-4'>Thao tác</div>,
     cell: (props) => (

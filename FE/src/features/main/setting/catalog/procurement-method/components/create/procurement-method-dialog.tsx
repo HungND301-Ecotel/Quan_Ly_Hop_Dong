@@ -29,7 +29,9 @@ export function CreateProcurementMethodDialog({
       setIsSubmitting(true);
 
       await procurementMethodService.createProcurementMethod({
-        ...values,
+        code: values.code,
+        name: values.name,
+        description: values.description || null,
       });
       toast.success('Tạo mới phương thức lựa chọn nhà thầu thành công');
       setOpen(false);
