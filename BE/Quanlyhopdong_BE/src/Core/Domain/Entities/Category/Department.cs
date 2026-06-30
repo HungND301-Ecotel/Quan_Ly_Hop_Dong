@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Domain.Common.Contracts;
 using Domain.Entities.Identity;
 
@@ -9,6 +10,9 @@ public class Department : AuditableEntity<Guid>, IAggregateRoot
     public string Name { get; protected set; } = string.Empty;
     public string Code { get; protected set; } = string.Empty;
     public Guid? ParentId { get; protected set; }
+
+    [MaxLength(500)]
+    public string? Description { get; protected set; }
 
 
     //Navigation properties
@@ -23,13 +27,14 @@ public class Department : AuditableEntity<Guid>, IAggregateRoot
     public virtual IReadOnlyCollection<UserDepartment> UserDepartments => _userDepartments.AsReadOnly();
 
     //Constructor
-    public static Department Create(string name, string code, Guid? parentid)
+    public static Department Create(string name, string code, Guid? parentid, string? description = null)
     {
         return new Department
         {
             Name = name,
             Code = code,
-            ParentId = parentid
+            ParentId = parentid,
+            Description = description
         };
     }
 }

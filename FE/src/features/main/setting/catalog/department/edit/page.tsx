@@ -2,6 +2,7 @@ import { DataTableEvent } from '@/components/data-table/types';
 import { Form } from '@/components/form/form';
 import { FormInput } from '@/components/form/form-input';
 import { FormRow } from '@/components/form/form-row';
+import { FormTextArea } from '@/components/form/form-text-area';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -51,6 +52,7 @@ export function DepartmentEdit({ row, table }: DataTableEvent<Department>) {
       form.reset({
         name: detail.data.name,
         code: detail.data.code,
+        description: detail.data.description ?? '',
       });
     }
   }, [detail.data, form]);
@@ -126,6 +128,14 @@ export function DepartmentEdit({ row, table }: DataTableEvent<Department>) {
                 name='code'
                 label='Mã phòng ban'
                 placeholder='Nhập mã phòng ban'
+              />
+            </FormRow>
+            <FormRow>
+              <FormTextArea
+                control={form.control}
+                name='description'
+                label='Ghi chú'
+                placeholder='Nhập ghi chú'
               />
             </FormRow>
           </div>

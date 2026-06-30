@@ -1,4 +1,4 @@
-﻿using Application.Common.Exceptions;
+using Application.Common.Exceptions;
 using Application.Common.Repositories;
 using Application.Common.UnitOfWork;
 using Application.Dto.Catalog;
@@ -90,10 +90,10 @@ public class DepartmentService(IUnitOfWork unitOfWork) : IDepartmentService
     {
         var department = await _departmentRepo.GetFirstOrDefaultAsync(
             predicate: d => d.Id == updateDepartment.Id,
-            disableTracking: true
+            disableTracking: false
             ) ?? throw new NotFoundException("Department is not found");
 
-        _departmentRepo.Update(updateDepartment.Adapt<Department>());
+        updateDepartment.Adapt(department);
         await unitOfWork.SaveChangesAsync();
         return true;
     }
