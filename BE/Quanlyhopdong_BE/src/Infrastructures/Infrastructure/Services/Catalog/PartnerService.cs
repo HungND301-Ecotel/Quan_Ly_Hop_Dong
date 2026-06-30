@@ -1,4 +1,4 @@
-﻿using Application.Common.Exceptions;
+using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Common.Repositories;
 using Application.Common.UnitOfWork;
@@ -90,10 +90,10 @@ public class PartnerService(IUnitOfWork unitOfWork, ICurrentUser currentUser) : 
     {
         var partner = await _partnerRepository.GetFirstOrDefaultAsync(
             predicate: d => d.Id == dto.Id,
-            disableTracking: true
+            disableTracking: false
             ) ?? throw new NotFoundException("Partner is not found");
 
-        _partnerRepository.Update(dto.Adapt<Partner>());
+        dto.Adapt(partner);
         await unitOfWork.SaveChangesAsync();
         return true;
     }

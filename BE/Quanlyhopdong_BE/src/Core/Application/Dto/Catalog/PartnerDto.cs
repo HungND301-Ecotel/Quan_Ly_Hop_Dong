@@ -11,7 +11,9 @@ public class PartnerDto
     public string? ContactPerson { get; set; }
     public Guid? BankId { get; set; }
     public string? Fax { get; set; }
-    public Guid? PositionId { get; set; }
+    public string? Position { get; set; }
+    public string? Note { get; set; }
+    public string? PartnerContractCode { get; set; }
 }
 
 public class CreatePartnerDto
@@ -24,5 +26,7 @@ public class CreatePartnerDto
     public string? ContactPerson { get; set; }
     public Guid? BankId { get; set; }
     public string? Fax { get; set; }
-    public Guid? PositionId { get; set; }
+    public string? Position { get; set; }
+    public string? Note { get; set; }
+    public string? PartnerContractCode { get; set; }
 }
