@@ -1,4 +1,4 @@
-﻿using Application.Common.Exceptions;
+using Application.Common.Exceptions;
 using Application.Common.Repositories;
 using Application.Common.UnitOfWork;
 using Application.Dto.Catalog;
@@ -18,9 +18,8 @@ public class UpdateProcurementMethodCommandHandler(IUnitOfWork _unitOfWork) : IR
             throw new BadRequestException("Code is already existed");
         }
 
-        var entity = await repo.GetFirstOrDefaultAsync(predicate: p => p.Id == request.UpdateModel.Id) ?? throw new BadRequestException("Invalid Id");
-        entity.Update(request.UpdateModel.Code, request.UpdateModel.Name);
-        repo.Update(entity);
+        var entity = await repo.GetFirstOrDefaultAsync(predicate: p => p.Id == request.UpdateModel.Id, disableTracking: false) ?? throw new BadRequestException("Invalid Id");
+        entity.Update(request.UpdateModel.Code, request.UpdateModel.Name, request.UpdateModel.Description);
         await _unitOfWork.SaveChangesAsync();
         return true;
     }

@@ -1,5 +1,6 @@
 import { Form } from '@/components/form/form';
 import { FormInput } from '@/components/form/form-input';
+import { FormTextArea } from '@/components/form/form-text-area';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import {
@@ -26,6 +27,7 @@ export function ProcurementMethodForm({
     defaultValues: {
       code: '',
       name: '',
+      description: '',
       ...defaultValues,
     },
   });
@@ -55,6 +57,16 @@ export function ProcurementMethodForm({
         required
         disabled={readOnly}
       />
+
+      <div className='col-span-2'>
+        <FormTextArea
+          control={form.control}
+          name='description'
+          label='Ghi chú'
+          placeholder='Nhập ghi chú'
+          disabled={readOnly}
+        />
+      </div>
     </Form>
   );
 }
