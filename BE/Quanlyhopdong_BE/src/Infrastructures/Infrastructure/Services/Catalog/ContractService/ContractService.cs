@@ -855,9 +855,9 @@ public partial class ContractService(
             var contractItems = dto.ContractItems
                 .Select(p =>
                 {
-                    if (materialMap.TryGetValue(p.MaterialId, out var mPrice))
+                    if (materialMap.ContainsKey(p.MaterialId))
                     {
-                        return ContractItem.Create(p.MaterialId, p.Quantity, mPrice ?? 0);
+                        return ContractItem.Create(p.MaterialId, p.Quantity, p.Price);
                     }
                     else
                     {
@@ -1953,9 +1953,9 @@ public partial class ContractService(
             var contractItems = dto.ContractItems
                 .Select(p =>
                 {
-                    if (materialMap.TryGetValue(p.MaterialId, out var mPrice))
+                    if (materialMap.ContainsKey(p.MaterialId))
                     {
-                        return ContractItem.Create(p.MaterialId, p.Quantity, mPrice ?? 0);
+                        return ContractItem.Create(p.MaterialId, p.Quantity, p.Price);
                     }
                     else
                     {
