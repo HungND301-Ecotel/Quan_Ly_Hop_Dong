@@ -14,9 +14,10 @@ public class MaterialController : BaseAuthController
         [FromQuery] bool IsOtherMaterial = false,
         [FromQuery] int? pageNumber = null,
         [FromQuery] int? pageSize = null,
-        [FromQuery] string? keyword = null)
+        [FromQuery] string? keyword = null,
+        [FromQuery] bool? IsSynced = null)
     {
-        var result = await Mediator.Send(new GetAllMaterialQuery(IsOtherMaterial, pageNumber, pageSize, keyword));
+        var result = await Mediator.Send(new GetAllMaterialQuery(IsOtherMaterial, pageNumber, pageSize, keyword, IsSynced));
         return Ok(result, MessageCommon.GetDataSuccess);
     }
 
