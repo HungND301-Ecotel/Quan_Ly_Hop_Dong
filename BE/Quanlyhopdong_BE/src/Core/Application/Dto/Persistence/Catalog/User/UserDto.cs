@@ -31,6 +31,8 @@ public class ShortUserInfo
     public UserRole? Role { get; set; }
     public Guid PositionId { get; set; }
     public string? PositionName { get; set; }
+    public string? EmployeeCode { get; set; }
+    public string? Note { get; set; }
 }
 public class UpdateUserInfoInput
 {
@@ -41,6 +43,8 @@ public class UpdateUserInfoInput
     public UserRole Role { get; set; }
     public Guid PositionId { get; set; }
     public Guid Department { get; set; }
+    public string? EmployeeCode { get; set; }
+    public string? Note { get; set; }
 }
 
 public class CreateNewAccountInput
@@ -53,6 +57,8 @@ public class CreateNewAccountInput
     public UserRole? UserRole { get; set; }
     public Guid DepartmentId { get; set; }
     public Guid PositionId { get; set; }
+    public string? EmployeeCode { get; set; }
+    public string? Note { get; set; }
 }
 
 public class UpdateUserPasswordInput

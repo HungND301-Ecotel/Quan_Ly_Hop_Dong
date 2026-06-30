@@ -1,4 +1,4 @@
-﻿using Application.Catalog.Users.Commands;
+using Application.Catalog.Users.Commands;
 using Application.Catalog.Users.Queries;
 using Application.Dto.Catalog;
 using Application.Dto.Persistence.Catalog.User;
@@ -75,6 +75,14 @@ public class UserController : BaseAuthController
     public async Task<IActionResult> ChangePasswordAsync([FromBody] UpdatePasswordCommand request)
     {
         var result = await Mediator.Send(request);
+        return Ok(result, MessageCommon.UpdateSuccess);
+    }
+
+    [HttpPost("{userId}/reset-password")]
+    [OpenApiOperation("Reset password of a user to default 123456")]
+    public async Task<IActionResult> ResetPasswordAsync(Guid userId)
+    {
+        var result = await Mediator.Send(new ResetUserPasswordCommand(userId));
         return Ok(result, MessageCommon.UpdateSuccess);
     }
 

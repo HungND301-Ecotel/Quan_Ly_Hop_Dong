@@ -15,6 +15,7 @@ export const API = {
     CREATE: 'user/create',
     UPDATE: 'user/update',
     CHANGE_PASSWORD: 'user/change-password',
+    RESET_PASSWORD: (userId: string) => `/user/${userId}/reset-password`,
     SIGNATURE: {
       LIST: (userId: string) => `/user/${userId}/signatures`,
       CREATE: (userId: string) => `/user/${userId}/signatures`,

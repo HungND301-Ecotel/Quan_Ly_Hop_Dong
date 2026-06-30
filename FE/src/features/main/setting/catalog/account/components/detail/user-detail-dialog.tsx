@@ -35,6 +35,8 @@ export function UserDetailDialog({
     userRole: user.role.toString(),
     positionId: user.positionId,
     departmentId: user.departmentId || '',
+    employeeCode: user.employeeCode || '',
+    note: user.note || '',
   };
 
   return (

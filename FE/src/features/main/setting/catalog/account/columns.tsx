@@ -14,6 +14,10 @@ export const USER_COLUMNS: ColumnDef<User>[] = [
     header: 'Họ và tên',
   },
   {
+    accessorKey: 'employeeCode',
+    header: 'Mã nhân viên',
+  },
+  {
     accessorKey: 'phoneNumber',
     header: 'Số điện thoại',
   },

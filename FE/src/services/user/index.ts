@@ -39,6 +39,10 @@ const deleteUsers = async (ids: string[]) => {
   return await api.delete<boolean, string[]>(API.USER.DELETE_MANY, ids);
 };
 
+const resetPassword = async (userId: string) => {
+  return await api.post<boolean, undefined>(API.USER.RESET_PASSWORD(userId));
+};
+
 export const userService = {
   getUserDetail,
   getUserList,
@@ -46,4 +50,5 @@ export const userService = {
   createUser,
   updateUser,
   deleteUsers,
+  resetPassword,
 };
