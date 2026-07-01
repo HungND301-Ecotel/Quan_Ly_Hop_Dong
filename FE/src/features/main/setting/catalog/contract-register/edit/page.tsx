@@ -123,13 +123,13 @@ export function ContractRegisterEdit({
               <FormInput
                 control={form.control}
                 name='name'
-                label='Tên sổ theo dõi'
+                label='Sổ theo dõi hợp đồng'
                 placeholder='Nhập tên sổ theo dõi hợp đồng'
               />
               <FormYear
                 control={form.control}
                 name='year'
-                label='Thời gian (Năm)'
+                label='Thời gian'
                 required
               />
             </FormRow>

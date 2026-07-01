@@ -19,7 +19,16 @@ import { partnerService } from '@/services/partner';
 import { Partner } from '@/services/partner/type';
 import { positionService } from '@/services/postion';
 import { Position } from '@/services/postion/type';
-import { Briefcase, Building2, EyeIcon, Hash, MapPin, Phone, Printer, User } from 'lucide-react';
+import {
+  Briefcase,
+  Building2,
+  EyeIcon,
+  Hash,
+  MapPin,
+  Phone,
+  Printer,
+  User,
+} from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 export function PartnerDetail({ row }: DataTableEvent<Partner>) {
@@ -50,7 +59,7 @@ export function PartnerDetail({ row }: DataTableEvent<Partner>) {
   if (!row) return null;
 
   const positionName = positions.find(
-    (p) => p.id === detail.data?.positionId
+    (p) => p.id === detail.data?.position
   )?.name;
 
   const bankAccount = bankAccounts.find((b) => b.id === detail.data?.bankId);
@@ -138,9 +147,7 @@ export function PartnerDetail({ row }: DataTableEvent<Partner>) {
                 <Label className='text-muted-foreground w-full sm:w-52 flex items-center gap-2 shrink-0'>
                   <Briefcase className='w-4 h-4' /> Chức vụ
                 </Label>
-                <p className='font-medium text-base'>
-                  {positionName || '---'}
-                </p>
+                <p className='font-medium text-base'>{positionName || '---'}</p>
               </div>
 
               {/* Tài khoản ngân hàng */}

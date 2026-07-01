@@ -42,7 +42,7 @@ export type ContractDetailProps = {
 
 export function EconomicContractDetail({
   contract,
-  callback
+  callback,
 }: EconomicContractDetailProps) {
   const [tab, setTab] = useState('information');
   const [open, setOpen] = useState(false);
@@ -60,7 +60,6 @@ export function EconomicContractDetail({
     taxRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
-
   const detailService = useCallback(() => {
     if (!open) return;
     return contractService.getContractDetail(contract.id);
@@ -68,8 +67,9 @@ export function EconomicContractDetail({
 
   const detail = useApi({ service: detailService });
 
-  const isAdmin = user?.role === '0' || user?.role === 'Admin';
-  const contractUserRoles = detail.data?.contractUserRoles || contract.contractUserRoles || [];
+  const isAdmin = user?.role === 0;
+  const contractUserRoles =
+    detail.data?.contractUserRoles || contract.contractUserRoles || [];
   const isManager = contractUserRoles.some(
     (r) => r.userId === user?.id && r.role === 1
   );
@@ -189,28 +189,28 @@ export function EconomicContractDetail({
                     documents={[
                       ...(detail.data?.filePath
                         ? detail.data.filePath
-                          .split(';')
-                          .filter(Boolean)
-                          .map((url, i) => ({
-                            url,
-                            name: detail.data?.contractName
-                              ? `${detail.data.contractName}${i > 0 ? ` (${i + 1})` : ''}`
-                              : url,
-                            group: 'origin' as const,
-                          }))
+                            .split(';')
+                            .filter(Boolean)
+                            .map((url, i) => ({
+                              url,
+                              name: detail.data?.contractName
+                                ? `${detail.data.contractName}${i > 0 ? ` (${i + 1})` : ''}`
+                                : url,
+                              group: 'origin' as const,
+                            }))
                         : []),
                       ...(detail.data?.signedFilePath
                         ? detail.data.signedFilePath
-                          .split(';')
-                          .filter(Boolean)
-                          .filter((url) => url !== detail.data?.filePath)
-                          .map((url, i) => ({
-                            url,
-                            name: detail.data?.contractName
-                              ? `${detail.data.contractName} (đã ký${i > 0 ? ` ${i + 1}` : ''})`
-                              : url,
-                            group: 'signed' as const,
-                          }))
+                            .split(';')
+                            .filter(Boolean)
+                            .filter((url) => url !== detail.data?.filePath)
+                            .map((url, i) => ({
+                              url,
+                              name: detail.data?.contractName
+                                ? `${detail.data.contractName} (đã ký${i > 0 ? ` ${i + 1}` : ''})`
+                                : url,
+                              group: 'signed' as const,
+                            }))
                         : []),
                       ...(detail.data?.attachments ?? []).map((a) => ({
                         url: a.filePath,

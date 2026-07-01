@@ -19,30 +19,38 @@ const uniqueUserIds = (items: { userId: string }[]) => {
 };
 
 export const ContractUserRolesSchema = z.object({
-  draftingOfficer: z.array(
-    z.object({
-      departmentId: z.string().nonempty({ error: 'Không được để trống' }),
-      userId: z.string().nonempty({ error: 'Không được để trống' }),
-    })
-  ).refine(uniqueUserIds, { message: 'Cán bộ, nhân viên không được trùng nhau' }),
-  manager: z.array(
-    z.object({
-      departmentId: z.string().nonempty({ error: 'Không được để trống' }),
-      userId: z.string().nonempty({ error: 'Không được để trống' }),
-    })
-  ).refine(uniqueUserIds, { message: 'Cán bộ, nhân viên không được trùng nhau' }),
-  coordinator: z.array(
-    z.object({
-      departmentId: z.string().nonempty({ error: 'Không được để trống' }),
-      userId: z.string().nonempty({ error: 'Không được để trống' }),
-    })
-  ).refine(uniqueUserIds, { message: 'Cán bộ, nhân viên không được trùng nhau' }),
-  receivingOfficer: z.array(
-    z.object({
-      departmentId: z.string().nonempty({ error: 'Không được để trống' }),
-      userId: z.string().nonempty({ error: 'Không được để trống' }),
-    })
-  ).refine(uniqueUserIds, { message: 'Cán bộ, nhân viên không được trùng nhau' }),
+  draftingOfficer: z
+    .array(
+      z.object({
+        departmentId: z.string().nonempty({ error: 'Không được để trống' }),
+        userId: z.string().nonempty({ error: 'Không được để trống' }),
+      })
+    )
+    .refine(uniqueUserIds, { message: 'Nhân viên không được trùng nhau' }),
+  manager: z
+    .array(
+      z.object({
+        departmentId: z.string().nonempty({ error: 'Không được để trống' }),
+        userId: z.string().nonempty({ error: 'Không được để trống' }),
+      })
+    )
+    .refine(uniqueUserIds, { message: 'Nhân viên không được trùng nhau' }),
+  coordinator: z
+    .array(
+      z.object({
+        departmentId: z.string().nonempty({ error: 'Không được để trống' }),
+        userId: z.string().nonempty({ error: 'Không được để trống' }),
+      })
+    )
+    .refine(uniqueUserIds, { message: 'Nhân viên không được trùng nhau' }),
+  receivingOfficer: z
+    .array(
+      z.object({
+        departmentId: z.string().nonempty({ error: 'Không được để trống' }),
+        userId: z.string().nonempty({ error: 'Không được để trống' }),
+      })
+    )
+    .refine(uniqueUserIds, { message: 'Nhân viên không được trùng nhau' }),
 });
 
 export type ContractUserRolesValues = z.infer<typeof ContractUserRolesSchema>;
@@ -82,11 +90,13 @@ export const BasicInformationSchema = z
     effectiveDate: z.iso.date('Vui lòng chọn ngày hợp đồng có hiệu lực'),
     completionDurationDays: z
       .number({ error: 'Vui lòng nhập thời gian thực hiện' })
-      .min(1, 'Thời gian thực hiện phải lớn hơn 0').optional(),
+      .min(1, 'Thời gian thực hiện phải lớn hơn 0')
+      .optional(),
     completionDate: z.iso.date('Ngày hoàn thành hợp đồng không hợp lệ'),
     warrantyDurationDays: z
       .number({ error: 'Vui lòng nhập thời gian bảo hành' })
-      .min(1, 'Thời gian bảo hành phải lớn hơn 0').optional(),
+      .min(1, 'Thời gian bảo hành phải lớn hơn 0')
+      .optional(),
     warrantyExpirationDate: z.iso.date('Ngày hết hạn bảo hành không hợp lệ'),
 
     contractFile: z.array(z.file()).nonempty({ error: 'Không được để trống' }),
@@ -133,6 +143,10 @@ export const BasicInformationSchema = z
         quantity: z.coerce
           .number<number>()
           .nonnegative({ error: 'Phải lớn hơn 0' }),
+        price: z.coerce
+          .number<number>({ error: 'Số không hợp lệ' })
+          .nonnegative({ error: 'Phải lớn hơn 0' })
+          .optional(),
       })
     ),
 
@@ -239,6 +253,7 @@ export const BasicInformationDefault: BasicInformationValues = {
     {
       materialId: '',
       quantity: '' as unknown as number,
+      price: '' as unknown as number,
     },
   ],
 

@@ -128,7 +128,7 @@ export function ContractInformation({
               <tr>
                 <td
                   colSpan={4}
-                  className='bg-muted/50 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground border-b'
+                  className='border-b bg-muted/50 px-3 py-2 text-sm font-medium uppercase tracking-wide text-blue-600'
                 >
                   Mẫu hợp đồng
                 </td>
@@ -137,7 +137,7 @@ export function ContractInformation({
                 <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
                   Định dạng hợp đồng
                 </td>
-                <td className='px-3 py-2 text-sm font-medium text-primary border-b w-1/4'>
+                <td className='px-3 py-2 text-sm font-medium border-b'>
                   {loading ? (
                     <Skeleton className='h-4 w-28' />
                   ) : (
@@ -197,7 +197,7 @@ export function ContractInformation({
               <tr>
                 <td
                   colSpan={4}
-                  className='bg-muted/50 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground border-b'
+                  className='border-b bg-muted/50 px-3 py-2 text-sm font-medium uppercase tracking-wide text-blue-600'
                 >
                   Thông tin hợp đồng
                 </td>
@@ -274,7 +274,7 @@ export function ContractInformation({
                 </td>
                 <td
                   colSpan={3}
-                  className='px-3 py-2 text-sm font-medium text-primary border-b w-1/4'
+                  className='px-3 py-2 text-sm font-medium border-b w-1/4'
                 >
                   {loading ? (
                     <Skeleton className='h-4 w-full' />
@@ -287,7 +287,7 @@ export function ContractInformation({
                 <td className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap border-b w-px'>
                   Số ký hiệu HĐ
                 </td>
-                <td className='px-3 py-2 text-sm font-medium text-primary border-b w-1/4'>
+                <td className='px-3 py-2 text-sm font-medium border-b w-1/4'>
                   {loading ? (
                     <Skeleton className='h-4 w-28' />
                   ) : (
@@ -354,7 +354,7 @@ export function ContractInformation({
               <tr>
                 <td
                   colSpan={4}
-                  className='bg-muted/50 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground border-b'
+                  className='border-b bg-muted/50 px-3 py-2 text-sm font-medium uppercase tracking-wide text-blue-600'
                 >
                   Đối tác / Khách hàng
                 </td>
@@ -428,7 +428,7 @@ export function ContractInformation({
               <tr>
                 <td
                   colSpan={4}
-                  className='bg-muted/50 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground border-b'
+                  className='border-b bg-muted/50 px-3 py-2 text-sm font-medium uppercase tracking-wide text-blue-600'
                 >
                   Phân công quản lý
                 </td>
@@ -513,11 +513,12 @@ export function ContractInformation({
             )}
             <div>
               <div className='text-sm font-medium mb-3'>
-                Danh sách vật tư ({information.contractItems.length} mục)
+                Danh sách vật tư, tài sản ({information.contractItems.length}{' '}
+                mục)
               </div>
               <div className='space-y-2'>
                 <div className='grid grid-cols-12 gap-4 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground'>
-                  <div className='col-span-6'>Tên vật tư</div>
+                  <div className='col-span-6'>Tên vật tư, tài sản</div>
                   <div className='col-span-3'>Đơn vị tính</div>
                   <div className='col-span-3 text-right'>Số lượng</div>
                 </div>
@@ -554,47 +555,47 @@ export function ContractInformation({
       {(information?.contractOthersValue ||
         (information?.contractOtherItems &&
           information.contractOtherItems.length > 0)) && (
-          <Section title='Dịch vụ khác' icon={Layers}>
-            {information.contractOtherItems &&
-              information.contractOtherItems.length > 0 ? (
-              <div>
-                <div className='text-sm font-medium mb-3'>
-                  Danh sách dịch vụ khác ({information.contractOtherItems.length}{' '}
-                  mục)
-                </div>
-                <div className='space-y-2'>
-                  <div className='grid grid-cols-12 gap-4 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground'>
-                    <div className='col-span-9'>Tên dịch vụ khác</div>
-                    <div className='col-span-3'>Đơn vị tính</div>
-                  </div>
-                  {information.contractOtherItems.map((item, index) => {
-                    return (
-                      <div
-                        key={index}
-                        className='grid grid-cols-12 gap-4 px-3 py-2 rounded-lg border hover:border-primary/50 hover:bg-white transition-colors'
-                      >
-                        <div className='col-span-9 flex items-center'>
-                          <span className='text-sm font-medium'>
-                            {item.materialName || 'N/A'}
-                          </span>
-                        </div>
-                        <div className='col-span-3 flex items-center text-sm text-muted-foreground'>
-                          {item?.unitOfMeasureName || '—'}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+        <Section title='Dịch vụ khác' icon={Layers}>
+          {information.contractOtherItems &&
+          information.contractOtherItems.length > 0 ? (
+            <div>
+              <div className='text-sm font-medium mb-3'>
+                Danh sách dịch vụ khác ({information.contractOtherItems.length}{' '}
+                mục)
               </div>
-            ) : (
-              <InfoRow
-                label='Giá trị thành phần khác'
-                value={`${format.number(information.contractOthersValue || 0)} đ`}
-                loading={loading}
-              />
-            )}
-          </Section>
-        )}
+              <div className='space-y-2'>
+                <div className='grid grid-cols-12 gap-4 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground'>
+                  <div className='col-span-9'>Tên dịch vụ khác</div>
+                  <div className='col-span-3'>Đơn vị tính</div>
+                </div>
+                {information.contractOtherItems.map((item, index) => {
+                  return (
+                    <div
+                      key={index}
+                      className='grid grid-cols-12 gap-4 px-3 py-2 rounded-lg border hover:border-primary/50 hover:bg-white transition-colors'
+                    >
+                      <div className='col-span-9 flex items-center'>
+                        <span className='text-sm font-medium'>
+                          {item.materialName || 'N/A'}
+                        </span>
+                      </div>
+                      <div className='col-span-3 flex items-center text-sm text-muted-foreground'>
+                        {item?.unitOfMeasureName || '—'}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <InfoRow
+              label='Giá trị thành phần khác'
+              value={`${format.number(information.contractOthersValue || 0)} đ`}
+              loading={loading}
+            />
+          )}
+        </Section>
+      )}
 
       {/* ── Chiết khấu ── */}
       {information?.discountValue !== undefined &&
@@ -651,8 +652,12 @@ export function ContractInformation({
                               {index + 1}
                             </span>
                             <div className='flex flex-col'>
-                              <span className='text-sm font-medium'>Kỳ {index + 1}</span>
-                              <span className='text-xs text-muted-foreground'>Số ngày thanh toán/đối chiếu: {item.days} ngày</span>
+                              <span className='text-sm font-medium'>
+                                Kỳ {index + 1}
+                              </span>
+                              <span className='text-xs text-muted-foreground'>
+                                Số ngày thanh toán/đối chiếu: {item.days} ngày
+                              </span>
                             </div>
                           </div>
                           <div className='text-right'>
@@ -674,8 +679,6 @@ export function ContractInformation({
             )}
         </Section>
       )}
-
-
 
       {/* ── Bảo lãnh ── */}
       {!isRuleContract &&
@@ -708,9 +711,9 @@ export function ContractInformation({
                           guarantee.valueType === 1
                             ? `${guarantee.value}%`
                             : new Intl.NumberFormat('vi-VN', {
-                              style: 'currency',
-                              currency: 'VND',
-                            }).format(guarantee.value)
+                                style: 'currency',
+                                currency: 'VND',
+                              }).format(guarantee.value)
                         }
                         highlight
                       />

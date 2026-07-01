@@ -11,12 +11,12 @@ export const LEVEL2_CODE_COLUMNS: ColumnDef<Level2Code>[] = [
     header: 'Mã cấp 2',
   },
   {
-    accessorKey: 'description',
-    header: 'Mô tả',
-  },
-  {
     accessorKey: 'level1CodeName',
     header: 'Mã cấp 1',
+  },
+  {
+    accessorKey: 'description',
+    header: 'Ghi chú',
   },
   {
     id: 'action',

@@ -7,6 +7,7 @@ export type Partner = {
   address: string;
   contactPerson: string;
   fax: string;
-  positionId: string;
+  position: string;
   bankId: string;
+  note?: string;
 };

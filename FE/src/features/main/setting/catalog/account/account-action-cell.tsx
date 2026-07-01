@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/features/context';
 import { User } from '@/types/user.type';
 import { Row, Table } from '@tanstack/react-table';
-import { EyeIcon, KeyRoundIcon, SquarePenIcon, Trash2Icon } from 'lucide-react';
+import { KeyRoundIcon, SquarePenIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
 import { DeleteUserDialog } from './components/delete/delete-user-dialog';
 import { UserDetailDialog } from './components/detail/user-detail-dialog';
@@ -18,7 +18,7 @@ export function AccountActionCell({ row, table }: AccountActionCellProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { positions, departments, refresh } = (table.options.meta as any) || {};
   const { user } = useAuthContext();
-  const isAdmin = user?.role === '0' || user?.role === 'Admin';
+  const isAdmin = user?.role === 0;
   const [open, setOpen] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openDetail, setOpenDetail] = useState(false);
@@ -27,14 +27,6 @@ export function AccountActionCell({ row, table }: AccountActionCellProps) {
   return (
     <>
       <div className='flex items-center gap-2'>
-        <Button
-          variant='ghost'
-          size='icon'
-          onClick={() => setOpenDetail(true)}
-          className='size-8 p-0'
-        >
-          <EyeIcon className='size-4' />
-        </Button>
         <Button
           variant='ghost'
           size='icon'

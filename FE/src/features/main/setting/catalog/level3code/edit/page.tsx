@@ -29,7 +29,10 @@ import {
   Level3CodeValues,
 } from './schema';
 
-export function EditLevel3CodeAction({ row, table }: DataTableEvent<Level3Code>) {
+export function EditLevel3CodeAction({
+  row,
+  table,
+}: DataTableEvent<Level3Code>) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -70,7 +73,8 @@ export function EditLevel3CodeAction({ row, table }: DataTableEvent<Level3Code>)
       return;
     }
     setIsLevel2Loading(true);
-    level2CodeService.getLevel2CodeByLevel1(watchedLevel1CodeId)
+    level2CodeService
+      .getLevel2CodeByLevel1(watchedLevel1CodeId)
       .then((data) => {
         setLevel2Codes(data || []);
       })
@@ -84,7 +88,9 @@ export function EditLevel3CodeAction({ row, table }: DataTableEvent<Level3Code>)
     const detailData = detail.data;
     if (!detailData || level1Codes.loading || level2Codes.length === 0) return;
 
-    const lvl1 = level1Codes.data?.find((c) => c.id === detailData.level1CodeId);
+    const lvl1 = level1Codes.data?.find(
+      (c) => c.id === detailData.level1CodeId
+    );
     if (!lvl1) return;
 
     const fullCode = detailData.code;
@@ -221,25 +227,23 @@ export function EditLevel3CodeAction({ row, table }: DataTableEvent<Level3Code>)
                       : 'Chọn mã cấp 2'
                 }
                 disabled={!watchedLevel1CodeId || isLevel2Loading}
-                options={
-                  level2Codes.map((c) => ({
-                    label: `${c.code}`,
-                    value: c.id,
-                  }))
-                }
+                options={level2Codes.map((c) => ({
+                  label: `${c.code}`,
+                  value: c.id,
+                }))}
               />
             </FormRow>
             <FormRow>
               <FormInput
                 control={form.control}
                 name='suffix'
-                label='Số đuôi'
-                placeholder='Nhập số đuôi, ví dụ: 01'
+                label='Mã số'
+                placeholder='Nhập mã số, ví dụ: 01'
               />
               <FormInput
                 control={form.control}
                 name='code'
-                label='Mã cấp 3 (Xem trước)'
+                label='Mã cấp 3'
                 readOnly
                 className='opacity-50 cursor-not-allowed select-none bg-muted'
                 placeholder='Mã cấp 3 tự sinh'

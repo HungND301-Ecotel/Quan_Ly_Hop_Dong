@@ -7,6 +7,7 @@ import {
   CreateProcurementMethodValues,
   createProcurementMethodSchema,
 } from '../create/procurement-method-schema';
+import { FormRow } from '@/components/form/form-row';
 
 interface UserFormProps {
   id: string;
@@ -38,34 +39,36 @@ export function ProcurementMethodForm({
       id={id}
       context={form}
       onSubmit={readOnly ? (e: any) => e.preventDefault() : onSubmit}
-      className='grid grid-cols-2 gap-4'
+      className='flex flex-col overflow-hidden'
     >
-      <FormInput
-        control={form.control}
-        name='code'
-        label='Mã phương thức'
-        placeholder='Nhập mã phương thức'
-        required
-        disabled={readOnly}
-      />
-
-      <FormInput
-        control={form.control}
-        name='name'
-        label='Tên phương thức'
-        placeholder='Nhập tên phương thức'
-        required
-        disabled={readOnly}
-      />
-
-      <div className='col-span-2'>
-        <FormTextArea
-          control={form.control}
-          name='description'
-          label='Ghi chú'
-          placeholder='Nhập ghi chú'
-          disabled={readOnly}
-        />
+      <div className='flex-1 p-6 flex flex-col gap-6'>
+        <FormRow>
+          <FormInput
+            control={form.control}
+            name='code'
+            label='Mã hình thức lựa chọn nhà thầu'
+            placeholder='Nhập mã hình thức lựa chọn nhà thầu'
+            disabled={readOnly}
+          />
+        </FormRow>
+        <FormRow>
+          <FormInput
+            control={form.control}
+            name='name'
+            label='Hình thức lựa chọn nhà thầu'
+            placeholder='Nhập hình thức lựa chọn nhà thầu'
+            disabled={readOnly}
+          />
+        </FormRow>
+        <div className='col-span-2'>
+          <FormTextArea
+            control={form.control}
+            name='description'
+            label='Ghi chú'
+            placeholder='Nhập ghi chú'
+            disabled={readOnly}
+          />
+        </div>
       </div>
     </Form>
   );

@@ -7,20 +7,20 @@ import { EditLevel3CodeAction } from './edit/page';
 export const LEVEL3_CODE_COLUMNS: ColumnDef<Level3Code>[] = [
   DataTableSelectColumn as ColumnDef<Level3Code>,
   {
-    accessorKey: 'code',
-    header: 'Mã cấp 3',
-  },
-  {
-    accessorKey: 'description',
-    header: 'Mô tả',
-  },
-  {
     accessorKey: 'level1CodeName',
     header: 'Mã cấp 1',
   },
   {
     accessorKey: 'level2CodeName',
     header: 'Mã cấp 2',
+  },
+  {
+    accessorKey: 'code',
+    header: 'Mã cấp 3',
+  },
+  {
+    accessorKey: 'description',
+    header: 'Ghi chú',
   },
   {
     id: 'action',

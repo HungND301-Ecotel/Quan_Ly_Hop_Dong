@@ -1,20 +1,20 @@
 import {
-    DataTable,
-    DataTableContent,
-    DataTableFilterContractStatus,
-    DataTableFilterContractType,
-    DataTableFooter,
-    DataTableHeader,
-    DataTablePagination,
-    DataTableSearch,
-    useDataTable,
+  DataTable,
+  DataTableContent,
+  DataTableFilterContractStatus,
+  DataTableFilterContractType,
+  DataTableFooter,
+  DataTableHeader,
+  DataTablePagination,
+  DataTableSearch,
+  useDataTable,
 } from '@/components/data-table';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 import { ContractFormat } from '@/constants/contract-format';
 import { ContractDelete } from '@/features/main/contract/approval/components/delete.tsx';
@@ -26,55 +26,62 @@ import { ContractColumns } from '../all/columns';
 import { ContractSubmitForApproval } from './components/Contractsubmitforapproval';
 
 export function ContractAllPage() {
-    const { setAction } = useMainLayoutContext();
+  const { setAction } = useMainLayoutContext();
 
-    const ContractApprovalList = useCallback(async () => {
-        return contractService.getMyVisibleContractList();
-    }, []);
+  const ContractApprovalList = useCallback(async () => {
+    return contractService.getMyVisibleContractList();
+  }, []);
 
-    const dataTable = useDataTable({
-        columns: ContractColumns,
-        service: ContractApprovalList,
-        keys: ['contract-approval'],
-    });
+  const dataTable = useDataTable({
+    columns: ContractColumns,
+    service: ContractApprovalList,
+    keys: ['contract-approval'],
+  });
 
-    useEffect(() => {
-        setAction(<ContractEdit callback={dataTable.refresh} />);
-    }, [setAction, dataTable.refresh]);
-
-    return (
-        <DataTable dataTable={dataTable}>
-            <DataTableHeader>
-                <ContractDelete />
-                <ContractSubmitForApproval />
-                <DataTableSearch />
-                <Select
-                    defaultValue='all'
-                    onValueChange={(value) => {
-                        dataTable.table
-                            .getColumn('contractFormat')
-                            ?.setFilterValue(value === 'all' ? undefined : Number(value));
-                    }}
-                >
-                    <SelectTrigger>
-                        <SelectValue placeholder='Select' />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value='all'>Tất cả mẫu hợp đồng</SelectItem>
-                        {Object.values(ContractFormat).map((format) => (
-                            <SelectItem key={format.code} value={format.id.toString()}>
-                                {format.name}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                <DataTableFilterContractType />
-                <DataTableFilterContractStatus />
-            </DataTableHeader>
-            <DataTableContent />
-            <DataTableFooter>
-                <DataTablePagination className='w-full' />
-            </DataTableFooter>
-        </DataTable>
+  useEffect(() => {
+    setAction(
+      <ContractEdit
+        callback={async () => {
+          await dataTable.refresh();
+          dataTable.table.setPageIndex(0);
+        }}
+      />
     );
+  }, [setAction, dataTable.refresh]);
+
+  return (
+    <DataTable dataTable={dataTable}>
+      <DataTableHeader>
+        <ContractDelete />
+        <ContractSubmitForApproval />
+        <DataTableSearch />
+        <Select
+          defaultValue='all'
+          onValueChange={(value) => {
+            dataTable.table
+              .getColumn('contractFormat')
+              ?.setFilterValue(value === 'all' ? undefined : Number(value));
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder='Select' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='all'>Tất cả mẫu hợp đồng</SelectItem>
+            {Object.values(ContractFormat).map((format) => (
+              <SelectItem key={format.code} value={format.id.toString()}>
+                {format.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <DataTableFilterContractType />
+        <DataTableFilterContractStatus />
+      </DataTableHeader>
+      <DataTableContent />
+      <DataTableFooter>
+        <DataTablePagination className='w-full' />
+      </DataTableFooter>
+    </DataTable>
+  );
 }

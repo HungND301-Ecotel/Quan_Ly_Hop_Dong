@@ -8,15 +8,15 @@ export const CONTRACT_REGISTER_COLUMNS: ColumnDef<ContractRegister>[] = [
   DataTableSelectColumn as ColumnDef<ContractRegister>,
   {
     accessorKey: 'name',
-    header: 'Tên sổ theo dõi',
+    header: 'Sổ theo dõi hợp đồng',
   },
   {
     accessorKey: 'year',
-    header: 'Năm',
+    header: 'Thời gian',
   },
   {
     accessorKey: 'description',
-    header: 'Mô tả',
+    header: 'Ghi chú',
   },
   {
     id: 'action',

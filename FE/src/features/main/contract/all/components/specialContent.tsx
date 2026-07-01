@@ -9,14 +9,16 @@ import { ContractCreate } from '../../../dashboard/components/QuickCreateContrac
 
 function TabBadge({ count }: { count: number }) {
   return (
-    <span className='
+    <span
+      className='
       absolute -top-1.5 -right-1.5
       min-w-4.5 h-4.5 px-1
       rounded-full bg-red-500
       text-[10px] font-bold text-white
       flex items-center justify-center
       leading-none pointer-events-none
-    '>
+    '
+    >
       {count > 99 ? '99+' : count}
     </span>
   );
@@ -39,9 +41,18 @@ export function SpecialContent() {
       contractService.getContractPaymentDueSoon(),
     ]).then(([allRes, expiredRes, paymentRes]) => {
       setCounts({
-        all: allRes.status === 'fulfilled' ? (allRes.value?.length ?? 0) : undefined,
-        expired: expiredRes.status === 'fulfilled' ? (expiredRes.value?.length ?? 0) : undefined,
-        paymentDue: paymentRes.status === 'fulfilled' ? (paymentRes.value?.length ?? 0) : undefined,
+        all:
+          allRes.status === 'fulfilled'
+            ? (allRes.value?.length ?? 0)
+            : undefined,
+        expired:
+          expiredRes.status === 'fulfilled'
+            ? (expiredRes.value?.length ?? 0)
+            : undefined,
+        paymentDue:
+          paymentRes.status === 'fulfilled'
+            ? (paymentRes.value?.length ?? 0)
+            : undefined,
       });
     });
   }, []);
@@ -55,9 +66,15 @@ export function SpecialContent() {
 
   const handleTabChange = (value: string) => {
     switch (value) {
-      case 'all': navigate('/contract/all'); break;
-      case 'expired': navigate('/contract/expired'); break;
-      case 'payment-due': navigate('/contract/payment-due'); break;
+      case 'all':
+        navigate('/contract/all');
+        break;
+      case 'expired':
+        navigate('/contract/expired');
+        break;
+      case 'payment-due':
+        navigate('/contract/payment-due');
+        break;
     }
   };
 
@@ -89,11 +106,15 @@ export function SpecialContent() {
           </TabsTrigger>
           <TabsTrigger value='expired' className='relative'>
             <span>Hợp đồng sắp hết hạn</span>
-            {counts.expired !== undefined && <TabBadge count={counts.expired} />}
+            {counts.expired !== undefined && (
+              <TabBadge count={counts.expired} />
+            )}
           </TabsTrigger>
           <TabsTrigger value='payment-due' className='relative'>
             <span>Hợp đồng đến hạn thanh toán</span>
-            {counts.paymentDue !== undefined && <TabBadge count={counts.paymentDue} />}
+            {counts.paymentDue !== undefined && (
+              <TabBadge count={counts.paymentDue} />
+            )}
           </TabsTrigger>
         </TabsList>
       </Tabs>

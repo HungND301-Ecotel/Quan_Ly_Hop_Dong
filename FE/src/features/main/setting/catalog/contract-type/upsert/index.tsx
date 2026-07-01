@@ -126,15 +126,15 @@ export function ContractTypeUpsert({
             <FormRow>
               <FormInput
                 control={form.control}
-                name='name'
-                label='Tên loại hợp đồng'
-                placeholder='Nhập tên loại hợp đồng'
-              />
-              <FormInput
-                control={form.control}
                 name='code'
                 label='Mã loại hợp đồng'
                 placeholder='Nhập mã loại hợp đồng'
+              />
+              <FormInput
+                control={form.control}
+                name='name'
+                label='Tên loại hợp đồng'
+                placeholder='Nhập tên loại hợp đồng'
               />
             </FormRow>
             <FormTextArea

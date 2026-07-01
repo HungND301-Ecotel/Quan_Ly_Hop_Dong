@@ -124,20 +124,12 @@ export function ContractNumberUpsert({
           className='flex flex-col overflow-hidden'
         >
           <div className='flex-1 p-6 flex flex-col gap-6'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <FormInput
-                control={form.control}
-                name='number'
-                label='Số hợp đồng'
-                placeholder='Nhập số hợp đồng'
-              />
-              <FormInput
-                control={form.control}
-                name='signNumber'
-                label='Ký hiệu'
-                placeholder='Nhập ký hiệu'
-              />
-            </div>
+            <FormInput
+              control={form.control}
+              name='number'
+              label='Số hợp đồng'
+              placeholder='Nhập số hợp đồng'
+            />
             <FormTextArea
               control={form.control}
               name='description'

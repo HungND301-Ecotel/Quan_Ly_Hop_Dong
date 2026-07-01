@@ -10,7 +10,7 @@ import {
 import { Department } from '@/services/department/type';
 import { Position } from '@/services/postion/type';
 import { userService } from '@/services/user';
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, Save } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { UserForm } from '../form/user-form';
@@ -40,8 +40,13 @@ export function CreateUserDialog({
       toast.success('Tạo mới nhân viên thành công');
       setOpen(false);
       refresh();
-    } catch {
-      toast.error('Tạo mới nhân viên thất bại');
+    } catch (error: any) {
+      const backendMessage =
+        error?.response?.data?.title ||
+        error?.response?.data?.message ||
+        error?.message ||
+        'Tạo mới nhân viên thất bại';
+      toast.error(backendMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -76,6 +81,7 @@ export function CreateUserDialog({
             Hủy
           </Button>
           <Button type='submit' form='create-user-form' disabled={isSubmitting}>
+            <Save className='w-4 h-4' />
             {isSubmitting ? 'Đang xử lý...' : 'Xác nhận'}
           </Button>
         </DialogFooter>

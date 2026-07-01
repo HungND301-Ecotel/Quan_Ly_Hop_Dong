@@ -2,7 +2,6 @@ import { DataTableSelectColumn } from '@/components/data-table';
 import { ContractAppendix } from '@/services/contract-appendix/type';
 import { ColumnDef } from '@tanstack/react-table';
 import { ContractAppendixDelete } from './delete';
-import { ContractAppendixDetail } from './detail';
 import { ContractAppendixUpsert } from './upsert';
 
 export const CONTRACT_APPENDIX_COLUMNS: ColumnDef<ContractAppendix>[] = [
@@ -22,7 +21,7 @@ export const CONTRACT_APPENDIX_COLUMNS: ColumnDef<ContractAppendix>[] = [
   },
   {
     accessorKey: 'description',
-    header: 'Mô tả',
+    header: 'Ghi chú',
   },
   {
     id: 'action',
@@ -30,7 +29,6 @@ export const CONTRACT_APPENDIX_COLUMNS: ColumnDef<ContractAppendix>[] = [
     cell: (props) => {
       return (
         <div className='flex items-center gap-1 justify-end'>
-          <ContractAppendixDetail {...props} />
           <ContractAppendixUpsert {...props} />
           <ContractAppendixDelete {...props} />
         </div>
