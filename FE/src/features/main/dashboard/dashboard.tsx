@@ -352,11 +352,13 @@ const Dashboard: React.FC = () => {
     }
 
     return list
+      .filter(
+        (c) => c.completionDate && !isNaN(new Date(c.completionDate).getTime())
+      )
       .map((c) => ({
         ...c,
         daysLeft: Math.ceil(
-          (new Date(c.completionDate ?? '').getTime() - today.getTime()) /
-            oneDayMs
+          (new Date(c.completionDate!).getTime() - today.getTime()) / oneDayMs
         ),
       }))
       .sort((a, b) => a.daysLeft - b.daysLeft)
@@ -907,8 +909,9 @@ const Dashboard: React.FC = () => {
                         <p className='text-sm font-medium text-warning whitespace-nowrap'>
                           Còn {c.daysLeft} ngày
                         </p>
+                        {/* completionDate đã được đảm bảo hợp lệ nhờ filter ở useMemo phía trên */}
                         <p className='text-xs text-muted-foreground'>
-                          {formatDate(c.completionDate ?? '')}
+                          {formatDate(c.completionDate!)}
                         </p>
                       </div>
                     </div>

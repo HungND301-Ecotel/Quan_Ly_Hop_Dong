@@ -479,7 +479,6 @@ export function ContractReviewForm() {
         paymentSchedules: cleanedPaymentSchedules,
       };
 
-      console.log('allContractItems', allContractItems);
       if (isUpdate && contract) {
         await contractService.updateContract(contract.id, requestBody);
       } else {
@@ -1009,8 +1008,9 @@ export function ContractReviewForm() {
                       </div>
                       <div className='space-y-2'>
                         <div className='grid grid-cols-12 gap-4 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground'>
-                          <div className='col-span-5'>Tên vật tư</div>
+                          <div className='col-span-4'>Tên vật tư</div>
                           <div className='col-span-2'>Đơn vị tính</div>
+                          <div className='col-span-1 text-right'>SL</div>
                           {!isRuleContract && (
                             <>
                               <div className='col-span-2 text-right'>
@@ -1031,7 +1031,7 @@ export function ContractReviewForm() {
                               key={index}
                               className='grid grid-cols-12 gap-4 px-3 py-2 rounded-lg border hover:border-primary/50 hover:bg-white transition-colors'
                             >
-                              <div className='col-span-5 flex flex-col justify-center'>
+                              <div className='col-span-4 flex flex-col justify-center'>
                                 <span className='text-sm font-medium'>
                                   {material?.name || 'N/A'}
                                 </span>
@@ -1043,6 +1043,9 @@ export function ContractReviewForm() {
                               </div>
                               <div className='col-span-2 flex items-center text-sm text-muted-foreground'>
                                 {material?.unitOfMeasureName || '—'}
+                              </div>
+                              <div className='col-span-1 flex items-center justify-end text-sm'>
+                                {format.number(item.quantity || 0)}
                               </div>
                               {!isRuleContract && (
                                 <>
@@ -1411,6 +1414,7 @@ export function ContractReviewForm() {
           size={'lg'}
           className='px-4 w-24'
           onClick={handleSubmit}
+          disabled={submitting || loading}
         >
           {submitting ? <Spinner /> : 'Hoàn thành'}
         </Button>

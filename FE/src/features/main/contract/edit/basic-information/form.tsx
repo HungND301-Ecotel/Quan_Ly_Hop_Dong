@@ -231,6 +231,94 @@ interface RoleUserArrayInputProps {
   users: User[];
 }
 
+function RoleUserRow({
+  role,
+  index,
+  form,
+  departments,
+  users,
+  onRemove,
+  disabledRemove,
+  showLabel,
+}: {
+  role: RoleUserArrayInputProps['role'];
+  index: number;
+  form: any;
+  departments: Department[];
+  users: User[];
+  onRemove: () => void;
+  disabledRemove: boolean;
+  showLabel: boolean;
+}) {
+  const watchedDeptId = form.watch(
+    `contractUserRoles.${role}.${index}.departmentId`
+  );
+  const prevDeptIdRef = useRef(watchedDeptId);
+
+  useEffect(() => {
+    if (prevDeptIdRef.current === watchedDeptId) return;
+    prevDeptIdRef.current = watchedDeptId;
+    form.setValue(`contractUserRoles.${role}.${index}.userId`, '', {
+      shouldDirty: true,
+    });
+  }, [watchedDeptId]);
+
+  const siblingValues = form.watch(`contractUserRoles.${role}`) || [];
+  const selectedUserIdsInOtherRows = siblingValues
+    .map((val: any, idx: number) => (idx !== index ? val.userId : null))
+    .filter(Boolean);
+
+  const filteredUsers = users.filter(
+    (u) =>
+      u.departmentId === watchedDeptId &&
+      !selectedUserIdsInOtherRows.includes(u.id)
+  );
+
+  return (
+    <div className='flex items-end gap-3 flex-wrap lg:flex-nowrap'>
+      <div className='flex-1 grid grid-cols-1 lg:grid-cols-2 gap-3'>
+        <FormSelect
+          control={form.control}
+          name={`contractUserRoles.${role}.${index}.departmentId`}
+          label={showLabel ? 'Phòng ban' : undefined}
+          placeholder='Chọn phòng ban'
+          options={departments.map((dept) => ({
+            value: dept.id,
+            label: dept.code ? `${dept.code} - ${dept.name}` : dept.name,
+          }))}
+        />
+        <FormSelect
+          control={form.control}
+          name={`contractUserRoles.${role}.${index}.userId`}
+          label={showLabel ? 'Nhân viên' : undefined}
+          placeholder='Chọn nhân viên'
+          disabled={!watchedDeptId}
+          options={filteredUsers.map((u) => ({
+            value: u.id,
+            label: u.employeeCode
+              ? `${u.employeeCode} - ${u.fullname}`
+              : u.fullname,
+          }))}
+        />
+      </div>
+
+      <Button
+        type='button'
+        size='icon'
+        variant='ghost'
+        className={cn(
+          'text-destructive hover:text-destructive shrink-0 size-10',
+          showLabel ? 'mt-6' : ''
+        )}
+        disabled={disabledRemove}
+        onClick={onRemove}
+      >
+        <Trash2Icon className='size-4' />
+      </Button>
+    </div>
+  );
+}
+
 function RoleUserArrayInput({
   role,
   label,
@@ -274,75 +362,19 @@ function RoleUserArrayInput({
         </p>
       ) : (
         <div className='space-y-3'>
-          {fields.map((field, index) => {
-            const watchedDeptId = form.watch(
-              `contractUserRoles.${role}.${index}.departmentId`
-            );
-
-            // Filter out userIds that have already been selected in other rows
-            const siblingValues = form.watch(`contractUserRoles.${role}`) || [];
-            const selectedUserIdsInOtherRows = siblingValues
-              .map((val: any, idx: number) =>
-                idx !== index ? val.userId : null
-              )
-              .filter(Boolean);
-
-            const filteredUsers = users.filter(
-              (u) =>
-                u.departmentId === watchedDeptId &&
-                !selectedUserIdsInOtherRows.includes(u.id)
-            );
-
-            return (
-              <div
-                key={field.id}
-                className='flex items-end gap-3 flex-wrap lg:flex-nowrap'
-              >
-                <div className='flex-1 grid grid-cols-1 lg:grid-cols-2 gap-3'>
-                  <FormSelect
-                    control={form.control}
-                    name={`contractUserRoles.${role}.${index}.departmentId`}
-                    label={index === 0 ? 'Phòng ban' : undefined}
-                    placeholder='Chọn phòng ban'
-                    options={departments.map((dept) => ({
-                      value: dept.id,
-                      label: dept.code
-                        ? `${dept.code} - ${dept.name}`
-                        : dept.name,
-                    }))}
-                  />
-
-                  <FormSelect
-                    control={form.control}
-                    name={`contractUserRoles.${role}.${index}.userId`}
-                    label={index === 0 ? 'Nhân viên' : undefined}
-                    placeholder='Chọn nhân viên'
-                    disabled={!watchedDeptId}
-                    options={filteredUsers.map((u) => ({
-                      value: u.id,
-                      label: u.employeeCode
-                        ? `${u.employeeCode} - ${u.fullname}`
-                        : u.fullname,
-                    }))}
-                  />
-                </div>
-
-                <Button
-                  type='button'
-                  size='icon'
-                  variant='ghost'
-                  className={cn(
-                    'text-destructive hover:text-destructive shrink-0 size-10',
-                    index === 0 ? 'mt-6' : ''
-                  )}
-                  disabled={fields.length === 1}
-                  onClick={() => remove(index)}
-                >
-                  <Trash2Icon className='size-4' />
-                </Button>
-              </div>
-            );
-          })}
+          {fields.map((field, index) => (
+            <RoleUserRow
+              key={field.id}
+              role={role}
+              index={index}
+              form={form}
+              departments={departments}
+              users={users}
+              onRemove={() => remove(index)}
+              disabledRemove={fields.length === 1}
+              showLabel={index === 0}
+            />
+          ))}
         </div>
       )}
     </div>

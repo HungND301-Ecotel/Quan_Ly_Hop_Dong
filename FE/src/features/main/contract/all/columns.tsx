@@ -122,10 +122,17 @@ export const ContractColumns: ColumnDef<Contract>[] = [
           ) => a.daysLeft - b.daysLeft
         );
 
-      if (filtered.length === 0)
+      if ((invoices?.length ?? 0) === 0)
         return (
           <span className='text-muted-foreground text-xs flex justify-center'>
             Không có hóa đơn
+          </span>
+        );
+
+      if (filtered.length === 0)
+        return (
+          <span className='text-muted-foreground text-xs flex justify-center'>
+            Không có hóa đơn sắp đến hạn
           </span>
         );
 

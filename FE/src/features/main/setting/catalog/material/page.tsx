@@ -205,6 +205,7 @@ export function MaterialManagementPage() {
       {/* Modal tiến độ */}
       <Dialog open={syncing} onOpenChange={() => {}}>
         <DialogContent
+          showCloseButton={false}
           className='sm:max-w-md'
           onInteractOutside={(e) => e.preventDefault()}
         >

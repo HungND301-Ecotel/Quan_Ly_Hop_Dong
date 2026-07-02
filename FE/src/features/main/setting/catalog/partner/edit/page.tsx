@@ -76,6 +76,7 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
   useEffect(() => {
     if (!detail.data) return;
     form.reset({
+      partnerContractCode: detail.data.partnerContractCode,
       name: detail.data.name,
       taxCode: detail.data.taxCode,
       address: detail.data.address,
@@ -84,6 +85,7 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
       fax: detail.data.fax,
       position: detail.data.position,
       bankId: detail.data.bankId,
+      note: detail.data.note,
     });
   }, [detail.data, form]);
 
