@@ -334,10 +334,10 @@ export function ContractArchiveReviewForm() {
 
     let totalOthers = 0;
     if (contractOtherItems && contractOtherItems.length > 0) {
-      contractOtherItems.forEach((item) => {
-        const material = otherMaterials.find((m) => m.id === item.materialId);
-        totalOthers += (item.quantity || 0) * (material?.price || 0);
-      });
+      totalOthers = contractOtherItems.reduce(
+        (sum, item) => sum + (Number(item.price) || 0),
+        0
+      );
     } else {
       totalOthers = contractOthersValue || 0;
     }
