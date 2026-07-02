@@ -7,12 +7,12 @@ import { DepartmentEdit } from './edit/page';
 export const DEPARTMENT_COLUMNS: ColumnDef<Department>[] = [
   DataTableSelectColumn as ColumnDef<Department>,
   {
-    accessorKey: 'name',
-    header: 'Tên phòng ban',
-  },
-  {
     accessorKey: 'code',
     header: 'Mã phòng ban',
+  },
+  {
+    accessorKey: 'name',
+    header: 'Tên phòng ban',
   },
   {
     accessorKey: 'description',

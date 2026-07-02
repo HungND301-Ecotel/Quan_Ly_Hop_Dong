@@ -41,24 +41,19 @@ type MenuItem = {
 
 const CATALOG_ITEMS: MenuItem[] = [
   {
-    name: 'Đối tác',
+    name: 'Tài khoản',
+    icon: UserCircle,
+    url: '/setting/catalog/account',
+  },
+  {
+    name: 'Phòng ban',
+    icon: Building2,
+    url: '/setting/catalog/department',
+  },
+  {
+    name: 'Đối tác hợp đồng',
     icon: Users,
     url: '/setting/catalog/partner',
-  },
-  {
-    name: 'Loại hợp đồng',
-    icon: FileText,
-    url: '/setting/catalog/contract-type',
-  },
-  {
-    name: 'Lĩnh vực hợp đồng',
-    icon: BookOpen,
-    url: '/setting/catalog/contract-field',
-  },
-  {
-    name: 'Hình thức hợp đồng',
-    icon: LayoutTemplate,
-    url: '/setting/catalog/contract-structure',
   },
   {
     name: 'Bảng mã hợp đồng',
@@ -82,39 +77,51 @@ const CATALOG_ITEMS: MenuItem[] = [
     ],
   },
   {
-    name: 'Nội dung ký kết',
+    name: 'Loại hợp đồng',
+    icon: FileText,
+    url: '/setting/catalog/contract-type',
+  },
+  {
+    name: 'Tên/Nội dung ký kết hợp đồng',
     icon: FileSignature,
     url: '/setting/catalog/signing-content',
   },
   {
-    name: 'Phòng ban',
-    icon: Building2,
-    url: '/setting/catalog/department',
+    name: 'Hình thức hợp đồng',
+    icon: LayoutTemplate,
+    url: '/setting/catalog/contract-structure',
   },
   {
-    name: 'Tài khoản',
-    icon: UserCircle,
-    url: '/setting/catalog/account',
-  },
-  {
-    name: 'Hình thức lựa chọn nhà thầu',
-    icon: List,
-    url: '/setting/catalog/procurement-method',
+    name: 'Lĩnh vực hợp đồng',
+    icon: BookOpen,
+    url: '/setting/catalog/contract-field',
   },
   {
     name: 'Sổ theo dõi hợp đồng',
     icon: BookCheck,
     url: '/setting/catalog/contract-register',
   },
+
   {
     name: 'Số hợp đồng',
     icon: Hash,
-    url: '/setting/catalog/contract-number',
+    children: [
+      {
+        name: 'Số ký hiệu hợp đồng',
+        icon: Hash,
+        url: '/setting/catalog/contract-number',
+      },
+      {
+        name: 'Số phụ lục hợp đồng',
+        icon: Hash,
+        url: '/setting/catalog/contract-appendix',
+      },
+    ],
   },
   {
-    name: 'Số phụ lục hợp đồng',
-    icon: Hash,
-    url: '/setting/catalog/contract-appendix',
+    name: 'Hình thức lựa chọn nhà thầu',
+    icon: List,
+    url: '/setting/catalog/procurement-method',
   },
   {
     name: 'Tài khoản ngân hàng',
@@ -131,7 +138,7 @@ const CATALOG_ITEMS: MenuItem[] = [
     icon: Package,
     children: [
       {
-        name: 'Thành phần vật tư, tài sản',
+        name: 'Vật tư, tài sản',
         icon: ListCheck,
         url: '/setting/catalog/material',
       },

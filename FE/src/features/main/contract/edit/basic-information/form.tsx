@@ -84,9 +84,15 @@ import { signedContentService } from '@/services/signedContent';
 import { MaterialImportDialog } from '../../all/components/Materialimportdialog';
 import { ContractStructureCatalog } from '@/services/structure/type';
 import { contractStructureCatalogService } from '@/services/structure';
-import { VirtualMaterialSelect } from '../../all/components/VirtualSelect';
-import { ContractAppendix, contractAppendixService } from '@/services/contract-appendix';
-import { ContractNumber, contractNumberService } from '@/services/contract-number';
+import {
+  ContractAppendix,
+  contractAppendixService,
+} from '@/services/contract-appendix';
+import {
+  ContractNumber,
+  contractNumberService,
+} from '@/services/contract-number';
+import { VirtualMaterialMultiSelect } from '../../all/components/Virtualmaterialmultiselect';
 
 // Component tạo mới vật tư inline
 function CreateMaterialDialog({
@@ -119,8 +125,8 @@ function CreateMaterialDialog({
         unitOfMeasureId: values.unitOfMeasureId || null,
         price:
           values.price === undefined ||
-            values.price === null ||
-            String(values.price) === ''
+          values.price === null ||
+          String(values.price) === ''
             ? null
             : Number(values.price),
         ...(isOtherMaterial && { isOtherMaterial: true }),
@@ -186,6 +192,12 @@ function CreateMaterialDialog({
                 placeholder={`Nhập tên ${isOtherMaterial ? 'dịch vụ khác' : 'vật tư, tài sản'}`}
               />
             </FormRow>
+            <FormInput
+              control={form.control}
+              name='description'
+              label={`Ghi chú`}
+              placeholder={`Nhập ghi chú`}
+            />
           </div>
 
           <div className='flex justify-end items-center gap-3 p-4 px-6 pb-0 border-t'>
@@ -219,6 +231,94 @@ interface RoleUserArrayInputProps {
   users: User[];
 }
 
+function RoleUserRow({
+  role,
+  index,
+  form,
+  departments,
+  users,
+  onRemove,
+  disabledRemove,
+  showLabel,
+}: {
+  role: RoleUserArrayInputProps['role'];
+  index: number;
+  form: any;
+  departments: Department[];
+  users: User[];
+  onRemove: () => void;
+  disabledRemove: boolean;
+  showLabel: boolean;
+}) {
+  const watchedDeptId = form.watch(
+    `contractUserRoles.${role}.${index}.departmentId`
+  );
+  const prevDeptIdRef = useRef(watchedDeptId);
+
+  useEffect(() => {
+    if (prevDeptIdRef.current === watchedDeptId) return;
+    prevDeptIdRef.current = watchedDeptId;
+    form.setValue(`contractUserRoles.${role}.${index}.userId`, '', {
+      shouldDirty: true,
+    });
+  }, [watchedDeptId]);
+
+  const siblingValues = form.watch(`contractUserRoles.${role}`) || [];
+  const selectedUserIdsInOtherRows = siblingValues
+    .map((val: any, idx: number) => (idx !== index ? val.userId : null))
+    .filter(Boolean);
+
+  const filteredUsers = users.filter(
+    (u) =>
+      u.departmentId === watchedDeptId &&
+      !selectedUserIdsInOtherRows.includes(u.id)
+  );
+
+  return (
+    <div className='flex items-end gap-3 flex-wrap lg:flex-nowrap'>
+      <div className='flex-1 grid grid-cols-1 lg:grid-cols-2 gap-3'>
+        <FormSelect
+          control={form.control}
+          name={`contractUserRoles.${role}.${index}.departmentId`}
+          label={showLabel ? 'Phòng ban' : undefined}
+          placeholder='Chọn phòng ban'
+          options={departments.map((dept) => ({
+            value: dept.id,
+            label: dept.code ? `${dept.code} - ${dept.name}` : dept.name,
+          }))}
+        />
+        <FormSelect
+          control={form.control}
+          name={`contractUserRoles.${role}.${index}.userId`}
+          label={showLabel ? 'Nhân viên' : undefined}
+          placeholder='Chọn nhân viên'
+          disabled={!watchedDeptId}
+          options={filteredUsers.map((u) => ({
+            value: u.id,
+            label: u.employeeCode
+              ? `${u.employeeCode} - ${u.fullname}`
+              : u.fullname,
+          }))}
+        />
+      </div>
+
+      <Button
+        type='button'
+        size='icon'
+        variant='ghost'
+        className={cn(
+          'text-destructive hover:text-destructive shrink-0 size-10',
+          showLabel ? 'mt-6' : ''
+        )}
+        disabled={disabledRemove}
+        onClick={onRemove}
+      >
+        <Trash2Icon className='size-4' />
+      </Button>
+    </div>
+  );
+}
+
 function RoleUserArrayInput({
   role,
   label,
@@ -239,7 +339,9 @@ function RoleUserArrayInput({
         <div className='flex flex-col'>
           <div className='text-sm font-semibold text-slate-800'>{label}</div>
           {error?.message && (
-            <p className='text-xs font-medium text-destructive mt-0.5'>{error.message}</p>
+            <p className='text-xs font-medium text-destructive mt-0.5'>
+              {error.message}
+            </p>
           )}
         </div>
         <Button
@@ -250,92 +352,66 @@ function RoleUserArrayInput({
           onClick={() => append({ departmentId: '', userId: '' })}
         >
           <PlusIcon className='size-3.5' />
-          Thêm phòng ban/người
+          Thêm phòng ban / nhân viên
         </Button>
       </div>
 
       {fields.length === 0 ? (
-        <p className='text-xs text-muted-foreground italic text-center py-2'>Chưa phân công cán bộ</p>
+        <p className='text-xs text-muted-foreground italic text-center py-2'>
+          Chưa phân công cán bộ
+        </p>
       ) : (
         <div className='space-y-3'>
-          {fields.map((field, index) => {
-            const watchedDeptId = form.watch(
-              `contractUserRoles.${role}.${index}.departmentId`
-            );
-
-            // Filter out userIds that have already been selected in other rows
-            const siblingValues = form.watch(`contractUserRoles.${role}`) || [];
-            const selectedUserIdsInOtherRows = siblingValues
-              .map((val: any, idx: number) => idx !== index ? val.userId : null)
-              .filter(Boolean);
-
-            const filteredUsers = users.filter(
-              (u) => u.departmentId === watchedDeptId && !selectedUserIdsInOtherRows.includes(u.id)
-            );
-
-            return (
-              <div key={field.id} className='flex items-end gap-3 flex-wrap lg:flex-nowrap'>
-                <div className='flex-1 grid grid-cols-1 lg:grid-cols-2 gap-3'>
-                  <FormSelect
-                    control={form.control}
-                    name={`contractUserRoles.${role}.${index}.departmentId`}
-                    label={index === 0 ? 'Phòng ban' : undefined}
-                    placeholder='Chọn phòng ban'
-                    options={departments.map((dept) => ({
-                      value: dept.id,
-                      label: dept.name,
-                    }))}
-                  />
-
-                  <FormSelect
-                    control={form.control}
-                    name={`contractUserRoles.${role}.${index}.userId`}
-                    label={index === 0 ? 'Cán bộ, nhân viên' : undefined}
-                    placeholder='Chọn cán bộ, nhân viên'
-                    disabled={!watchedDeptId}
-                    options={filteredUsers.map((u) => ({
-                      value: u.id,
-                      label: u.fullname,
-                    }))}
-                  />
-                </div>
-
-                <Button
-                  type='button'
-                  size='icon'
-                  variant='ghost'
-                  className={cn(
-                    'text-destructive hover:text-destructive shrink-0 size-10',
-                    index === 0 ? 'mt-6' : ''
-                  )}
-                  disabled={fields.length === 1}
-                  onClick={() => remove(index)}
-                >
-                  <Trash2Icon className='size-4' />
-                </Button>
-              </div>
-            );
-          })}
+          {fields.map((field, index) => (
+            <RoleUserRow
+              key={field.id}
+              role={role}
+              index={index}
+              form={form}
+              departments={departments}
+              users={users}
+              onRemove={() => remove(index)}
+              disabledRemove={fields.length === 1}
+              showLabel={index === 0}
+            />
+          ))}
         </div>
       )}
     </div>
   );
 }
 
-const addDays = (dateStr: string | null | undefined, days: number | null | undefined): string => {
-  if (!dateStr || days === null || days === undefined || isNaN(Number(days))) return '';
+const addDays = (
+  dateStr: string | null | undefined,
+  days: number | null | undefined
+): string => {
+  if (!dateStr || days === null || days === undefined || isNaN(Number(days)))
+    return '';
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return '';
   date.setDate(date.getDate() + Number(days));
   return date.toISOString().slice(0, 10);
 };
 
-const diffDays = (fromStr: string | null | undefined, toStr: string | null | undefined): number | undefined => {
+const diffDays = (
+  fromStr: string | null | undefined,
+  toStr: string | null | undefined
+): number | undefined => {
   if (!fromStr || !toStr) return undefined;
   const from = new Date(fromStr);
   const to = new Date(toStr);
   if (isNaN(from.getTime()) || isNaN(to.getTime())) return undefined;
   return Math.round((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
+};
+
+const formatDateDisplay = (dateStr: string | null | undefined): string => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return '';
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const yy = String(date.getFullYear()).slice(-2);
+  return `${dd}/${mm}/${yy}`;
 };
 
 export function ContractBasicInformationForm() {
@@ -355,7 +431,9 @@ export function ContractBasicInformationForm() {
 
   const [contractTypes, setContractTypes] = useState<ContractType[]>([]);
   const [contractFields, setContractFields] = useState<ContractField[]>([]);
-  const [contractAppendixs, setContractAppendixs] = useState<ContractAppendix[]>([]);
+  const [contractAppendixs, setContractAppendixs] = useState<
+    ContractAppendix[]
+  >([]);
   const [contractNumbers, setContractNumbers] = useState<ContractNumber[]>([]);
   const [contractRegisters, setContractRegisters] = useState<
     ContractRegister[]
@@ -480,9 +558,8 @@ export function ContractBasicInformationForm() {
 
     // Helper function to extract role data list
     const getContractUserRoles = (roleId: number) => {
-      const roleUsers = contract.contractUserRoles?.filter(
-        (r) => r.role === roleId
-      ) || [];
+      const roleUsers =
+        contract.contractUserRoles?.filter((r) => r.role === roleId) || [];
       if (roleUsers.length === 0) {
         return [{ userId: '', departmentId: '' }];
       }
@@ -514,8 +591,18 @@ export function ContractBasicInformationForm() {
       };
     };
 
-    const filePaths = contract.filePath ? contract.filePath.split(';').filter(Boolean) : [];
-    const attachmentPaths = contract.attachments?.map((attachment) => attachment.filePath) || [];
+    // Tính trước contractNumberId khớp đúng, dùng chung để match appendix
+    // đúng theo cả appendixNumber lẫn contractNumberId (tránh trùng số phụ lục
+    // giữa các hợp đồng khác nhau)
+    const matchedContractNumberId =
+      contractNumbers.find((f) => f.number === contract.contractNumber)?.id ??
+      '';
+
+    const filePaths = contract.filePath
+      ? contract.filePath.split(';').filter(Boolean)
+      : [];
+    const attachmentPaths =
+      contract.attachments?.map((attachment) => attachment.filePath) || [];
 
     const promises = Promise.all([
       Promise.all(filePaths.map((path) => fileService.getFile(path))),
@@ -545,19 +632,32 @@ export function ContractBasicInformationForm() {
         contractRegisterId: contract.contractRegisterId,
         contractNumber: contract.contractNumber,
         appendixNumber: contract.appendixNumber,
-        contractNumberId: contractNumbers.find(
-          (f) => f.number === contract.contractNumber
-        )?.id ?? '',
-        appendixNumberId: contractAppendixs.find(
-          (f) => f.appendixNumber === contract.appendixNumber
-        )?.id ?? '',
+        contractNumberId: matchedContractNumberId,
+        appendixNumberId:
+          contractAppendixs.find(
+            (f) =>
+              f.appendixNumber === contract.appendixNumber &&
+              f.contractNumberId === matchedContractNumberId
+          )?.id ?? '',
         partnerId: contract.partnerId,
-        signingDate: contract.signingDate ? contract.signingDate.slice(0, 10) : '',
-        effectiveDate: contract.effectiveDate ? contract.effectiveDate.slice(0, 10) : '',
-        completionDurationDays: diffDays(contract.effectiveDate, contract.completionDate),
-        completionDate: contract.completionDate ? contract.completionDate.slice(0, 10) : '',
+        signingDate: contract.signingDate
+          ? contract.signingDate.slice(0, 10)
+          : '',
+        effectiveDate: contract.effectiveDate
+          ? contract.effectiveDate.slice(0, 10)
+          : '',
+        completionDurationDays: diffDays(
+          contract.effectiveDate,
+          contract.completionDate
+        ),
+        completionDate: contract.completionDate
+          ? contract.completionDate.slice(0, 10)
+          : '',
         warrantyDurationDays: (() => {
-          const diff = diffDays(contract.completionDate, contract.warrantyExpirationDate);
+          const diff = diffDays(
+            contract.completionDate,
+            contract.warrantyExpirationDate
+          );
           return diff !== undefined ? diff - 1 : undefined; // trừ 1 vì bảo hành tính từ ngày kế tiếp
         })(),
         warrantyExpirationDate: contract.warrantyExpirationDate
@@ -568,7 +668,9 @@ export function ContractBasicInformationForm() {
         discountType: contract.discountType,
         discountValue: contract.discountValue,
         contractUserRoles: {
-          draftingOfficer: getContractUserRoles(ContractRole.DraftingOfficer.id),
+          draftingOfficer: getContractUserRoles(
+            ContractRole.DraftingOfficer.id
+          ),
           manager: getContractUserRoles(ContractRole.Manager.id),
           coordinator: getContractUserRoles(ContractRole.Coordinator.id),
           receivingOfficer: getContractUserRoles(
@@ -584,10 +686,10 @@ export function ContractBasicInformationForm() {
           schedules:
             contract.paymentSchedules && contract.paymentSchedules.length > 0
               ? contract.paymentSchedules.map((schedule) => ({
-                amountType: schedule.amountType,
-                amount: schedule.amount,
-                days: schedule.days,
-              }))
+                  amountType: schedule.amountType,
+                  amount: schedule.amount,
+                  days: schedule.days,
+                }))
               : [{ amountType: 0, amount: 0, days: 30 }],
         },
         contractGuarantee: {
@@ -625,15 +727,24 @@ export function ContractBasicInformationForm() {
     name: 'contractItems',
   });
 
-  const watchedContractItems = useWatch({ control: form.control, name: 'contractItems' }) || [];
-  const availableMaterialsByIndex = useMemo(() => {
-    return watchedContractItems.map((_, index) => {
-      const excludedIds = watchedContractItems
-        .map((item, idx) => (idx !== index ? item.materialId : null))
-        .filter(Boolean);
-      return materials.filter((m) => !excludedIds.includes(m.id));
-    });
-  }, [materials, watchedContractItems]);
+  const watchedContractItems =
+    useWatch({ control: form.control, name: 'contractItems' }) || [];
+  const selectedMaterialIds = useMemo(
+    () =>
+      watchedContractItems
+        .map((item) => item.materialId)
+        .filter(Boolean) as string[],
+    [watchedContractItems]
+  );
+
+  const totalContractItemsValue = useMemo(() => {
+    return watchedContractItems.reduce((sum, item) => {
+      const material = materials.find((m) => m.id === item.materialId);
+      const price = material?.price || 0;
+      const quantity = Number(item.quantity) || 0;
+      return sum + price * quantity;
+    }, 0);
+  }, [watchedContractItems, materials]);
 
   const {
     fields: contractOtherItems,
@@ -644,19 +755,28 @@ export function ContractBasicInformationForm() {
     name: 'contractOtherItems',
   });
 
-  const watchedContractOtherItems = useWatch({ control: form.control, name: 'contractOtherItems' }) || [];
-  const availableOtherMaterialsByIndex = useMemo(() => {
-    return watchedContractOtherItems.map((_, index) => {
-      const excludedIds = watchedContractOtherItems
-        .map((item, idx) => (idx !== index ? item.materialId : null))
-        .filter(Boolean);
-      return otherMaterials.filter((m) => !excludedIds.includes(m.id));
-    });
-  }, [otherMaterials, watchedContractOtherItems]);
+  const watchedContractOtherItems =
+    useWatch({ control: form.control, name: 'contractOtherItems' }) || [];
+  const selectedOtherMaterialIds = useMemo(
+    () =>
+      watchedContractOtherItems
+        .map((item) => item.materialId)
+        .filter(Boolean) as string[],
+    [watchedContractOtherItems]
+  );
 
-  const {
-    replace: replacePaymentSchedules,
-  } = useFieldArray({
+  const totalContractOtherItemsValue = useMemo(() => {
+    return watchedContractOtherItems.reduce(
+      (sum, item) => sum + (Number(item.price) || 0),
+      0
+    );
+  }, [watchedContractOtherItems]);
+
+  const totalContractComponentsValue = useMemo(() => {
+    return totalContractItemsValue + totalContractOtherItemsValue;
+  }, [totalContractItemsValue, totalContractOtherItemsValue]);
+
+  const { replace: replacePaymentSchedules } = useFieldArray({
     control: form.control,
     name: 'paymentSchedules.schedules',
   });
@@ -667,13 +787,15 @@ export function ContractBasicInformationForm() {
   const watchedContractNumberId = form.watch('contractNumberId');
   const watchedAppendixNumberId = form.watch('appendixNumberId');
   const filteredAppendixs = contractAppendixs.filter(
-    appendix => appendix.contractNumberId === watchedContractNumberId
+    (appendix) => appendix.contractNumberId === watchedContractNumberId
   );
 
   useEffect(() => {
     if (isResettingForm.current) return;
     if (contractNumbers.length === 0) return;
-    const selected = contractNumbers.find((f) => f.id === watchedContractNumberId);
+    const selected = contractNumbers.find(
+      (f) => f.id === watchedContractNumberId
+    );
     form.setValue('contractNumber', selected?.number ?? '');
     form.setValue('appendixNumberId', '');
     form.setValue('appendixNumber', '');
@@ -682,7 +804,9 @@ export function ContractBasicInformationForm() {
   useEffect(() => {
     if (isResettingForm.current) return;
     if (contractAppendixs.length === 0) return;
-    const selected = contractAppendixs.find((f) => f.id === watchedAppendixNumberId);
+    const selected = contractAppendixs.find(
+      (f) => f.id === watchedAppendixNumberId
+    );
     form.setValue('appendixNumber', selected?.appendixNumber ?? '');
   }, [watchedAppendixNumberId, contractAppendixs]);
 
@@ -694,14 +818,20 @@ export function ContractBasicInformationForm() {
   // Ngày hoàn thành hợp đồng = Ngày hiệu lực + Thời gian thực hiện
   useEffect(() => {
     if (isResettingForm.current) return;
-    form.setValue('completionDate', addDays(watchedEffectiveDate, watchedCompletionDurationDays));
+    form.setValue(
+      'completionDate',
+      addDays(watchedEffectiveDate, watchedCompletionDurationDays)
+    );
   }, [watchedEffectiveDate, watchedCompletionDurationDays]);
 
   // Ngày hết hạn bảo hành = (Ngày hoàn thành + 1) + Thời gian bảo hành
   useEffect(() => {
     if (isResettingForm.current) return;
     const warrantyStartDate = addDays(watchedCompletionDate, 1);
-    form.setValue('warrantyExpirationDate', addDays(warrantyStartDate, watchedWarrantyDurationDays));
+    form.setValue(
+      'warrantyExpirationDate',
+      addDays(warrantyStartDate, watchedWarrantyDurationDays)
+    );
   }, [watchedCompletionDate, watchedWarrantyDurationDays]);
 
   const getVatAmount = () => {
@@ -732,40 +862,42 @@ export function ContractBasicInformationForm() {
       contractAppendixService.getContractAppendixList(),
     ]);
 
-    promises.then(
-      ([
-        contractTypes,
-        contractRegisters,
-        partners,
-        procurementMethods,
-        users,
-        materials,
-        otherMaterials,
-        departments,
-        _positions,
-        level1CodesData,
-        contractStructuresData,
-        contractFieldsData,
-        contractNumbersData,
-        contractAppendixsData,
-      ]) => {
-        setContractTypes(contractTypes || []);
-        setContractRegisters(contractRegisters || []);
-        setPartners(partners || []);
-        setProcurementMethods(procurementMethods || []);
-        setUsers(users || []);
-        setMaterials(materials || []);
-        setOtherMaterials(otherMaterials || []);
-        setDepartments(departments || []);
-        setLevel1Codes(level1CodesData || []);
-        setContractStructures(contractStructuresData || []);
-        setContractFields(contractFieldsData || []);
-        setContractNumbers(contractNumbersData || []);
-        setContractAppendixs(contractAppendixsData || []);
-      }
-    ).finally(() => {
-      setIsCatalogLoading(false);
-    });
+    promises
+      .then(
+        ([
+          contractTypes,
+          contractRegisters,
+          partners,
+          procurementMethods,
+          users,
+          materials,
+          otherMaterials,
+          departments,
+          _positions,
+          level1CodesData,
+          contractStructuresData,
+          contractFieldsData,
+          contractNumbersData,
+          contractAppendixsData,
+        ]) => {
+          setContractTypes(contractTypes || []);
+          setContractRegisters(contractRegisters || []);
+          setPartners(partners || []);
+          setProcurementMethods(procurementMethods || []);
+          setUsers(users || []);
+          setMaterials(materials || []);
+          setOtherMaterials(otherMaterials || []);
+          setDepartments(departments || []);
+          setLevel1Codes(level1CodesData || []);
+          setContractStructures(contractStructuresData || []);
+          setContractFields(contractFieldsData || []);
+          setContractNumbers(contractNumbersData || []);
+          setContractAppendixs(contractAppendixsData || []);
+        }
+      )
+      .finally(() => {
+        setIsCatalogLoading(false);
+      });
   }, []);
 
   const getContractFinalValue = () => {
@@ -929,7 +1061,6 @@ export function ContractBasicInformationForm() {
                   ?.name || ''
               }
             />
-            {/* ✅ Dùng Controller để hidden input luôn sync với form state */}
             <Controller
               control={form.control}
               name='contractTypeId'
@@ -949,9 +1080,10 @@ export function ContractBasicInformationForm() {
               control={form.control}
               name='contractFieldId'
               placeholder='Chọn lĩnh vực hợp đồng'
-              options={[
-                ...contractFields.map((f) => ({ value: f.id, label: f.name })),
-              ]}
+              options={contractFields.map((f) => ({
+                value: f.id,
+                label: f.code ? `${f.code} - ${f.name}` : f.name,
+              }))}
             />
           </FormGroupContent>
         </FormGroup>
@@ -1022,17 +1154,23 @@ export function ContractBasicInformationForm() {
             </div>
           </FormGroupHeader>
 
-          <FormGroupContent className='flex flex-col gap-6 max-h-[600px] overflow-auto'>
+          <FormGroupContent className='flex flex-col gap-6'>
             {/* ── Sub-section 1: Vật tư ── */}
             <div className='flex flex-col gap-2'>
-              <FormGroupLabel>Thành phần hợp đồng</FormGroupLabel>
+              <div className='flex justify-between items-center'>
+                <FormGroupLabel>Thành phần hợp đồng</FormGroupLabel>
+                {!isRuleContract && (
+                  <span className='text-sm font-semibold text-primary'>
+                    Tổng : {format.number(totalContractComponentsValue)} VNĐ
+                  </span>
+                )}
+              </div>
 
               <div className='flex justify-between items-center'>
-                <div className='flex flex-col gap-1'>
-                  <span className='text-sm font-semibold'>
-                    Danh sách vật tư, tài sản chi tiết
-                  </span>
-                </div>
+                <span className='text-sm font-semibold'>
+                  Danh sách vật tư, tài sản
+                </span>
+
                 <div className='flex items-center gap-2'>
                   <MaterialImportDialog
                     isOtherMaterial={false}
@@ -1040,154 +1178,319 @@ export function ContractBasicInformationForm() {
                     onReloadMaterials={reloadMaterials}
                     contractFormat={contractFormat?.contractFormat}
                     onSuccess={(items) => {
-                      items.forEach((item) => appendContractItem(item));
+                      const newItems = items.filter(
+                        (item) => !selectedMaterialIds.includes(item.materialId)
+                      );
+                      newItems.forEach((item) => appendContractItem(item));
                     }}
                   />
-                  <Button
-                    variant={'default'}
-                    size={'sm'}
-                    type='button'
-                    className='min-w-48'
-                    onClick={() => {
-                      appendContractItem(
-                        BasicInformationDefault.contractItems[0]
-                      );
-                    }}
-                  >
-                    <PlusIcon />
-                    <span>Thêm vật tư, tài sản</span>
-                  </Button>
-                  <div className='flex justify-end'>
-                    <CreateMaterialDialog
-                      isOtherMaterial={false}
-                      onSuccess={reloadMaterials}
-                    />
-                  </div>
+                  <CreateMaterialDialog
+                    isOtherMaterial={false}
+                    onSuccess={reloadMaterials}
+                  />
                 </div>
               </div>
+              <VirtualMaterialMultiSelect
+                control={form.control}
+                name='contractItems'
+                placeholder='Thêm vật tư, tài sản'
+                materials={materials}
+                isLoading={isCatalogLoading}
+                excludedIds={selectedMaterialIds}
+                onConfirm={(selected) => {
+                  selected.forEach((m) =>
+                    appendContractItem({
+                      materialId: m.id,
+                      quantity: '' as unknown as number,
+                    })
+                  );
+                }}
+              />
 
-              {contractItems?.map((_, index) => {
-                const watchedMaterialId = watchedContractItems[index]?.materialId;
-                const selectedMaterial = materials.find(
-                  (m) => m.id === watchedMaterialId
-                );
+              {contractItems.length > 0 ? (
+                <div className='rounded-lg border max-h-[475px] overflow-y-auto'>
+                  <table className='w-full border-collapse text-sm'>
+                    <thead className='sticky top-0 z-30'>
+                      <tr className='bg-muted'>
+                        <th className='w-10 border-b bg-muted px-3 py-2 text-center font-medium'>
+                          #
+                        </th>
+                        <th className='border-b bg-muted px-3 py-2 text-left font-medium'>
+                          Mã vật tư, tài sản
+                        </th>
+                        <th className='border-b bg-muted px-3 py-2 text-left font-medium'>
+                          Tên vật tư, tài sản
+                        </th>
+                        <th className='w-36 border-b bg-muted px-3 py-2 text-left font-medium'>
+                          ĐVT
+                        </th>
+                        <th className='w-36 border-b bg-muted px-3 py-2 text-left font-medium'>
+                          Đơn giá
+                        </th>
+                        {!isRuleContract && (
+                          <>
+                            <th className='w-44 border-b bg-muted px-3 py-2 text-left font-medium'>
+                              Số lượng
+                            </th>
+                            <th className='w-40 border-b bg-muted px-3 py-2 text-left font-medium'>
+                              Thành tiền
+                            </th>
+                          </>
+                        )}
+                        <th className='w-10 border-b bg-muted' />
+                      </tr>
+                    </thead>
 
-                const availableMaterials = availableMaterialsByIndex[index] || materials;
+                    <tbody>
+                      {contractItems.map((field, index) => {
+                        const watchedMaterialId =
+                          watchedContractItems[index]?.materialId;
 
-                return (
-                  <FormRow key={index}>
-                    <div className='size-10 aspect-square rounded-lg mt-8 bg-primary border flex items-center justify-center text-primary-foreground'>
-                      <span>{index + 1}</span>
-                    </div>
-                    <div className='flex gap-2 flex-1 min-w-lg'>
-                      <VirtualMaterialSelect
-                        control={form.control}
-                        name={`contractItems.${index}.materialId`}
-                        label='Vật tư'
-                        placeholder='Chọn vật tư'
-                        materials={availableMaterials}
-                        isLoading={isCatalogLoading}
-                      />
-                    </div>
-                    <FormReadonly
-                      label='Đơn vị tính'
-                      value={selectedMaterial?.unitOfMeasureName || '—'}
-                    />
-                    <div className='w-56 shrink-0'>
-                      <FormNumber
-                        control={form.control}
-                        name={`contractItems.${index}.quantity`}
-                        label='Khối lượng'
-                        placeholder='Nhập khối lượng'
-                      />
-                    </div>
-                    <Button
-                      variant={'destructive'}
-                      size={'icon-lg'}
-                      className='mt-8'
-                      type='button'
-                      onClick={() => removeContractItem(index)}
-                    >
-                      <Trash2Icon />
-                    </Button>
-                  </FormRow>
-                );
-              })}
+                        const selectedMaterial = materials.find(
+                          (m) => m.id === watchedMaterialId
+                        );
+
+                        return (
+                          <tr
+                            key={field.id}
+                            className='transition-colors hover:bg-muted/30'
+                          >
+                            <td className='border-b px-3 py-2 text-center text-muted-foreground'>
+                              {index + 1}
+                            </td>
+
+                            <td className='border-b px-3 py-2'>
+                              {selectedMaterial?.materialCode || (
+                                <span className='italic text-muted-foreground'>
+                                  —
+                                </span>
+                              )}
+                            </td>
+
+                            <td className='border-b px-3 py-2'>
+                              {selectedMaterial?.name || (
+                                <span className='text-xs italic text-muted-foreground'>
+                                  —
+                                </span>
+                              )}
+                            </td>
+
+                            <td className='border-b px-3 py-2 text-muted-foreground'>
+                              {selectedMaterial?.unitOfMeasureName || '—'}
+                            </td>
+
+                            <td className='border-b px-3 py-2 text-muted-foreground'>
+                              {selectedMaterial?.price
+                                ? format.number(selectedMaterial.price)
+                                : '—'}
+                            </td>
+
+                            {!isRuleContract && (
+                              <>
+                                <td className='border-b px-3 py-2'>
+                                  <FormNumber
+                                    control={form.control}
+                                    name={`contractItems.${index}.quantity`}
+                                    placeholder='Nhập số lượng'
+                                  />
+                                </td>
+
+                                <td className='border-b px-3 py-2 font-medium'>
+                                  {(() => {
+                                    const price = selectedMaterial?.price || 0;
+                                    const quantity =
+                                      Number(
+                                        watchedContractItems[index]?.quantity
+                                      ) || 0;
+
+                                    return format.number(price * quantity);
+                                  })()}
+                                </td>
+                              </>
+                            )}
+
+                            <td className='border-b px-2 py-2 text-center'>
+                              <Button
+                                variant='ghost'
+                                size='icon'
+                                type='button'
+                                className='size-8 text-destructive hover:text-destructive'
+                                onClick={() => removeContractItem(index)}
+                              >
+                                <Trash2Icon className='size-4' />
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+
+                    {!isRuleContract && (
+                      <tfoot className='sticky bottom-0 z-30'>
+                        <tr className='border-t bg-muted'>
+                          <td colSpan={6} className='bg-muted px-3 py-2'>
+                            <div className='flex justify-end'>
+                              <span className='font-medium'>Tổng tiền</span>
+                            </div>
+                          </td>
+
+                          <td className='bg-muted px-3 py-2 font-semibold text-primary'>
+                            {format.number(totalContractItemsValue)} VNĐ
+                          </td>
+
+                          <td className='bg-muted' />
+                        </tr>
+                      </tfoot>
+                    )}
+                  </table>
+                </div>
+              ) : (
+                <p className='rounded-lg border py-4 text-center text-sm italic text-muted-foreground'>
+                  Chưa có vật tư, tài sản nào. Dùng dropdown hoặc import Excel
+                  để thêm.
+                </p>
+              )}
             </div>
 
             {/* ── Sub-section 2: Dịch vụ khác ── */}
             <div className='flex flex-col gap-2'>
               <div className='flex justify-between items-center'>
-                <div className='flex flex-col gap-1'>
-                  <span className='text-sm font-semibold'>
-                    Danh sách dịch vụ khác
-                  </span>
-                </div>
+                <span className='text-sm font-semibold'>
+                  Danh sách dịch vụ khác
+                </span>
                 <div className='flex items-center gap-2'>
-                  <MaterialImportDialog
+                  <CreateMaterialDialog
                     isOtherMaterial={true}
-                    existingMaterials={otherMaterials}
-                    onReloadMaterials={reloadOtherMaterials}
-                    contractFormat={contractFormat?.contractFormat}
-                    onSuccess={(items) => {
-                      items.forEach((item) => appendContractOtherItem(item));
-                    }}
+                    onSuccess={reloadOtherMaterials}
                   />
-                  <Button
-                    variant={'default'}
-                    size={'sm'}
-                    type='button'
-                    className='min-w-48'
-                    onClick={() => {
-                      appendContractOtherItem({
-                        materialId: '',
-                        quantity: '' as unknown as number,
-                      });
-                    }}
-                  >
-                    <PlusIcon />
-                    <span>Thêm dịch vụ khác</span>
-                  </Button>
-                  <div className='flex justify-end'>
-                    <CreateMaterialDialog
-                      isOtherMaterial={true}
-                      onSuccess={reloadOtherMaterials}
-                    />
-                  </div>
                 </div>
               </div>
+              <VirtualMaterialMultiSelect
+                control={form.control}
+                name='contractOtherItems'
+                placeholder='Thêm dịch vụ khác'
+                materials={otherMaterials}
+                isLoading={isCatalogLoading}
+                excludedIds={selectedOtherMaterialIds}
+                onConfirm={(selected) => {
+                  selected.forEach((m) =>
+                    appendContractOtherItem({
+                      materialId: m.id,
+                      quantity: '' as unknown as number,
+                      price: '' as unknown as number,
+                    })
+                  );
+                }}
+              />
+              {contractOtherItems.length > 0 ? (
+                <div className='rounded-lg border max-h-[500px] overflow-y-auto'>
+                  <table className='w-full border-collapse text-sm'>
+                    <thead className='sticky top-0 z-30'>
+                      <tr className='bg-muted'>
+                        <th className='w-10 border-b bg-muted px-3 py-2 text-center font-medium'>
+                          #
+                        </th>
+                        <th className='border-b bg-muted px-3 py-2 text-left font-medium'>
+                          Mã dịch vụ
+                        </th>
+                        <th className='border-b bg-muted px-3 py-2 text-left font-medium'>
+                          Tên dịch vụ
+                        </th>
+                        {!isRuleContract && (
+                          <th className='w-72 border-b bg-muted px-3 py-2 text-left font-medium'>
+                            Thành tiền
+                          </th>
+                        )}
+                        <th className='w-10 border-b bg-muted' />
+                      </tr>
+                    </thead>
 
-              {contractOtherItems?.map((_, index) => {
-                const availableOtherMaterials = availableOtherMaterialsByIndex[index] || otherMaterials;
-                return (
-                  <FormRow key={index}>
-                    <div className='size-10 aspect-square rounded-lg mt-8 bg-primary border flex items-center justify-center text-primary-foreground'>
-                      <span>{index + 1}</span>
-                    </div>
-                    <div className='flex gap-2 flex-1 min-w-lg'>
-                      <FormSelect
-                        control={form.control}
-                        name={`contractOtherItems.${index}.materialId`}
-                        label='Dịch vụ khác'
-                        placeholder='Chọn dịch vụ khác'
-                        options={availableOtherMaterials.map((material) => ({
-                          value: material.id,
-                          label: `${material.materialCode} - ${material.name}`,
-                        }))}
-                      />
-                    </div>
-                    <Button
-                      variant={'destructive'}
-                      size={'icon-lg'}
-                      className='mt-8'
-                      type='button'
-                      onClick={() => removeContractOtherItem(index)}
-                    >
-                      <Trash2Icon />
-                    </Button>
-                  </FormRow>
-                );
-              })}
+                    <tbody>
+                      {contractOtherItems.map((field, index) => {
+                        const watchedMaterialId =
+                          watchedContractOtherItems[index]?.materialId;
+
+                        const selectedMaterial = otherMaterials.find(
+                          (m) => m.id === watchedMaterialId
+                        );
+
+                        return (
+                          <tr
+                            key={field.id}
+                            className='transition-colors hover:bg-muted/30'
+                          >
+                            {/* # */}
+                            <td className='border-b px-3 py-2 text-center text-muted-foreground'>
+                              {index + 1}
+                            </td>
+
+                            {/* Mã dịch vụ */}
+                            <td className='border-b px-3 py-2'>
+                              {selectedMaterial?.materialCode || (
+                                <span className='italic text-muted-foreground'>
+                                  —
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Tên dịch vụ */}
+                            <td className='border-b px-3 py-2'>
+                              {selectedMaterial?.name || (
+                                <span className='text-xs italic text-muted-foreground'>
+                                  —
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Thành tiền */}
+                            {!isRuleContract && (
+                              <td className='border-b px-3 py-2 text-muted-foreground'>
+                                <FormNumber
+                                  control={form.control}
+                                  name={`contractOtherItems.${index}.price`}
+                                  placeholder='Nhập thành tiền'
+                                />
+                              </td>
+                            )}
+
+                            {/* Xóa */}
+                            <td className='border-b px-2 py-2 text-center'>
+                              <Button
+                                variant='ghost'
+                                size='icon'
+                                type='button'
+                                className='size-8 text-destructive hover:text-destructive'
+                                onClick={() => removeContractOtherItem(index)}
+                              >
+                                <Trash2Icon className='size-4' />
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    {!isRuleContract && (
+                      <tfoot className='sticky bottom-0 z-30'>
+                        <tr className='border-t bg-muted'>
+                          <td colSpan={3} className='bg-muted px-3 py-2'>
+                            <div className='flex justify-end'>
+                              <span className='font-medium'>Tổng tiền</span>
+                            </div>
+                          </td>
+                          <td className='bg-muted px-3 py-2 font-semibold text-primary'>
+                            {format.number(totalContractOtherItemsValue)} VNĐ
+                          </td>
+                          <td className='bg-muted' />
+                        </tr>
+                      </tfoot>
+                    )}
+                  </table>
+                </div>
+              ) : (
+                <p className='rounded-lg border py-4 text-center text-sm italic text-muted-foreground'>
+                  Chưa có dịch vụ nào. Dùng dropdown hoặc import Excel để thêm.
+                </p>
+              )}
             </div>
           </FormGroupContent>
         </FormGroup>
@@ -1249,9 +1552,9 @@ export function ContractBasicInformationForm() {
                 { name: 'depositGuarantee', title: 'Đặt cọc' },
               ] as {
                 name:
-                | 'performanceBondGuarantee'
-                | 'warrantyBondGuarantee'
-                | 'depositGuarantee';
+                  | 'performanceBondGuarantee'
+                  | 'warrantyBondGuarantee'
+                  | 'depositGuarantee';
                 title: string;
               }[]
             ).map(({ name, title }) => {
@@ -1312,7 +1615,7 @@ export function ContractBasicInformationForm() {
               placeholder='Chọn sổ theo dõi hợp đồng'
               options={contractRegisters.map((contractRegister) => ({
                 value: contractRegister.id,
-                label: contractRegister.name,
+                label: `${contractRegister.name} - ${contractRegister.year}`,
               }))}
             />
           </FormGroupContent>
@@ -1329,7 +1632,10 @@ export function ContractBasicInformationForm() {
                 name='contractNumberId'
                 label='Số ký hiệu hợp đồng'
                 placeholder='Số ký hiệu hợp đồng'
-                options={contractNumbers.map((f) => ({ value: f.id, label: f.number }))}
+                options={contractNumbers.map((f) => ({
+                  value: f.id,
+                  label: f.number,
+                }))}
               />
               <FormSelect
                 control={form.control}
@@ -1450,7 +1756,7 @@ export function ContractBasicInformationForm() {
               />
               <FormReadonly
                 label='Ngày hoàn thành hợp đồng'
-                value={form.watch('completionDate') || '—'}
+                value={formatDateDisplay(form.watch('completionDate')) || '—'}
               />
               <Controller
                 control={form.control}
@@ -1470,7 +1776,9 @@ export function ContractBasicInformationForm() {
               />
               <FormReadonly
                 label='Ngày hết hạn bảo hành'
-                value={form.watch('warrantyExpirationDate') || '—'}
+                value={
+                  formatDateDisplay(form.watch('warrantyExpirationDate')) || '—'
+                }
               />
               <Controller
                 control={form.control}
@@ -1490,14 +1798,12 @@ export function ContractBasicInformationForm() {
             </FormGroupHeader>
             <FormGroupContent>
               <FormRow>
-                <div className='w-full max-w-sm'>
-                  <FormNumber
-                    control={form.control}
-                    name={`paymentSchedules.schedules.0.days`}
-                    label='Số ngày thanh toán/đối chiếu'
-                    placeholder='Nhập số ngày'
-                  />
-                </div>
+                <FormNumber
+                  control={form.control}
+                  name={`paymentSchedules.schedules.0.days`}
+                  label={`Thanh toán sau ${form.watch('paymentSchedules.schedules.0.days') || '…'} ngày kể từ ngày có biên bản nghiệm thu chất lượng hàng hoá từng đợt (hoặc biên bản kiểm nhập) và bên B cung cấp đầy đủ các chứng từ thanh toán, hoá đơn GTGT theo quy định, giấy đề nghị thanh toán.`}
+                  placeholder='Nhập số ngày'
+                />
               </FormRow>
             </FormGroupContent>
           </FormGroup>
@@ -1516,7 +1822,9 @@ export function ContractBasicInformationForm() {
               placeholder='Chọn hình thức lựa chọn nhà thầu/nhà cung cấp'
               options={procurementMethods.map((procurementMethod) => ({
                 value: procurementMethod.id,
-                label: procurementMethod.name,
+                label: procurementMethod.code
+                  ? `${procurementMethod.code} - ${procurementMethod.name}`
+                  : procurementMethod.name,
               }))}
             />
           </FormGroupContent>
@@ -1534,7 +1842,7 @@ export function ContractBasicInformationForm() {
               placeholder='Chọn hình thức hợp đồng'
               options={contractStructures.map((cs) => ({
                 value: cs.id,
-                label: cs.name,
+                label: cs.code ? `${cs.code} - ${cs.name}` : cs.name,
               }))}
             />
           </FormGroupContent>
@@ -1595,7 +1903,7 @@ export function ContractBasicInformationForm() {
                 accept='.pdf'
                 control={form.control}
                 name='contractFile'
-                label='File hợp đồng'
+                label='Hợp đồng'
                 placeholder='Chọn file hợp đồng (Chỉ PDF)'
               />
 
@@ -1603,8 +1911,8 @@ export function ContractBasicInformationForm() {
                 accept='.pdf'
                 control={form.control}
                 name='attachmentFiles'
-                label='Tài liệu đính kèm'
-                placeholder='Chọn tài liệu đính kèm (Chỉ PDF)'
+                label='Phụ lục hợp đồng và tài liệu khác'
+                placeholder='Chọn file phụ lục hợp đồng và các tài liệu đính kèm (Chỉ PDF)'
               />
             </FormRow>
           </FormGroupContent>

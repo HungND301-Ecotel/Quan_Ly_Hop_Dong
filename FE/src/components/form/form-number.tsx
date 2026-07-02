@@ -60,7 +60,7 @@ export function FormNumber<T extends FieldValues>({
           thousandSeparator='.'
           value={value}
           onValueChange={(values) => {
-            onChange(values.floatValue);
+            onChange(values.floatValue === undefined ? '' : values.floatValue);
           }}
           {...field}
           disabled={disabled}

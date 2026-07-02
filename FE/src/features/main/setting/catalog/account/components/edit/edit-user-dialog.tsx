@@ -14,6 +14,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { CreateUserFormValues } from '../create/user-form-schema';
 import { UserForm } from '../form/user-form';
+import { Save } from 'lucide-react';
 
 interface EditUserDialogProps {
   user: User;
@@ -63,8 +64,13 @@ export function EditUserDialog({
       toast.success('Cập nhật người dùng thành công');
       onOpenChange(false);
       refresh();
-    } catch {
-      toast.error('Cập nhật người dùng thất bại');
+    } catch (error: any) {
+      const backendMessage =
+        error?.response?.data?.title ||
+        error?.response?.data?.message ||
+        error?.message ||
+        'Cập nhật người dùng thất bại';
+      toast.error(backendMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -93,6 +99,7 @@ export function EditUserDialog({
             Hủy
           </Button>
           <Button type='submit' form='edit-user-form' disabled={isSubmitting}>
+            <Save className='w-4 h-4' />
             {isSubmitting ? 'Đang xử lý...' : 'Xác nhận'}
           </Button>
         </DialogFooter>

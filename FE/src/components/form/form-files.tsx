@@ -12,7 +12,7 @@ import {
   ItemTitle,
 } from '@/components/ui/item';
 import { cn } from '@/lib/utils';
-import { FilesIcon, Upload, X } from 'lucide-react';
+import { FilesIcon, PlusIcon, Upload, X } from 'lucide-react';
 import React, { useRef } from 'react';
 import { type FieldValues, Path, useController } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -47,8 +47,8 @@ export function FormFiles<T extends FieldValues>({
   const existingFilesList: any[] = Array.isArray(field.value)
     ? field.value
     : field.value
-    ? [field.value]
-    : [];
+      ? [field.value]
+      : [];
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -133,8 +133,8 @@ export function FormFiles<T extends FieldValues>({
     filesList.length === 0
       ? ''
       : filesList.length === 1
-      ? filesList[0].name
-      : `${filesList.length} files`;
+        ? filesList[0].name
+        : `${filesList.length} files`;
 
   return (
     <Field data-invalid={fieldState.invalid}>
@@ -183,15 +183,30 @@ export function FormFiles<T extends FieldValues>({
               <FilesIcon className='size-14 text-primary' />
             </ItemMedia>
             <ItemContent className='gap-1 overflow-hidden'>
-              <ItemTitle className='text-lg truncate max-w-full' title={displayTitle}>
+              <ItemTitle
+                className='text-lg truncate max-w-full'
+                title={displayTitle}
+              >
                 {displayTitle}
               </ItemTitle>
               <ItemDescription className='text-base truncate max-w-full'>
                 {formatFileSize(totalSize)}
-                {multiple && ' · Nhấn để thêm file'}
               </ItemDescription>
             </ItemContent>
             <ItemActions>
+              {multiple && (
+                <Button
+                  variant='ghost'
+                  size='icon-lg'
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenDialog();
+                  }}
+                  title='Thêm file'
+                >
+                  <PlusIcon className='size-5' />
+                </Button>
+              )}
               <Button
                 variant='ghost'
                 size='icon-lg'

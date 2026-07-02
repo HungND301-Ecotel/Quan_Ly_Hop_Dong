@@ -38,7 +38,7 @@ export function UserForm({
       phoneNumber: '',
       email: '',
       password: '123456',
-      userRole: '',
+      userRole: '1',
       departmentId: '',
       positionId: '',
       employeeCode: '',
@@ -65,7 +65,18 @@ export function UserForm({
       onSubmit={readOnly ? (e: any) => e.preventDefault() : onSubmit}
       className='grid grid-cols-2 gap-4'
     >
-      {/* Row 1: Họ và tên - full width */}
+      {/* Row: Mã nhân viên */}
+      <div className='col-span-2'>
+        <FormInput
+          control={form.control}
+          name='employeeCode'
+          label='Mã nhân viên'
+          placeholder='Nhập mã nhân viên'
+          required
+          disabled={readOnly}
+        />
+      </div>
+      {/* Row: Họ và tên - full width */}
       <div className='col-span-2'>
         <FormInput
           control={form.control}
@@ -77,7 +88,7 @@ export function UserForm({
         />
       </div>
 
-      {/* Row 2: Điện thoại | Email */}
+      {/* Row: Điện thoại | Email */}
       <FormInput
         control={form.control}
         name='phoneNumber'
@@ -96,7 +107,7 @@ export function UserForm({
         disabled={readOnly}
       />
 
-      {/* Row 3: Chức vụ - full width */}
+      {/* Row: Chức vụ - full width */}
       <div className='col-span-2'>
         <FormSelect
           control={form.control}
@@ -109,7 +120,7 @@ export function UserForm({
         />
       </div>
 
-      {/* Row 4: Phòng ban - full width */}
+      {/* Row: Phòng ban - full width */}
       <div className='col-span-2'>
         <FormSelect
           control={form.control}
@@ -122,7 +133,7 @@ export function UserForm({
         />
       </div>
 
-      {/* Row 5: Tên đăng nhập | Mật khẩu */}
+      {/* Row: Tên đăng nhập | Mật khẩu */}
       <FormInput
         control={form.control}
         name='userName'
@@ -144,15 +155,6 @@ export function UserForm({
       ) : (
         <div />
       )}
-
-      {/* Row 6: Mã nhân viên */}
-      <FormInput
-        control={form.control}
-        name='employeeCode'
-        label='Mã nhân viên'
-        placeholder='Nhập mã nhân viên'
-        disabled={readOnly}
-      />
 
       <div />
 

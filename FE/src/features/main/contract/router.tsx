@@ -23,7 +23,8 @@ export const contractRouter: RouteObject = {
       element: <ContractArchiveAllPage />,
       handle: {
         title: 'Tất cả hợp đồng lưu trữ',
-        description: '/Quản lý hợp đồng /Hợp đồng lưu trữ /Tất cả hợp đồng lưu trữ',
+        description:
+          '/Quản lý hợp đồng /Hợp đồng lưu trữ /Tất cả hợp đồng lưu trữ',
       },
     },
     {
@@ -31,7 +32,8 @@ export const contractRouter: RouteObject = {
       element: <ContractTemplateBuyPage />,
       handle: {
         title: 'Hợp đồng nguyên tắc mua',
-        description: '/Quản lý hợp đồng /Hợp đồng lưu trữ /Hợp đồng nguyên tắc mua',
+        description:
+          '/Quản lý hợp đồng /Hợp đồng lưu trữ /Hợp đồng nguyên tắc mua',
       },
     },
     {
@@ -39,7 +41,8 @@ export const contractRouter: RouteObject = {
       element: <ContractTemplateSellPage />,
       handle: {
         title: 'Hợp đồng nguyên tắc bán',
-        description: '/Quản lý hợp đồng /Hợp đồng lưu trữ /Hợp đồng nguyên tắc bán',
+        description:
+          '/Quản lý hợp đồng /Hợp đồng lưu trữ /Hợp đồng nguyên tắc bán',
       },
     },
     {
@@ -47,7 +50,8 @@ export const contractRouter: RouteObject = {
       element: <ContractEconomicBuyPage />,
       handle: {
         title: 'Theo dõi công nợ hợp đồng kinh tế mua',
-        description: '/Quản lý hợp đồng /Hợp đồng lưu trữ /Hợp đồng Kinh tế Mua / Theo dõi công nợ',
+        description:
+          '/Quản lý hợp đồng /Hợp đồng lưu trữ /Hợp đồng Kinh tế Mua / Theo dõi công nợ',
       },
     },
     {
@@ -55,7 +59,8 @@ export const contractRouter: RouteObject = {
       element: <ContractEconomicBuyNoDebtPage />,
       handle: {
         title: 'Không theo dõi công nợ hợp đồng kinh tế mua',
-        description: '/Quản lý hợp đồng /Hợp đồng lưu trữ /Hợp đồng Kinh tế Mua / Không theo dõi công nợ',
+        description:
+          '/Quản lý hợp đồng /Hợp đồng lưu trữ /Hợp đồng Kinh tế Mua / Không theo dõi công nợ',
       },
     },
     {
@@ -63,7 +68,8 @@ export const contractRouter: RouteObject = {
       element: <ContractEconomicSellPage />,
       handle: {
         title: 'Theo dõi công nợ hợp đồng kinh tế bán',
-        description: '/Quản lý hợp đồng /Hợp đồng lưu trữ /Hợp đồng Kinh tế Bán / Theo dõi công nợ',
+        description:
+          '/Quản lý hợp đồng /Hợp đồng lưu trữ /Hợp đồng Kinh tế Bán / Theo dõi công nợ',
       },
     },
     {
@@ -71,7 +77,8 @@ export const contractRouter: RouteObject = {
       element: <ContractEconomicSellNoDebtPage />,
       handle: {
         title: 'Không theo dõi công nợ hợp đồng kinh tế bán',
-        description: '/Quản lý hợp đồng /Hợp đồng lưu trữ /Hợp đồng Kinh tế Bán / Không theo dõi công nợ',
+        description:
+          '/Quản lý hợp đồng /Hợp đồng lưu trữ /Hợp đồng Kinh tế Bán / Không theo dõi công nợ',
       },
     },
     {

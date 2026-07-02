@@ -28,7 +28,10 @@ import {
   SignedContentValues,
 } from './schema';
 
-export function EditSignedContentAction({ row, table }: DataTableEvent<SignedContent>) {
+export function EditSignedContentAction({
+  row,
+  table,
+}: DataTableEvent<SignedContent>) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -85,7 +88,9 @@ export function EditSignedContentAction({ row, table }: DataTableEvent<SignedCon
       setOpen(false);
       onRefresh();
     } catch {
-      toast.error(row ? 'Lỗi khi cập nhật nội dung ký kết' : 'Lỗi khi tạo nội dung ký kết');
+      toast.error(
+        row ? 'Lỗi khi cập nhật nội dung ký kết' : 'Lỗi khi tạo nội dung ký kết'
+      );
     } finally {
       setLoading(false);
     }
@@ -126,7 +131,7 @@ export function EditSignedContentAction({ row, table }: DataTableEvent<SignedCon
               <FormInput
                 control={form.control}
                 name='title'
-                label='Tên nội dung ký kết hợp đồng'
+                label='Tên/Nội dung ký kết hợp đồng'
                 placeholder='Nhập tiêu đề nội dung ký kết'
               />
               <FormSelect
@@ -136,7 +141,7 @@ export function EditSignedContentAction({ row, table }: DataTableEvent<SignedCon
                 placeholder='Chọn mã cấp 3'
                 options={
                   level3Codes.data?.map((c) => ({
-                    label: `${c.code} - ${c.description}`,
+                    label: `${c.code}`,
                     value: c.id,
                   })) ?? []
                 }

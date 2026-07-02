@@ -3,12 +3,7 @@ import { StepperPrev } from '@/components/stepper';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import {
-  Item,
-  ItemContent,
-  ItemMedia,
-  ItemTitle,
-} from '@/components/ui/item';
+import { Item, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
@@ -88,19 +83,38 @@ const contractGuarantee = z.object({
 });
 
 function InfoRow({
-  label, value, icon: Icon, highlight = false, loading = false,
+  label,
+  value,
+  icon: Icon,
+  highlight = false,
+  loading = false,
 }: {
-  label: string; value?: string | React.ReactNode; icon?: LucideIcon; highlight?: boolean; loading?: boolean;
+  label: string;
+  value?: string | React.ReactNode;
+  icon?: LucideIcon;
+  highlight?: boolean;
+  loading?: boolean;
 }) {
   return (
     <div className='flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors'>
-      {Icon && <div className='mt-0.5 p-1.5 rounded-md bg-primary/10 text-primary'><Icon className='size-4' /></div>}
+      {Icon && (
+        <div className='mt-0.5 p-1.5 rounded-md bg-primary/10 text-primary'>
+          <Icon className='size-4' />
+        </div>
+      )}
       <div className='flex-1 min-w-0'>
-        <dt className='text-xs font-medium text-muted-foreground mb-0.5'>{label}</dt>
+        <dt className='text-xs font-medium text-muted-foreground mb-0.5'>
+          {label}
+        </dt>
         {loading ? (
           <Skeleton className='h-5 w-3/4 rounded bg-muted-foreground/20' />
         ) : (
-          <dd className={cn('text-sm font-medium wrap-break-words', highlight && 'font-semibold')}>
+          <dd
+            className={cn(
+              'text-sm font-medium wrap-break-words',
+              highlight && 'font-semibold'
+            )}
+          >
             {value || 'N/A'}
           </dd>
         )}
@@ -109,20 +123,42 @@ function InfoRow({
   );
 }
 
-function SectionHeader({ title, description, icon: Icon }: { title: string; description?: string; icon: LucideIcon }) {
+function SectionHeader({
+  title,
+  description,
+  icon: Icon,
+}: {
+  title: string;
+  description?: string;
+  icon: LucideIcon;
+}) {
   return (
     <div className='flex items-center gap-2 mb-4'>
-      <div className='p-2 rounded-lg bg-primary/10'><Icon className='size-5 text-primary' /></div>
+      <div className='p-2 rounded-lg bg-primary/10'>
+        <Icon className='size-5 text-primary' />
+      </div>
       <div>
         <h3 className='text-base font-semibold tracking-tight'>{title}</h3>
-        {description && <p className='text-xs text-muted-foreground'>{description}</p>}
+        {description && (
+          <p className='text-xs text-muted-foreground'>{description}</p>
+        )}
       </div>
     </div>
   );
 }
 
-function Section({ title, description, icon, children, className }: {
-  title: string; description?: string; icon: LucideIcon; children: React.ReactNode; className?: string;
+function Section({
+  title,
+  description,
+  icon,
+  children,
+  className,
+}: {
+  title: string;
+  description?: string;
+  icon: LucideIcon;
+  children: React.ReactNode;
+  className?: string;
 }) {
   return (
     <div className='p-6 rounded-lg border bg-blue-50 space-y-4'>
@@ -154,17 +190,27 @@ export function ContractRenewReviewForm() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [procurementMethods, setProcurementMethods] = useState<ProcurementMethod[]>([]);
-  const [contractRegisters, setContractRegisters] = useState<ContractRegister[]>([]);
+  const [procurementMethods, setProcurementMethods] = useState<
+    ProcurementMethod[]
+  >([]);
+  const [contractRegisters, setContractRegisters] = useState<
+    ContractRegister[]
+  >([]);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [otherMaterials, setOtherMaterials] = useState<Material[]>([]);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
-  const [parentContractLabel, setParentContractLabel] = useState<string | null>(null);
-  const [linkedContractLabel, setLinkedContractLabel] = useState<string | null>(null);
+  const [parentContractLabel, setParentContractLabel] = useState<string | null>(
+    null
+  );
+  const [linkedContractLabel, setLinkedContractLabel] = useState<string | null>(
+    null
+  );
   const [level1Codes, setLevel1Codes] = useState<Level1Code[]>([]);
   const [level2Codes, setLevel2Codes] = useState<Level2Code[]>([]);
   const [level3Codes, setLevel3Codes] = useState<Level3Code[]>([]);
-  const [contractStructures, setContractStructures] = useState<ContractStructureCatalog[]>([]);
+  const [contractStructures, setContractStructures] = useState<
+    ContractStructureCatalog[]
+  >([]);
   const level1CodeMap = useMemo(
     () => new Map(level1Codes.map((l) => [l.id, l.code])),
     [level1Codes]
@@ -183,13 +229,31 @@ export function ContractRenewReviewForm() {
     [contractStructures]
   );
 
-  const contractTypeMap = useMemo(() => new Map(contractTypes.map((ct) => [ct.id, ct.name])), [contractTypes]);
-  const partnerMap = useMemo(() => new Map(partners.map((p) => [p.id, p])), [partners]);
+  const contractTypeMap = useMemo(
+    () => new Map(contractTypes.map((ct) => [ct.id, ct.name])),
+    [contractTypes]
+  );
+  const partnerMap = useMemo(
+    () => new Map(partners.map((p) => [p.id, p])),
+    [partners]
+  );
   const userMap = useMemo(() => new Map(users.map((u) => [u.id, u])), [users]);
-  const procurementMethodMap = useMemo(() => new Map(procurementMethods.map((p) => [p.id, p.name])), [procurementMethods]);
-  const contractRegisterMap = useMemo(() => new Map(contractRegisters.map((p) => [p.id, p.name])), [contractRegisters]);
-  const materialMap = useMemo(() => new Map(materials.map((m) => [m.id, m])), [materials]);
-  const departmentMap = useMemo(() => new Map(departments.map((d) => [d.id, d.name])), [departments]);
+  const procurementMethodMap = useMemo(
+    () => new Map(procurementMethods.map((p) => [p.id, p.name])),
+    [procurementMethods]
+  );
+  const contractRegisterMap = useMemo(
+    () => new Map(contractRegisters.map((p) => [p.id, p.name])),
+    [contractRegisters]
+  );
+  const materialMap = useMemo(
+    () => new Map(materials.map((m) => [m.id, m])),
+    [materials]
+  );
+  const departmentMap = useMemo(
+    () => new Map(departments.map((d) => [d.id, d.name])),
+    [departments]
+  );
 
   const isRuleContract = [0, 1].includes(contractFormat?.contractFormat || 0);
 
@@ -209,21 +273,37 @@ export function ContractRenewReviewForm() {
       level3CodeService.getLevel3CodeList(),
       contractStructureCatalogService.getContractStructureCatalogList(),
     ])
-      .then(([ctypes, parts, usrs, deps, pmethods, cregs, mats, otherMats, bankAccountsData, level1CodesData, level2CodesData, level3CodesData, contractStructuresData]) => {
-        setContractTypes(ctypes || []);
-        setPartners(parts || []);
-        setUsers(usrs || []);
-        setDepartments(deps || []);
-        setProcurementMethods(pmethods || []);
-        setContractRegisters(cregs || []);
-        setMaterials(mats || []);
-        setOtherMaterials(otherMats || []);
-        setBankAccounts(bankAccountsData || []);
-        setLevel1Codes(level1CodesData || []);
-        setLevel2Codes(level2CodesData || []);
-        setLevel3Codes(level3CodesData || []);
-        setContractStructures(contractStructuresData || []);
-      })
+      .then(
+        ([
+          ctypes,
+          parts,
+          usrs,
+          deps,
+          pmethods,
+          cregs,
+          mats,
+          otherMats,
+          bankAccountsData,
+          level1CodesData,
+          level2CodesData,
+          level3CodesData,
+          contractStructuresData,
+        ]) => {
+          setContractTypes(ctypes || []);
+          setPartners(parts || []);
+          setUsers(usrs || []);
+          setDepartments(deps || []);
+          setProcurementMethods(pmethods || []);
+          setContractRegisters(cregs || []);
+          setMaterials(mats || []);
+          setOtherMaterials(otherMats || []);
+          setBankAccounts(bankAccountsData || []);
+          setLevel1Codes(level1CodesData || []);
+          setLevel2Codes(level2CodesData || []);
+          setLevel3Codes(level3CodesData || []);
+          setContractStructures(contractStructuresData || []);
+        }
+      )
       .finally(() => setLoading(false));
   }, []);
 
@@ -261,7 +341,7 @@ export function ContractRenewReviewForm() {
           width={position.width}
           height={position.height}
           signerName={user?.fullname}
-          onRemove={() => { }}
+          onRemove={() => {}}
           currentPage={currentPage}
           signatureFile={signatureFile}
         />
@@ -271,7 +351,14 @@ export function ContractRenewReviewForm() {
 
   const getContractFinalValue = () => {
     if (!basicInformation) return 0;
-    const { contractValue, contractItems, discountType, discountValue, contractOthersValue, contractOtherItems } = basicInformation;
+    const {
+      contractValue,
+      contractItems,
+      discountType,
+      discountValue,
+      contractOthersValue,
+      contractOtherItems,
+    } = basicInformation;
 
     let totalItems = 0;
     if (contractItems && contractItems.length > 0) {
@@ -321,7 +408,9 @@ export function ContractRenewReviewForm() {
       const signFlowsWithPositions: ContractSignFlow[] = [];
       if (signFlows && signFlows.signers.length > 0) {
         signFlows.signers.forEach((signer, index) => {
-          const position = signPositions?.postions.find((p) => p.userId === signer.signerId);
+          const position = signPositions?.postions.find(
+            (p) => p.userId === signer.signerId
+          );
           signFlowsWithPositions.push(
             position || {
               userId: signer.signerId,
@@ -337,7 +426,8 @@ export function ContractRenewReviewForm() {
         ...(basicInformation?.contractOtherItems || []),
       ];
 
-      const { paymentSchedules, ...basicInformationWithoutSchedules } = basicInformation!;
+      const { paymentSchedules, ...basicInformationWithoutSchedules } =
+        basicInformation!;
 
       const cleanedPaymentSchedules = (() => {
         if (!paymentSchedules) return undefined;
@@ -354,31 +444,51 @@ export function ContractRenewReviewForm() {
         };
       })();
 
-      const isRuleContract = [0, 1].includes(contractFormat?.contractFormat ?? -1);
+      const isRuleContract = [0, 1].includes(
+        contractFormat?.contractFormat ?? -1
+      );
 
       const parentRelationship = contractFormat?.parentContractId?.trim()
-        ? { parentContractId: contractFormat.parentContractId.trim(), relationType: 1 }
+        ? {
+            parentContractId: contractFormat.parentContractId.trim(),
+            relationType: 1,
+          }
         : null;
-      const childRelationships = !isRuleContract && contractFormat?.linkedContractId?.trim()
-        ? [{ childContractId: contractFormat.linkedContractId.trim(), relationType: 0 }]
-        : null;
+      const childRelationships =
+        !isRuleContract && contractFormat?.linkedContractId?.trim()
+          ? [
+              {
+                childContractId: contractFormat.linkedContractId.trim(),
+                relationType: 0,
+              },
+            ]
+          : null;
+
+      const roleIds = (roles?: { userId?: string }[]) =>
+        (roles ?? []).map((x) => x.userId).filter(Boolean);
 
       const requestBody = {
         ...contractFormat,
         ...basicInformationWithoutSchedules,
-        isDebtTrackingEnabled: true,       // gia hạn luôn true
-        parentRelationship,                // hợp đồng gốc đã hết hạn
-        childRelationships: childRelationships,          // không liên kết nguyên tắc
+        isDebtTrackingEnabled: true, // gia hạn luôn true
+        parentRelationship, // hợp đồng gốc đã hết hạn
+        childRelationships: childRelationships, // không liên kết nguyên tắc
         isAutoLiquidated,
         contractFilePath,
         attachmentFiles,
         signingFlows: signFlowsWithPositions,
         parentContractId: undefined,
         contractUserRoles: {
-          draftingOfficerUserIds: basicInformation?.contractUserRoles.draftingOfficer.map((x: any) => x.userId).filter(Boolean),
-          managerUserIds: basicInformation?.contractUserRoles.manager.map((x: any) => x.userId).filter(Boolean),
-          coordinatorUserIds: basicInformation?.contractUserRoles.coordinator.map((x: any) => x.userId).filter(Boolean),
-          receivingOfficerUserIds: basicInformation?.contractUserRoles.receivingOfficer.map((x: any) => x.userId).filter(Boolean),
+          draftingOfficerUserIds: roleIds(
+            basicInformation?.contractUserRoles?.draftingOfficer
+          ),
+          managerUserIds: roleIds(basicInformation?.contractUserRoles?.manager),
+          coordinatorUserIds: roleIds(
+            basicInformation?.contractUserRoles?.coordinator
+          ),
+          receivingOfficerUserIds: roleIds(
+            basicInformation?.contractUserRoles?.receivingOfficer
+          ),
         },
         contractItems: allContractItems,
         contractOtherItems: undefined,
@@ -393,8 +503,12 @@ export function ContractRenewReviewForm() {
       toast.success('Gia hạn hợp đồng thành công');
       callback?.();
     } catch (error: any) {
-      const backendMessage = error?.response?.data?.title || error?.response?.data?.message;
-      const message = errorMessageMap[backendMessage] || backendMessage || 'Lỗi khi gia hạn hợp đồng';
+      const backendMessage =
+        error?.response?.data?.title || error?.response?.data?.message;
+      const message =
+        errorMessageMap[backendMessage] ||
+        backendMessage ||
+        'Lỗi khi gia hạn hợp đồng';
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -403,17 +517,19 @@ export function ContractRenewReviewForm() {
 
   return (
     <div className='flex flex-col gap-0 h-full'>
-
       <Tabs defaultValue='informations' className='w-full flex-1 gap-4 py-6'>
         <div className='px-6'>
           <TabsList className='w-full'>
-            <TabsTrigger value='informations' className='flex items-center gap-2'>
+            <TabsTrigger
+              value='informations'
+              className='flex items-center gap-2'
+            >
               <Info className='size-4' />
               <span className='hidden md:inline'>Thông tin hợp đồng</span>
             </TabsTrigger>
             <TabsTrigger value='flows' className='flex items-center gap-2'>
               <Workflow className='size-4' />
-              <span className='hidden md:inline'>Luồng ký duyệt</span>
+              <span className='hidden md:inline'>Thành phần ký duyệt</span>
             </TabsTrigger>
             <TabsTrigger value='documents' className='flex items-center gap-2'>
               <FileText className='size-4' />
@@ -424,18 +540,30 @@ export function ContractRenewReviewForm() {
 
         <div className='px-6'>
           {/* ── Tab: Thông tin hợp đồng ── */}
-          <TabsContent value='informations' className='mt-4 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-0.5'>
-
+          <TabsContent
+            value='informations'
+            className='mt-4 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-0.5'
+          >
             {/* 1. Mẫu hợp đồng */}
             <Section title='Mẫu hợp đồng' icon={FileText}>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                <InfoRow label='Định dạng hợp đồng' value={ContractFormat[contractFormat?.contractFormat || 0]?.name} loading={loading} highlight />
+                <InfoRow
+                  label='Định dạng hợp đồng'
+                  value={
+                    ContractFormat[contractFormat?.contractFormat || 0]?.name
+                  }
+                  loading={loading}
+                  highlight
+                />
               </div>
 
               {contractFormat?.parentContractId?.trim() && (
                 <InfoRow
                   label='Gia hạn từ hợp đồng'
-                  value={parentContractLabel || contractFormat.parentContractId.trim()}
+                  value={
+                    parentContractLabel ||
+                    contractFormat.parentContractId.trim()
+                  }
                   loading={loading}
                 />
               )}
@@ -443,7 +571,11 @@ export function ContractRenewReviewForm() {
               {!isRuleContract && (
                 <InfoRow
                   label='Hợp đồng nguyên tắc liên kết'
-                  value={linkedContractLabel || contractFormat?.linkedContractId?.trim() || 'Hợp đồng kinh tế độc lập'}
+                  value={
+                    linkedContractLabel ||
+                    contractFormat?.linkedContractId?.trim() ||
+                    'Hợp đồng kinh tế độc lập'
+                  }
                   loading={loading}
                 />
               )}
@@ -477,49 +609,123 @@ export function ContractRenewReviewForm() {
             <Section title='Thông tin hợp đồng' icon={HashIcon}>
               <div>
                 <div className='grid grid-cols-1 md:grid-cols-3 gap-3'>
-                  <InfoRow label='Mã cấp I' value={level1CodeMap.get(basicInformation?.level1CodeId || '')} loading={loading} />
-                  <InfoRow label='Mã cấp II' value={level2CodeMap.get(basicInformation?.level2CodeId || '')} loading={loading} />
-                  <InfoRow label='Mã cấp III' value={level3CodeMap.get(basicInformation?.level3CodeId || '')} loading={loading} />
+                  <InfoRow
+                    label='Mã cấp I'
+                    value={level1CodeMap.get(
+                      basicInformation?.level1CodeId || ''
+                    )}
+                    loading={loading}
+                  />
+                  <InfoRow
+                    label='Mã cấp II'
+                    value={level2CodeMap.get(
+                      basicInformation?.level2CodeId || ''
+                    )}
+                    loading={loading}
+                  />
+                  <InfoRow
+                    label='Mã cấp III'
+                    value={level3CodeMap.get(
+                      basicInformation?.level3CodeId || ''
+                    )}
+                    loading={loading}
+                  />
                 </div>
               </div>
               <Separator />
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                <InfoRow label='Loại hợp đồng' value={contractTypeMap.get(basicInformation?.contractTypeId || '')} loading={loading} />
                 <InfoRow
-                  label='Hình thức hợp đồng'
-                  value={contractStructureMap.get(basicInformation?.contractStructureId || '')}
+                  label='Loại hợp đồng'
+                  value={contractTypeMap.get(
+                    basicInformation?.contractTypeId || ''
+                  )}
                   loading={loading}
                 />
-                <InfoRow label='Tên/nội dung hợp đồng' value={basicInformation?.title} loading={loading} highlight />
-                <InfoRow label='Sổ theo dõi hợp đồng' value={contractRegisterMap.get(basicInformation?.contractRegisterId || '')} loading={loading} />
+                <InfoRow
+                  label='Hình thức hợp đồng'
+                  value={contractStructureMap.get(
+                    basicInformation?.contractStructureId || ''
+                  )}
+                  loading={loading}
+                />
+                <InfoRow
+                  label='Tên/nội dung hợp đồng'
+                  value={basicInformation?.title}
+                  loading={loading}
+                  highlight
+                />
+                <InfoRow
+                  label='Sổ theo dõi hợp đồng'
+                  value={contractRegisterMap.get(
+                    basicInformation?.contractRegisterId || ''
+                  )}
+                  loading={loading}
+                />
               </div>
               <Separator />
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                <InfoRow label='Phòng ban' value={departmentMap.get(basicInformation?.departmentId || '')} loading={loading} />
+                <InfoRow
+                  label='Phòng ban'
+                  value={departmentMap.get(
+                    basicInformation?.departmentId || ''
+                  )}
+                  loading={loading}
+                />
                 <div className='md:col-span-1'>
-                  <InfoRow label='Hình thức lựa chọn nhà thầu/nhà cung cấp' value={procurementMethodMap.get(basicInformation?.procurementMethodId || '')} loading={loading} />
+                  <InfoRow
+                    label='Hình thức lựa chọn nhà thầu/nhà cung cấp'
+                    value={procurementMethodMap.get(
+                      basicInformation?.procurementMethodId || ''
+                    )}
+                    loading={loading}
+                  />
                 </div>
               </div>
               <Separator />
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                <InfoRow label='Số ký hiệu hợp đồng' value={basicInformation?.contractNumber} loading={loading} highlight />
-                <InfoRow label='Số ký hiệu PLHĐ' value={basicInformation?.appendixNumber} loading={loading} />
+                <InfoRow
+                  label='Số ký hiệu hợp đồng'
+                  value={basicInformation?.contractNumber}
+                  loading={loading}
+                  highlight
+                />
+                <InfoRow
+                  label='Số ký hiệu PLHĐ'
+                  value={basicInformation?.appendixNumber}
+                  loading={loading}
+                />
               </div>
               <Separator />
               {(() => {
-                const partner = partnerMap.get(basicInformation?.partnerId || '');
+                const partner = partnerMap.get(
+                  basicInformation?.partnerId || ''
+                );
                 return (
                   <InfoRow
                     label='Đối tác/khách hàng'
                     loading={loading}
-                    value={partner ? (
-                      <div className='flex flex-col gap-0.5'>
-                        <span className='font-semibold'>{partner.name}</span>
-                        {partner.address && <span className='text-xs text-muted-foreground'><b>Địa chỉ:</b> {partner.address}</span>}
-                        {partner.taxCode && <span className='text-xs text-muted-foreground'><b>Mã số thuế:</b> {partner.taxCode}</span>}
-                        {partner.contactPerson && <span className='text-xs text-muted-foreground'><b>Người đại diện:</b> {partner.contactPerson}</span>}
-                      </div>
-                    ) : undefined}
+                    value={
+                      partner ? (
+                        <div className='flex flex-col gap-0.5'>
+                          <span className='font-semibold'>{partner.name}</span>
+                          {partner.address && (
+                            <span className='text-xs text-muted-foreground'>
+                              <b>Địa chỉ:</b> {partner.address}
+                            </span>
+                          )}
+                          {partner.taxCode && (
+                            <span className='text-xs text-muted-foreground'>
+                              <b>Mã số thuế:</b> {partner.taxCode}
+                            </span>
+                          )}
+                          {partner.contactPerson && (
+                            <span className='text-xs text-muted-foreground'>
+                              <b>Người đại diện:</b> {partner.contactPerson}
+                            </span>
+                          )}
+                        </div>
+                      ) : undefined
+                    }
                   />
                 );
               })()}
@@ -527,22 +733,46 @@ export function ContractRenewReviewForm() {
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
                 <InfoRow
                   label='Ngày ký hợp đồng'
-                  value={basicInformation?.signingDate ? new Date(basicInformation.signingDate).toLocaleDateString('vi-VN') : undefined}
+                  value={
+                    basicInformation?.signingDate
+                      ? new Date(
+                          basicInformation.signingDate
+                        ).toLocaleDateString('vi-VN')
+                      : undefined
+                  }
                   loading={loading}
                 />
                 <InfoRow
                   label='Ngày hợp đồng có hiệu lực'
-                  value={basicInformation?.effectiveDate ? new Date(basicInformation.effectiveDate).toLocaleDateString('vi-VN') : undefined}
+                  value={
+                    basicInformation?.effectiveDate
+                      ? new Date(
+                          basicInformation.effectiveDate
+                        ).toLocaleDateString('vi-VN')
+                      : undefined
+                  }
                   loading={loading}
                 />
                 <InfoRow
                   label='Ngày hoàn thành hợp đồng'
-                  value={basicInformation?.completionDate ? new Date(basicInformation.completionDate).toLocaleDateString('vi-VN') : undefined}
+                  value={
+                    basicInformation?.completionDate
+                      ? new Date(
+                          basicInformation.completionDate
+                        ).toLocaleDateString('vi-VN')
+                      : undefined
+                  }
                   loading={loading}
                 />
                 <InfoRow
                   label='Ngày hết hạn bảo hành'
-                  value={basicInformation?.warrantyExpirationDate ? new Date(basicInformation.warrantyExpirationDate).toLocaleDateString('vi-VN') : undefined}
+                  value={
+                    basicInformation?.warrantyExpirationDate
+                      ? new Date(
+                          basicInformation.warrantyExpirationDate
+                        ).toLocaleDateString('vi-VN')
+                      : undefined
+                  }
                   loading={loading}
                 />
               </div>
@@ -552,16 +782,37 @@ export function ContractRenewReviewForm() {
             <Section title='Phân công quản lý' icon={Users}>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 {[
-                  { label: 'Cán bộ soạn thảo', usersList: basicInformation?.contractUserRoles?.draftingOfficer },
-                  { label: 'Người quản lý', usersList: basicInformation?.contractUserRoles?.manager },
-                  { label: 'Người điều phối', usersList: basicInformation?.contractUserRoles?.coordinator },
-                  { label: 'Cán bộ tiếp nhận', usersList: basicInformation?.contractUserRoles?.receivingOfficer },
+                  {
+                    label: 'Cán bộ soạn thảo',
+                    usersList:
+                      basicInformation?.contractUserRoles?.draftingOfficer,
+                  },
+                  {
+                    label: 'Người quản lý',
+                    usersList: basicInformation?.contractUserRoles?.manager,
+                  },
+                  {
+                    label: 'Người điều phối',
+                    usersList: basicInformation?.contractUserRoles?.coordinator,
+                  },
+                  {
+                    label: 'Cán bộ tiếp nhận',
+                    usersList:
+                      basicInformation?.contractUserRoles?.receivingOfficer,
+                  },
                 ].map(({ label, usersList }) => {
-                  const assigned = (usersList || []).filter((u: any) => u.userId);
+                  const assigned = (usersList || []).filter(
+                    (u: any) => u.userId
+                  );
                   return (
-                    <div key={label} className='p-4 rounded-lg border bg-white space-y-2'>
+                    <div
+                      key={label}
+                      className='p-4 rounded-lg border bg-white space-y-2'
+                    >
                       <div className='flex items-center gap-2'>
-                        <span className='text-xs font-medium text-muted-foreground'>{label}</span>
+                        <span className='text-xs font-medium text-muted-foreground'>
+                          {label}
+                        </span>
                       </div>
                       {loading ? (
                         <Skeleton className='h-10 w-full' />
@@ -570,15 +821,29 @@ export function ContractRenewReviewForm() {
                           {assigned.map((item: any, idx: number) => {
                             const user = userMap.get(item.userId || '');
                             return (
-                              <div key={idx} className='text-sm border-b last:border-0 pb-1.5 last:pb-0'>
-                                <div className='font-semibold text-foreground'>{user?.fullname || 'Chưa rõ'}</div>
-                                {user && <div className='text-xs text-muted-foreground'>{user.departmentName}{user.positionName ? ` / ${user.positionName}` : ''}</div>}
+                              <div
+                                key={idx}
+                                className='text-sm border-b last:border-0 pb-1.5 last:pb-0'
+                              >
+                                <div className='font-semibold text-foreground'>
+                                  {user?.fullname || 'Chưa rõ'}
+                                </div>
+                                {user && (
+                                  <div className='text-xs text-muted-foreground'>
+                                    {user.departmentName}
+                                    {user.positionName
+                                      ? ` / ${user.positionName}`
+                                      : ''}
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
                         </div>
                       ) : (
-                        <div className='text-sm text-muted-foreground italic'>Chưa phân công</div>
+                        <div className='text-sm text-muted-foreground italic'>
+                          Chưa phân công
+                        </div>
                       )}
                     </div>
                   );
@@ -590,127 +855,218 @@ export function ContractRenewReviewForm() {
             <Section title='Thông tin tài chính' icon={DollarSignIcon}>
               {!isRuleContract && (
                 <div className='p-6 rounded-xl bg-linear-to-br from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20'>
-                  <div className='text-sm font-medium text-muted-foreground mb-2'>Tổng giá trị hợp đồng (sau thuế)</div>
+                  <div className='text-sm font-medium text-muted-foreground mb-2'>
+                    Tổng giá trị hợp đồng (sau thuế)
+                  </div>
                   <div className='text-3xl font-bold text-emerald-600'>
-                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(getContractFinalValue())}
+                    {new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                    }).format(getContractFinalValue())}
                   </div>
                 </div>
               )}
-              {basicInformation?.contractItems && basicInformation.contractItems.length > 0 && (
-                <>
-                  {!isRuleContract && <Separator />}
-                  <div>
-                    <div className='text-sm font-medium mb-3'>Danh sách vật tư ({basicInformation.contractItems.length} mục)</div>
-                    <div className='space-y-2'>
-                      <div className='grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 rounded-lg text-xs font-medium text-muted-foreground'>
-                        <div className='col-span-6'>Tên vật tư</div>
-                        <div className='col-span-3'>Đơn vị tính</div>
-                        <div className='col-span-3 text-right'>Số lượng</div>
-                      </div>
-                      {basicInformation.contractItems.map((item, index) => {
-                        const material = materialMap.get(item.materialId);
-                        return (
-                          <div key={index} className='grid grid-cols-12 gap-4 px-4 py-3 rounded-lg border hover:border-primary/50 hover:bg-muted/30 transition-colors'>
-                            <div className='col-span-6 flex flex-col justify-center'>
-                              <span className='text-sm font-medium'>{material?.name || 'N/A'}</span>
-                              {material?.materialCode && <span className='text-xs text-muted-foreground'>{material.materialCode}</span>}
-                            </div>
-                            <div className='col-span-3 flex items-center text-sm text-muted-foreground'>
-                              {material?.unitOfMeasureName || '—'}
-                            </div>
-                            <div className='col-span-3 flex items-center justify-end text-sm font-semibold text-primary'>{item.quantity || 0}</div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </>
-              )}
-            </Section>
-
-            {/* 5. dịch vụ khác */}
-            {((basicInformation?.contractOthersValue && basicInformation.contractOthersValue > 0) ||
-              (basicInformation?.contractOtherItems && basicInformation.contractOtherItems.length > 0 && otherMaterials.length > 0)) && (
-                <Section title='Dịch vụ khác' icon={Layers}>
-                  {basicInformation?.contractOtherItems && basicInformation.contractOtherItems.length > 0 && otherMaterials.length > 0 ? (
+              {basicInformation?.contractItems &&
+                basicInformation.contractItems.length > 0 && (
+                  <>
+                    {!isRuleContract && <Separator />}
                     <div>
-                      <div className='text-sm font-medium mb-3'>Danh sách dịch vụ khác ({basicInformation.contractOtherItems.length} mục)</div>
+                      <div className='text-sm font-medium mb-3'>
+                        Danh sách vật tư (
+                        {basicInformation.contractItems.length} mục)
+                      </div>
                       <div className='space-y-2'>
                         <div className='grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 rounded-lg text-xs font-medium text-muted-foreground'>
-                          <div className='col-span-6'>Tên thành phần</div>
+                          <div className='col-span-6'>Tên vật tư</div>
                           <div className='col-span-3'>Đơn vị tính</div>
                           <div className='col-span-3 text-right'>Số lượng</div>
                         </div>
-                        {basicInformation.contractOtherItems.map((item, index) => {
-                          const otherMaterial = otherMaterials.find((m) => m.id === item.materialId);
+                        {basicInformation.contractItems.map((item, index) => {
+                          const material = materialMap.get(item.materialId);
                           return (
-                            <div key={index} className='grid grid-cols-12 gap-4 px-4 py-3 rounded-lg border hover:border-primary/50 hover:bg-muted/30 transition-colors'>
-                              <div className='col-span-6 flex items-center'><span className='text-sm font-medium'>{otherMaterial?.name || 'N/A'}</span></div>
-                              <div className='col-span-3 flex items-center text-sm text-muted-foreground'>
-                                {otherMaterial?.unitOfMeasureName || '—'}
+                            <div
+                              key={index}
+                              className='grid grid-cols-12 gap-4 px-4 py-3 rounded-lg border hover:border-primary/50 hover:bg-muted/30 transition-colors'
+                            >
+                              <div className='col-span-6 flex flex-col justify-center'>
+                                <span className='text-sm font-medium'>
+                                  {material?.name || 'N/A'}
+                                </span>
+                                {material?.materialCode && (
+                                  <span className='text-xs text-muted-foreground'>
+                                    {material.materialCode}
+                                  </span>
+                                )}
                               </div>
-                              <div className='col-span-3 flex items-center justify-end text-sm font-semibold text-primary'>{item.quantity || 0}</div>
+                              <div className='col-span-3 flex items-center text-sm text-muted-foreground'>
+                                {material?.unitOfMeasureName || '—'}
+                              </div>
+                              <div className='col-span-3 flex items-center justify-end text-sm font-semibold text-primary'>
+                                {item.quantity || 0}
+                              </div>
                             </div>
                           );
                         })}
                       </div>
                     </div>
-                  ) : (
-                    <InfoRow label='Giá trị thành phần khác' value={`${format.number(basicInformation?.contractOthersValue || 0)} đ`} loading={loading} icon={Banknote} />
-                  )}
-                </Section>
-              )}
+                  </>
+                )}
+            </Section>
 
-            {/* 6. Chiết khấu */}
-            {basicInformation?.discountValue !== undefined && basicInformation.discountValue > 0 && (
-              <Section title='Chiết khấu' icon={FileBadge}>
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+            {/* 5. dịch vụ khác */}
+            {((basicInformation?.contractOthersValue &&
+              basicInformation.contractOthersValue > 0) ||
+              (basicInformation?.contractOtherItems &&
+                basicInformation.contractOtherItems.length > 0 &&
+                otherMaterials.length > 0)) && (
+              <Section title='Dịch vụ khác' icon={Layers}>
+                {basicInformation?.contractOtherItems &&
+                basicInformation.contractOtherItems.length > 0 &&
+                otherMaterials.length > 0 ? (
+                  <div>
+                    <div className='text-sm font-medium mb-3'>
+                      Danh sách dịch vụ khác (
+                      {basicInformation.contractOtherItems.length} mục)
+                    </div>
+                    <div className='space-y-2'>
+                      <div className='grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 rounded-lg text-xs font-medium text-muted-foreground'>
+                        <div className='col-span-5'>Tên thành phần</div>
+                        <div className='col-span-3'>Đơn vị tính</div>
+                        <div className='col-span-2 text-right'>Số lượng</div>
+                        {!isRuleContract && (
+                          <div className='col-span-2 text-right'>
+                            Thành tiền
+                          </div>
+                        )}
+                      </div>
+                      {basicInformation.contractOtherItems.map(
+                        (item, index) => {
+                          const otherMaterial = otherMaterials.find(
+                            (m) => m.id === item.materialId
+                          );
+                          return (
+                            <div
+                              key={index}
+                              className='grid grid-cols-12 gap-4 px-4 py-3 rounded-lg border hover:border-primary/50 hover:bg-muted/30 transition-colors'
+                            >
+                              <div className='col-span-6 flex items-center'>
+                                <span className='text-sm font-medium'>
+                                  {otherMaterial?.name || 'N/A'}
+                                </span>
+                              </div>
+                              <div className='col-span-3 flex items-center text-sm text-muted-foreground'>
+                                {otherMaterial?.unitOfMeasureName || '—'}
+                              </div>
+                              <div className='col-span-3 flex items-center justify-end text-sm font-semibold text-primary'>
+                                {item.quantity || 0}
+                              </div>
+                              {!isRuleContract && (
+                                <div className='col-span-2 flex items-center justify-end text-sm font-semibold text-primary'>
+                                  {format.number(item.price || 0)} đ
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+                      )}
+                    </div>
+                  </div>
+                ) : (
                   <InfoRow
-                    label='Loại chiết khấu'
-                    value={basicInformation.discountType === DiscountType.Percent.id ? DiscountType.Percent.name : basicInformation.discountType === DiscountType.Amount.id ? DiscountType.Amount.name : undefined}
+                    label='Giá trị thành phần khác'
+                    value={`${format.number(basicInformation?.contractOthersValue || 0)} đ`}
                     loading={loading}
+                    icon={Banknote}
                   />
-                  <InfoRow
-                    label='Giá trị chiết khấu'
-                    value={basicInformation.discountType === DiscountType.Percent.id ? `${basicInformation.discountValue}%` : `${format.number(basicInformation.discountValue)} đ`}
-                    loading={loading}
-                  />
-                </div>
+                )}
               </Section>
             )}
+
+            {/* 6. Chiết khấu */}
+            {basicInformation?.discountValue !== undefined &&
+              basicInformation.discountValue > 0 && (
+                <Section title='Chiết khấu' icon={FileBadge}>
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                    <InfoRow
+                      label='Loại chiết khấu'
+                      value={
+                        basicInformation.discountType ===
+                        DiscountType.Percent.id
+                          ? DiscountType.Percent.name
+                          : basicInformation.discountType ===
+                              DiscountType.Amount.id
+                            ? DiscountType.Amount.name
+                            : undefined
+                      }
+                      loading={loading}
+                    />
+                    <InfoRow
+                      label='Giá trị chiết khấu'
+                      value={
+                        basicInformation.discountType ===
+                        DiscountType.Percent.id
+                          ? `${basicInformation.discountValue}%`
+                          : `${format.number(basicInformation.discountValue)} đ`
+                      }
+                      loading={loading}
+                    />
+                  </div>
+                </Section>
+              )}
 
             {/* 7. Lịch thanh toán */}
             {!isRuleContract && basicInformation?.paymentSchedules && (
               <Section title='Lịch thanh toán' icon={CalendarDays}>
                 {basicInformation.paymentSchedules.schedules.length > 0 && (
                   <div>
-                    <div className='text-sm font-medium mb-3'>Chi tiết kế hoạch thanh toán</div>
+                    <div className='text-sm font-medium mb-3'>
+                      Chi tiết kế hoạch thanh toán
+                    </div>
                     <div className='space-y-3'>
-                      {basicInformation.paymentSchedules.schedules.map((schedule, index) => (
-                        <div key={index} className='p-4 rounded-lg border bg-linear-to-br from-background to-muted/20 hover:border-primary/50 transition-colors'>
-                          <div className='flex items-center justify-between'>
-                            <div className='flex items-center gap-2'>
-                              <span className='flex items-center justify-center size-7 rounded-full bg-blue-500/10 text-blue-600 text-sm font-semibold'>{index + 1}</span>
-                              <div className='flex flex-col'>
-                                <span className='text-sm font-medium'>Kỳ {index + 1}</span>
-                                <span className='text-xs text-muted-foreground'>Số ngày thanh toán/đối chiếu: {schedule.days} ngày</span>
+                      {basicInformation.paymentSchedules.schedules.map(
+                        (schedule, index) => (
+                          <div
+                            key={index}
+                            className='p-4 rounded-lg border bg-linear-to-br from-background to-muted/20 hover:border-primary/50 transition-colors'
+                          >
+                            <div className='flex items-center justify-between'>
+                              <div className='flex items-center gap-2'>
+                                <span className='flex items-center justify-center size-7 rounded-full bg-blue-500/10 text-blue-600 text-sm font-semibold'>
+                                  {index + 1}
+                                </span>
+                                <div className='flex flex-col'>
+                                  <span className='text-sm font-medium'>
+                                    Kỳ {index + 1}
+                                  </span>
+                                  <span className='text-xs text-muted-foreground'>
+                                    Số ngày thanh toán/đối chiếu:{' '}
+                                    {schedule.days} ngày
+                                  </span>
+                                </div>
                               </div>
+                              {schedule.amount && (
+                                <div className='text-right'>
+                                  <div className='text-xs text-muted-foreground'>
+                                    {schedule.amountType ==
+                                    DiscountType.Percent.id
+                                      ? `Giá trị: ${schedule.amount}%`
+                                      : 'Số tiền cố định'}
+                                  </div>
+                                  <div className='text-base font-bold text-primary'>
+                                    {schedule.amountType ==
+                                    DiscountType.Percent.id
+                                      ? format.number(
+                                          (schedule.amount / 100) *
+                                            getContractFinalValue()
+                                        ) + ' đ'
+                                      : format.number(schedule.amount) + ' đ'}
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                            {schedule.amount && (
-                              <div className='text-right'>
-                                <div className='text-xs text-muted-foreground'>
-                                  {schedule.amountType == DiscountType.Percent.id ? `Giá trị: ${schedule.amount}%` : 'Số tiền cố định'}
-                                </div>
-                                <div className='text-base font-bold text-primary'>
-                                  {schedule.amountType == DiscountType.Percent.id
-                                    ? format.number((schedule.amount / 100) * getContractFinalValue()) + ' đ'
-                                    : format.number(schedule.amount) + ' đ'}
-                                </div>
-                              </div>
-                            )}
                           </div>
-                        </div>
-                      ))}
+                        )
+                      )}
                     </div>
                   </div>
                 )}
@@ -721,31 +1077,73 @@ export function ContractRenewReviewForm() {
             {!isRuleContract && basicInformation?.contractGuarantee && (
               <Section title='Bảo lãnh hợp đồng' icon={ShieldCheck}>
                 <div className='space-y-4'>
-                  {([
-                    { key: 'performanceBondGuarantee' as const, colorClass: 'bg-white' },
-                    { key: 'warrantyBondGuarantee' as const, colorClass: 'bg-white' },
-                    { key: 'depositGuarantee' as const, colorClass: 'bg-white' },
-                  ]).map(({ key, colorClass }) => {
+                  {[
+                    {
+                      key: 'performanceBondGuarantee' as const,
+                      colorClass: 'bg-white',
+                    },
+                    {
+                      key: 'warrantyBondGuarantee' as const,
+                      colorClass: 'bg-white',
+                    },
+                    {
+                      key: 'depositGuarantee' as const,
+                      colorClass: 'bg-white',
+                    },
+                  ].map(({ key, colorClass }) => {
                     const guarantee = basicInformation.contractGuarantee?.[key];
                     if (!guarantee?.value) return null;
                     return (
-                      <div key={key} className={`p-4 rounded-lg border bg-linear-to-br ${colorClass}`}>
+                      <div
+                        key={key}
+                        className={`p-4 rounded-lg border bg-linear-to-br ${colorClass}`}
+                      >
                         <div className='grid grid-cols-2 gap-3'>
-                          <InfoRow label='Giá trị' value={guarantee.valueType === 1 ? `${guarantee.value}%` : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(guarantee.value)} highlight />
-                          {guarantee.durationDate && <InfoRow label='Thời hạn' value={new Date(guarantee.durationDate).toLocaleDateString('vi-VN')} />}
-                          {guarantee.bankAccountId && (() => {
-                            const bank = bankAccounts.find((b) => b.id === guarantee.bankAccountId);
-                            if (!bank) return null;
-                            return (
-                              <>
-                                <InfoRow label='Ngân hàng' value={bank.bankName} />
-                                <InfoRow label='Số tài khoản' value={bank.accountNumber} />
-                                <div className='col-span-2'>
-                                  <InfoRow label='Chủ tài khoản' value={bank.accountHolder} />
-                                </div>
-                              </>
-                            );
-                          })()}
+                          <InfoRow
+                            label='Giá trị'
+                            value={
+                              guarantee.valueType === 1
+                                ? `${guarantee.value}%`
+                                : new Intl.NumberFormat('vi-VN', {
+                                    style: 'currency',
+                                    currency: 'VND',
+                                  }).format(guarantee.value)
+                            }
+                            highlight
+                          />
+                          {guarantee.durationDate && (
+                            <InfoRow
+                              label='Thời hạn'
+                              value={new Date(
+                                guarantee.durationDate
+                              ).toLocaleDateString('vi-VN')}
+                            />
+                          )}
+                          {guarantee.bankAccountId &&
+                            (() => {
+                              const bank = bankAccounts.find(
+                                (b) => b.id === guarantee.bankAccountId
+                              );
+                              if (!bank) return null;
+                              return (
+                                <>
+                                  <InfoRow
+                                    label='Ngân hàng'
+                                    value={bank.bankName}
+                                  />
+                                  <InfoRow
+                                    label='Số tài khoản'
+                                    value={bank.accountNumber}
+                                  />
+                                  <div className='col-span-2'>
+                                    <InfoRow
+                                      label='Chủ tài khoản'
+                                      value={bank.accountHolder}
+                                    />
+                                  </div>
+                                </>
+                              );
+                            })()}
                         </div>
                       </div>
                     );
@@ -764,23 +1162,38 @@ export function ContractRenewReviewForm() {
             )}
           </TabsContent>
 
-          {/* ── Tab: Luồng ký duyệt ── */}
+          {/* ── Tab: Thành phần ký duyệt ── */}
           <TabsContent value='flows' className='mt-4'>
             <div className='p-6 rounded-lg border bg-card space-y-4'>
-              <SectionHeader title='Luồng ký duyệt' description='Thông tin các thành phần tham gia ký hợp đồng' icon={Workflow} />
+              <SectionHeader
+                title='Thành phần ký duyệt'
+                description='Thông tin các thành phần tham gia ký hợp đồng'
+                icon={Workflow}
+              />
               <div className='space-y-2'>
                 {signFlows?.signers?.map((item, index) => {
                   const user = userMap.get(item.signerId);
                   return (
-                    <Item key={item.signerId} variant='muted' className='border-border rounded-none border-s-4 border-s-primary'>
+                    <Item
+                      key={item.signerId}
+                      variant='muted'
+                      className='border-border rounded-none border-s-4 border-s-primary'
+                    >
                       <ItemMedia variant='image'>
                         <div className='size-9 aspect-square flex items-center justify-center bg-primary text-primary-foreground rounded-full'>
-                          <span className='text-base font-medium'>{index + 1}</span>
+                          <span className='text-base font-medium'>
+                            {index + 1}
+                          </span>
                         </div>
                       </ItemMedia>
                       <ItemContent>
                         <ItemTitle>{user?.fullname}</ItemTitle>
-                        {user && <p className='text-xs text-muted-foreground'>{user.departmentName}{user.positionName ? ` / ${user.positionName}` : ''}</p>}
+                        {user && (
+                          <p className='text-xs text-muted-foreground'>
+                            {user.departmentName}
+                            {user.positionName ? ` / ${user.positionName}` : ''}
+                          </p>
+                        )}
                       </ItemContent>
                     </Item>
                   );
@@ -792,25 +1205,34 @@ export function ContractRenewReviewForm() {
           {/* ── Tab: Tài liệu ── */}
           <TabsContent value='documents' className='mt-4'>
             <div className='p-6 rounded-lg border bg-card space-y-4'>
-              <SectionHeader title='Xem trước tài liệu' description='Hợp đồng với vị trí chữ ký đã đánh dấu' icon={FileText} />
-              {Array.isArray(basicInformation?.contractFile) && basicInformation.contractFile.length > 1 && (
-                <Tabs value={String(selectedFileIndex)} onValueChange={(val) => {
-                  setSelectedFileIndex(Number(val));
-                  setCurrentPage(1);
-                }} className='w-full'>
-                  <TabsList className='w-full justify-start overflow-x-auto flex-wrap h-auto p-1 bg-muted/50 rounded-lg border'>
-                    {basicInformation.contractFile.map((file, idx) => (
-                      <TabsTrigger
-                        key={idx}
-                        value={String(idx)}
-                        className='py-2 px-4 text-sm font-medium transition-all rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm'
-                      >
-                        {file.name}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </Tabs>
-              )}
+              <SectionHeader
+                title='Xem trước tài liệu'
+                description='Hợp đồng với vị trí chữ ký đã đánh dấu'
+                icon={FileText}
+              />
+              {Array.isArray(basicInformation?.contractFile) &&
+                basicInformation.contractFile.length > 1 && (
+                  <Tabs
+                    value={String(selectedFileIndex)}
+                    onValueChange={(val) => {
+                      setSelectedFileIndex(Number(val));
+                      setCurrentPage(1);
+                    }}
+                    className='w-full'
+                  >
+                    <TabsList className='w-full justify-start overflow-x-auto flex-wrap h-auto p-1 bg-muted/50 rounded-lg border'>
+                      {basicInformation.contractFile.map((file, idx) => (
+                        <TabsTrigger
+                          key={idx}
+                          value={String(idx)}
+                          className='py-2 px-4 text-sm font-medium transition-all rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm'
+                        >
+                          {file.name}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </Tabs>
+                )}
 
               {basicInformation?.contractFile && (
                 <PdfViewer
@@ -823,25 +1245,41 @@ export function ContractRenewReviewForm() {
                   onPageChange={setCurrentPage}
                 />
               )}
-              {basicInformation?.attachmentFiles && basicInformation.attachmentFiles.length > 0 && (
-                <>
-                  <Separator className='my-4' />
-                  <div>
-                    <div className='text-sm font-medium text-muted-foreground mb-2'>Tài liệu đính kèm</div>
-                    <div className='space-y-2'>
-                      {basicInformation.attachmentFiles.map((file, index) => (
-                        <div key={index} className='flex items-center justify-between gap-2 p-2 rounded-md border bg-muted/50 hover:bg-muted transition-colors'>
-                          <div className='flex items-center gap-2 flex-1 min-w-0'>
-                            <FileTextIcon className='size-4 shrink-0' />
-                            <span className='text-sm truncate'>{file.name}</span>
+              {basicInformation?.attachmentFiles &&
+                basicInformation.attachmentFiles.length > 0 && (
+                  <>
+                    <Separator className='my-4' />
+                    <div>
+                      <div className='text-sm font-medium text-muted-foreground mb-2'>
+                        Tài liệu đính kèm
+                      </div>
+                      <div className='space-y-2'>
+                        {basicInformation.attachmentFiles.map((file, index) => (
+                          <div
+                            key={index}
+                            className='flex items-center justify-between gap-2 p-2 rounded-md border bg-muted/50 hover:bg-muted transition-colors'
+                          >
+                            <div className='flex items-center gap-2 flex-1 min-w-0'>
+                              <FileTextIcon className='size-4 shrink-0' />
+                              <span className='text-sm truncate'>
+                                {file.name}
+                              </span>
+                            </div>
+                            <FilePreviewDialog
+                              file={file}
+                              fileName={file.name}
+                              trigger={
+                                <Button variant='ghost' size='icon-sm'>
+                                  <EyeIcon className='size-4' />
+                                </Button>
+                              }
+                            />
                           </div>
-                          <FilePreviewDialog file={file} fileName={file.name} trigger={<Button variant='ghost' size='icon-sm'><EyeIcon className='size-4' /></Button>} />
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </>
-              )}
+                  </>
+                )}
             </div>
           </TabsContent>
         </div>
@@ -850,8 +1288,15 @@ export function ContractRenewReviewForm() {
       <div className='fixed bottom-0 start-0 p-6 py-4 shadow bg-background w-full border-t flex items-center justify-between'>
         <StepperPrev>Quay lại</StepperPrev>
         <div className='mx-auto hidden md:block' />
-        <Button size='lg' className='px-6' onClick={handleSubmit} disabled={submitting || loading}>
-          {submitting ? <Spinner /> : (
+        <Button
+          size='lg'
+          className='px-6'
+          onClick={handleSubmit}
+          disabled={submitting || loading}
+        >
+          {submitting ? (
+            <Spinner />
+          ) : (
             <>
               <RefreshCwIcon className='size-4 mr-2' />
               Gia hạn hợp đồng

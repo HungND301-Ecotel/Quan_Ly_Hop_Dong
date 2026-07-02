@@ -32,7 +32,14 @@ export function ContractArchiveAllPage() {
   });
 
   useEffect(() => {
-    setAction(<ContractArchiveCreate callback={dataTable.refresh} />);
+    setAction(
+      <ContractArchiveCreate
+        callback={async () => {
+          await dataTable.refresh();
+          dataTable.table.setPageIndex(0);
+        }}
+      />
+    );
   }, [setAction, dataTable.refresh]);
 
   return (

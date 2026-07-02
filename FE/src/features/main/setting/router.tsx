@@ -36,14 +36,14 @@ export const settingRouter: RouteObject = {
       children: [
         {
           index: true,
-          element: <Navigate to='partner' replace />,
+          element: <Navigate to='account' replace />,
         },
         {
           path: 'partner',
           element: <PartnerManagementPage />,
           handle: {
-            title: 'Quản lý đối tác',
-            description: 'Quản lý thông tin đối tác',
+            title: 'Quản lý đối tác hợp đồng',
+            description: 'Quản lý thông tin đối tác hợp đồng',
           },
         },
         {
@@ -74,8 +74,8 @@ export const settingRouter: RouteObject = {
           path: 'signing-content',
           element: <SignedContentManagementPage />,
           handle: {
-            title: 'Quản lý nội dung ký kết',
-            description: 'Quản lý danh mục nội dung ký kết hợp đồng',
+            title: 'Quản lý Tên/Nội dung ký kết hợp đồng',
+            description: 'Quản lý danh mục Tên/Nội dung ký kết hợp đồng',
           },
         },
         {
@@ -122,8 +122,8 @@ export const settingRouter: RouteObject = {
           path: 'contract-register',
           element: <ContractRegisterManagementPage />,
           handle: {
-            title: 'Quản lý số theo dõi hợp đồng',
-            description: 'Quản lý số theo dõi hợp đồng',
+            title: 'Quản lý sổ theo dõi hợp đồng',
+            description: 'Quản lý sổ theo dõi hợp đồng',
           },
         },
         {
@@ -162,8 +162,8 @@ export const settingRouter: RouteObject = {
           path: 'material',
           element: <MaterialManagementPage />,
           handle: {
-            title: 'Quản lý thành phần hợp đồng vật tư, tài sản',
-            description: 'Quản lý thông tin thành phần vật tư, tài sản hợp đồng',
+            title: 'Quản lý vật tư, tài sản',
+            description: 'Quản lý thông tin vật tư, tài sản',
           },
         },
         {
@@ -178,8 +178,8 @@ export const settingRouter: RouteObject = {
           path: 'material/other',
           element: <OtherMaterialManagementPage />,
           handle: {
-            title: 'Quản lý thành phần hợp đồng khác',
-            description: 'Quản lý thông tin thành phần hợp đồng khác',
+            title: 'Quản lý dịch vụ khác',
+            description: 'Quản lý thông tin dịch vụ khác',
           },
         },
       ],

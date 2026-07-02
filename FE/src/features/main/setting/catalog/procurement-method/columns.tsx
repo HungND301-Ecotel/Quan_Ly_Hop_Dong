@@ -8,11 +8,11 @@ export const PROCUREMENT_METHOD_COLUMNS: ColumnDef<ProcurementMethod>[] = [
   DataTableSelectColumn as ColumnDef<ProcurementMethod>,
   {
     accessorKey: 'code',
-    header: 'Mã hình thức',
+    header: 'Mã hình thức lựa chọn nhà thầu',
   },
   {
     accessorKey: 'name',
-    header: 'Tên hình thức',
+    header: 'Hình thức lựa chọn nhà thầu',
   },
   {
     accessorKey: 'description',

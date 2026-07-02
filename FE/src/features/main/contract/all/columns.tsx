@@ -35,7 +35,9 @@ export const ContractColumns: ColumnDef<Contract>[] = [
     header: 'Mã hợp đồng',
     cell: ({ row }) => (
       <div className='space-y-0.5'>
-        <p className='font-medium text-sm'>{row.original.level1CodeCode || '—'}</p>
+        <p className='font-medium text-sm'>
+          {row.original.level1CodeCode || '—'}
+        </p>
         <p className='font-medium text-sm'>{row.original.level2Code}</p>
         <p className='font-medium text-sm'>{row.original.level3Code || '—'}</p>
       </div>
@@ -58,7 +60,9 @@ export const ContractColumns: ColumnDef<Contract>[] = [
   },
   {
     accessorKey: 'effectiveDate',
-    header: () => <span className='w-full flex justify-center'>Hiệu lực hợp đồng</span>,
+    header: () => (
+      <span className='w-full flex justify-center'>Hiệu lực hợp đồng</span>
+    ),
     cell: ({ row }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -88,14 +92,81 @@ export const ContractColumns: ColumnDef<Contract>[] = [
     },
   },
   {
+    id: 'invoicesDueSoon',
+    header: () => (
+      <span className='w-full flex justify-center'>
+        Hạn thanh toán hợp đồng
+      </span>
+    ),
+    cell: ({ row }) => {
+      const invoices = row.original.invoicesDueSoon;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const filtered = (invoices ?? [])
+        .map((inv: InvoicesDueSoon) => {
+          const due = parseDateLocal(inv.dueDate);
+          const daysLeft = Math.ceil(
+            (due.getTime() - today.getTime()) / 86_400_000
+          );
+          return { ...inv, daysLeft };
+        })
+        .filter(
+          (inv: InvoicesDueSoon & { daysLeft: number }) =>
+            inv.daysLeft >= 0 && inv.daysLeft <= 15
+        )
+        .sort(
+          (
+            a: InvoicesDueSoon & { daysLeft: number },
+            b: InvoicesDueSoon & { daysLeft: number }
+          ) => a.daysLeft - b.daysLeft
+        );
+
+      if ((invoices?.length ?? 0) === 0)
+        return (
+          <span className='text-muted-foreground text-xs flex justify-center'>
+            Không có hóa đơn
+          </span>
+        );
+
+      if (filtered.length === 0)
+        return (
+          <span className='text-muted-foreground text-xs flex justify-center'>
+            Không có hóa đơn sắp đến hạn
+          </span>
+        );
+
+      return (
+        <div className='flex flex-col gap-1 items-center'>
+          {filtered.map((inv: InvoicesDueSoon & { daysLeft: number }) => (
+            <div
+              key={inv.numberInvoice}
+              className='inline-flex items-center gap-1.5 text-xs rounded-md px-2 py-0.5 w-fit whitespace-nowrap bg-amber-50 border border-amber-200'
+            >
+              <span className='font-medium text-amber-800'>
+                {inv.numberInvoice}
+              </span>
+              <span className='text-amber-700'>— còn {inv.daysLeft} ngày</span>
+            </div>
+          ))}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: 'status',
-    header: () => <span className='w-full flex justify-center'>Trạng thái</span>,
+    header: () => (
+      <span className='w-full flex justify-center'>Trạng thái</span>
+    ),
     cell: ({ row }) => {
       const status = ContractStatus[row.original.status];
       const subStatus = ContractSubStatus[row.original.subStatus];
 
       // ✅ Các subStatus được phép hiển thị khi cha là Archive
-      const archiveAllowedSubStatuses = ['ArchivedAfterLiquidation', 'ArchivedAfterCancellation'];
+      const archiveAllowedSubStatuses = [
+        'ArchivedAfterLiquidation',
+        'ArchivedAfterCancellation',
+      ];
       const isArchive = row.original.status === 'Archive';
 
       // ✅ Có hiển thị subStatus không
@@ -114,13 +185,25 @@ export const ContractColumns: ColumnDef<Contract>[] = [
       return (
         <div className='space-y-1'>
           {status && (
-            <p className={cn('text-xs rounded-xl px-3 py-1 text-center font-medium whitespace-nowrap', status.background, status.foreground)}>
+            <p
+              className={cn(
+                'text-xs rounded-xl px-3 py-1 text-center font-medium whitespace-nowrap',
+                status.background,
+                status.foreground
+              )}
+            >
               {status.title}
             </p>
           )}
           {/* ✅ Hiển thị subStatus thật */}
           {showSubStatus && subStatus && (
-            <p className={cn('text-xs rounded-xl px-3 py-1 text-center font-medium whitespace-nowrap', subStatus.background, subStatus.foreground)}>
+            <p
+              className={cn(
+                'text-xs rounded-xl px-3 py-1 text-center font-medium whitespace-nowrap',
+                subStatus.background,
+                subStatus.foreground
+              )}
+            >
               {subStatus.title}
               {row.original.subStatus === 'AwaitingSigning' &&
                 row.original.signingFlows
@@ -130,10 +213,13 @@ export const ContractColumns: ColumnDef<Contract>[] = [
           )}
           {/* ✅ Expired + null subStatus → hiển thị tạm "Đã quá hạn" */}
           {isExpiredWithNoSubStatus && (
-            <p className={cn('text-xs rounded-xl px-3 py-1 text-center font-medium whitespace-nowrap',
-              ContractSubStatus['Overdue']?.background,
-              ContractSubStatus['Overdue']?.foreground
-            )}>
+            <p
+              className={cn(
+                'text-xs rounded-xl px-3 py-1 text-center font-medium whitespace-nowrap',
+                ContractSubStatus['Overdue']?.background,
+                ContractSubStatus['Overdue']?.foreground
+              )}
+            >
               {ContractSubStatus['Overdue']?.title ?? 'Đã quá hạn'}
             </p>
           )}
@@ -141,40 +227,7 @@ export const ContractColumns: ColumnDef<Contract>[] = [
       );
     },
   },
-  {
-    id: 'invoicesDueSoon',
-    header: () => <span className='w-full flex justify-center'>Hóa đơn sắp đến hạn</span>,
-    cell: ({ row }) => {
-      const invoices = row.original.invoicesDueSoon;
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
 
-      const filtered = (invoices ?? [])
-        .map((inv: InvoicesDueSoon) => {
-          const due = parseDateLocal(inv.dueDate);
-          const daysLeft = Math.ceil((due.getTime() - today.getTime()) / 86_400_000);
-          return { ...inv, daysLeft };
-        })
-        .filter((inv: InvoicesDueSoon & { daysLeft: number }) => inv.daysLeft >= 0 && inv.daysLeft <= 15)
-        .sort((a: InvoicesDueSoon & { daysLeft: number }, b: InvoicesDueSoon & { daysLeft: number }) => a.daysLeft - b.daysLeft);
-
-      if (filtered.length === 0) return <span className='text-muted-foreground text-xs flex justify-center'>Không có hóa đơn</span>;
-
-      return (
-        <div className='flex flex-col gap-1 items-center'>
-          {filtered.map((inv: InvoicesDueSoon & { daysLeft: number }) => (
-            <div
-              key={inv.numberInvoice}
-              className='inline-flex items-center gap-1.5 text-xs rounded-md px-2 py-0.5 w-fit whitespace-nowrap bg-amber-50 border border-amber-200'
-            >
-              <span className='font-medium text-amber-800'>{inv.numberInvoice}</span>
-              <span className='text-amber-700'>— còn {inv.daysLeft} ngày</span>
-            </div>
-          ))}
-        </div>
-      );
-    },
-  },
   {
     id: 'actions',
     header: () => (
@@ -185,18 +238,26 @@ export const ContractColumns: ColumnDef<Contract>[] = [
       const { refresh } = useDataTableContext<Contract>();
       const isArchive = row.original.isArchiveContract;
       const isDraft = row.original.status === 'Draft';
-      const isRejected = row.original.status === 'PendingApproval' && row.original.subStatus === 'Rejected';
-      const isWaitingPartnerSign = row.original.status === 'PendingApproval' && row.original.subStatus === 'WaitPartnerSign';
+      const isRejected =
+        row.original.status === 'PendingApproval' &&
+        row.original.subStatus === 'Rejected';
+      const isWaitingPartnerSign =
+        row.original.status === 'PendingApproval' &&
+        row.original.subStatus === 'WaitPartnerSign';
       // ✅ Hủy trước hiệu lực: subStatus là CancelledBeforeEffective
-      const isCancelledBeforeEffective = row.original.subStatus === 'CancelledBeforeEffective' || row.original.subStatus === 'TerminatedEarly';
+      const isCancelledBeforeEffective =
+        row.original.subStatus === 'CancelledBeforeEffective' ||
+        row.original.subStatus === 'TerminatedEarly';
       // ✅ Đang hiệu lực: hiển thị nút Tạm dừng và Hủy khi đang thực hiện
-      const isActive = row.original.status === 'Active' && row.original.subStatus !== 'Paused';
+      const isActive =
+        row.original.status === 'Active' && row.original.subStatus !== 'Paused';
       // ✅ Tạm dừng: hiển thị nút Tiếp tục + xem lý do, ẩn Hủy
       const isPaused = row.original.subStatus === 'Paused';
       // ✅ Đang nghiệm thu: hiển thị nút chuyển sang lưu trữ
-      const isLiquidatedDone = row.original.status === 'Liquidated'
-        && row.original.subStatus === 'LiquidatedDone';
-      const isAdmin = user?.role === '0' || user?.role === 'Admin';
+      const isLiquidatedDone =
+        row.original.status === 'Liquidated' &&
+        row.original.subStatus === 'LiquidatedDone';
+      const isAdmin = user?.role === 0;
       const isDraftingOfficer = row.original.contractUserRoles?.some(
         (r) => r.userId === user?.id && r.role === 0
       );
@@ -210,8 +271,8 @@ export const ContractColumns: ColumnDef<Contract>[] = [
 
       return (
         <div className='flex gap-2 justify-center'>
-          {canEdit && (
-            isArchive ? (
+          {canEdit &&
+            (isArchive ? (
               <ContractArchiveCreate
                 contractId={row.original.id}
                 callback={refresh}
@@ -219,8 +280,7 @@ export const ContractColumns: ColumnDef<Contract>[] = [
               />
             ) : (
               <ContractEdit contractId={row.original.id} callback={refresh} />
-            )
-          )}
+            ))}
           {isWaitingPartnerSign && (
             <>
               <ContractComplete contract={row.original} callback={refresh} />
@@ -229,7 +289,10 @@ export const ContractColumns: ColumnDef<Contract>[] = [
           )}
           {/* ✅ Hiển thị nút thêm file thanh lý khi Hủy trước hiệu lực */}
           {isCancelledBeforeEffective && (
-            <ContractLiquidation contractId={row.original.id} callback={refresh} />
+            <ContractLiquidation
+              contractId={row.original.id}
+              callback={refresh}
+            />
           )}
           {/* ✅ Hiển thị Tạm dừng + Hủy khi hợp đồng đang hiệu lực */}
           {isActive && (

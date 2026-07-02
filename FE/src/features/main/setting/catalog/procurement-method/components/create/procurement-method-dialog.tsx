@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -51,30 +52,37 @@ export function CreateProcurementMethodDialog({
           <span>Tạo mới</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className='sm:max-w-175'>
-        <DialogHeader>
-          <DialogTitle>Tạo mới phương thức lựa chọn nhà thầu</DialogTitle>
+      <DialogContent className='flex flex-col gap-0 w-full md:min-w-2xl lg:min-w-4xl px-0 overflow-hidden'>
+        <DialogHeader className='gap-1 p-6 pt-0 border-b'>
+          <DialogTitle className='text-2xl font-semibold'>
+            Tạo mới hình thức lựa chọn nhà thầu
+          </DialogTitle>
+          <DialogDescription>
+            Tạo mới thông tin hình thức lựa chọn nhà thầu
+          </DialogDescription>
         </DialogHeader>
         <ProcurementMethodForm
           id='create-procurement-method-form'
           onSubmit={handleSubmit}
         />
-        <DialogFooter>
-          <Button
-            variant={'outline'}
-            onClick={() => setOpen(false)}
-            disabled={isSubmitting}
-          >
-            Hủy
-          </Button>
-          <Button
-            type='submit'
-            form='create-procurement-method-form'
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Đang xử lý...' : 'Xác nhận'}
-          </Button>
-        </DialogFooter>
+        <div className='flex justify-end items-center gap-3 p-4 px-6 pb-0 border-t'>
+          <DialogFooter>
+            <Button
+              variant={'outline'}
+              onClick={() => setOpen(false)}
+              disabled={isSubmitting}
+            >
+              Hủy
+            </Button>
+            <Button
+              type='submit'
+              form='create-procurement-method-form'
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Đang xử lý...' : 'Xác nhận'}
+            </Button>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -1,9 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { ProcurementMethod } from '@/services/procurement-method/type';
 import { Row, Table } from '@tanstack/react-table';
-import { EyeIcon, SquarePenIcon, Trash2Icon } from 'lucide-react';
+import { SquarePenIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
-import { ProcurementMethodDetailDialog } from './components/detail/procurement-method-detail-dialog';
 import { EditProcurementMethodDialog } from './components/edit/edit-procurement-method-dialog';
 import { DeleteProcurementMethodDialog } from './components/delete/procurement-method-dialog';
 
@@ -20,19 +19,10 @@ export function ProcurementMethodActionCell({
   const { refresh } = (table.options.meta as any) || {};
   const [open, setOpen] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
-  const [openDetail, setOpenDetail] = useState(false);
 
   return (
     <>
       <div className='flex items-center gap-2'>
-        <Button
-          variant='ghost'
-          size='icon'
-          onClick={() => setOpenDetail(true)}
-          className='size-8 p-0'
-        >
-          <EyeIcon className='size-4' />
-        </Button>
         <Button
           variant='ghost'
           size='icon'
@@ -66,14 +56,6 @@ export function ProcurementMethodActionCell({
           open={openDelete}
           onOpenChange={setOpenDelete}
           onSuccess={refresh || (() => {})}
-        />
-      )}
-
-      {openDetail && (
-        <ProcurementMethodDetailDialog
-          procurement_method={row.original}
-          open={openDetail}
-          onOpenChange={setOpenDetail}
         />
       )}
     </>

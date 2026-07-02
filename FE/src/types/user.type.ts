@@ -13,7 +13,7 @@ export type User = {
   phoneNumber: string;
   email: string;
   avatarUrl: string;
-  role: string;
+  role: number;
   positionId: string;
   positionName: string | null;
   employeeCode?: string;

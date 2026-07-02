@@ -2,7 +2,6 @@ import { DataTableSelectColumn } from '@/components/data-table';
 import { ContractNumber } from '@/services/contract-number/type';
 import { ColumnDef } from '@tanstack/react-table';
 import { ContractNumberDelete } from './delete';
-import { ContractNumberDetail } from './detail';
 import { ContractNumberUpsert } from './upsert';
 
 export const CONTRACT_NUMBER_COLUMNS: ColumnDef<ContractNumber>[] = [
@@ -12,12 +11,8 @@ export const CONTRACT_NUMBER_COLUMNS: ColumnDef<ContractNumber>[] = [
     header: 'Số hợp đồng',
   },
   {
-    accessorKey: 'signNumber',
-    header: 'Ký hiệu',
-  },
-  {
     accessorKey: 'description',
-    header: 'Mô tả',
+    header: 'Ghi chú',
   },
   {
     id: 'action',
@@ -25,7 +20,6 @@ export const CONTRACT_NUMBER_COLUMNS: ColumnDef<ContractNumber>[] = [
     cell: (props) => {
       return (
         <div className='flex items-center gap-1 justify-end'>
-          <ContractNumberDetail {...props} />
           <ContractNumberUpsert {...props} />
           <ContractNumberDelete {...props} />
         </div>

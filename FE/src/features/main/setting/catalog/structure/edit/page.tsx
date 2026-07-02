@@ -77,7 +77,9 @@ export function EditContractStructureCatalogAction({
         });
         toast.success('Cập nhật hình thức hợp đồng thành công');
       } else {
-        await contractStructureCatalogService.createContractStructureCatalog(values);
+        await contractStructureCatalogService.createContractStructureCatalog(
+          values
+        );
         toast.success('Tạo mới hình thức hợp đồng thành công');
       }
       setOpen(false);
@@ -127,15 +129,15 @@ export function EditContractStructureCatalogAction({
             <FormRow>
               <FormInput
                 control={form.control}
-                name='name'
-                label='Tên hình thức hợp đồng'
-                placeholder='Nhập tên hình thức hợp đồng'
-              />
-              <FormInput
-                control={form.control}
                 name='code'
                 label='Mã hình thức hợp đồng'
                 placeholder='Nhập mã hình thức hợp đồng'
+              />
+              <FormInput
+                control={form.control}
+                name='name'
+                label='Hình thức hợp đồng'
+                placeholder='Nhập hình thức hợp đồng'
               />
             </FormRow>
             <FormRow>

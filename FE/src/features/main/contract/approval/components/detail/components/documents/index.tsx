@@ -19,7 +19,11 @@ import { FolderCodeIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export type ContractDocumentsProps = {
-  documents?: { url: string; name: string; group?: 'origin' | 'signed' | 'attachment' }[];
+  documents?: {
+    url: string;
+    name: string;
+    group?: 'origin' | 'signed' | 'attachment';
+  }[];
   loading?: boolean;
 };
 
@@ -33,7 +37,7 @@ export function ContractDocuments({
     if (loading || !documents || documents.length === 0) return;
     setSelectedFile((prev) =>
       prev && documents.some((d) => d.url === prev) ? prev : documents[0].url
-    ); setSelectedFile(documents[0].url);
+    );
   }, [documents, loading]);
 
   if (loading) {
@@ -60,7 +64,9 @@ export function ContractDocuments({
 
   const originDocs = documents.filter((d) => d.group === 'origin');
   const signedDocs = documents.filter((d) => d.group === 'signed');
-  const attachmentDocs = documents.filter((d) => d.group === 'attachment' || !d.group);
+  const attachmentDocs = documents.filter(
+    (d) => d.group === 'attachment' || !d.group
+  );
 
   return (
     <div className='flex flex-col gap-3 h-full flex-1'>

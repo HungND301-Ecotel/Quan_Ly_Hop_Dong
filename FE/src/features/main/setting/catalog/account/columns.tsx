@@ -6,16 +6,12 @@ import { AccountActionCell } from './account-action-cell';
 export const USER_COLUMNS: ColumnDef<User>[] = [
   DataTableSelectColumn as ColumnDef<User>,
   {
-    accessorKey: 'userName',
-    header: 'Tên đăng nhập',
+    accessorKey: 'employeeCode',
+    header: 'Mã nhân viên',
   },
   {
     accessorKey: 'fullname',
     header: 'Họ và tên',
-  },
-  {
-    accessorKey: 'employeeCode',
-    header: 'Mã nhân viên',
   },
   {
     accessorKey: 'phoneNumber',
@@ -28,6 +24,18 @@ export const USER_COLUMNS: ColumnDef<User>[] = [
   {
     accessorKey: 'positionName',
     header: 'Chức vụ',
+  },
+  {
+    accessorKey: 'departmentName',
+    header: 'Phòng ban',
+  },
+  {
+    accessorKey: 'userName',
+    header: 'Tên đăng nhập',
+  },
+  {
+    accessorKey: 'note',
+    header: 'Ghi chú',
   },
   {
     header: 'Thao tác',

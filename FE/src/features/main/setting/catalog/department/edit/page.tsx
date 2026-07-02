@@ -119,15 +119,15 @@ export function DepartmentEdit({ row, table }: DataTableEvent<Department>) {
             <FormRow>
               <FormInput
                 control={form.control}
-                name='name'
-                label='Tên phòng ban'
-                placeholder='Nhập tên phòng ban'
-              />
-              <FormInput
-                control={form.control}
                 name='code'
                 label='Mã phòng ban'
                 placeholder='Nhập mã phòng ban'
+              />
+              <FormInput
+                control={form.control}
+                name='name'
+                label='Tên phòng ban'
+                placeholder='Nhập tên phòng ban'
               />
             </FormRow>
             <FormRow>
@@ -153,8 +153,8 @@ export function DepartmentEdit({ row, table }: DataTableEvent<Department>) {
               disabled={loading}
               className='min-w-32 bg-blue-600 hover:bg-blue-700'
             >
-              <Save className='w-4 h-4 mr-2' />
-              {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+              <Save className='w-4 h-4' />
+              {loading ? 'Đang xử lý...' : 'Xác nhận'}
             </Button>
           </div>
         </Form>

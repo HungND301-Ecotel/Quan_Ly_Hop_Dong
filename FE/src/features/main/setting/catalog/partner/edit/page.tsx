@@ -25,8 +25,6 @@ import {
   PartnerSchema,
 } from './schema';
 import { FormSelect } from '@/components/form/form-select';
-import { Position } from '@/services/postion/type';
-import { positionService } from '@/services/postion';
 import { BankAccount } from '@/services/bank-account/type';
 import { BankAccountService } from '@/services/bank-account';
 import { CreateBankAccountDialog } from '@/components/form/bank-form';
@@ -34,14 +32,9 @@ import { CreateBankAccountDialog } from '@/components/form/bank-form';
 export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [positions, setPositions] = useState<Position[]>([]);
+
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [openBankDialog, setOpenBankDialog] = useState(false);
-
-  const positionOptions = positions.map((p) => ({
-    value: p.id,
-    label: p.name,
-  }));
 
   const bankAccountOptions = bankAccounts.map((b) => ({
     value: b.id,
@@ -52,11 +45,9 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
     if (!open) return;
     const fetchData = async () => {
       try {
-        const [posRes, bankRes] = await Promise.all([
-          positionService.getPositionList(),
+        const [bankRes] = await Promise.all([
           BankAccountService.getBankAccountList(),
         ]);
-        setPositions(posRes || []);
         setBankAccounts(bankRes || []);
       } catch (error) {
         console.error('Failed to fetch filter data', error);
@@ -85,14 +76,16 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
   useEffect(() => {
     if (!detail.data) return;
     form.reset({
+      partnerContractCode: detail.data.partnerContractCode,
       name: detail.data.name,
       taxCode: detail.data.taxCode,
       address: detail.data.address,
       contactPerson: detail.data.contactPerson,
       phone: detail.data.phone,
       fax: detail.data.fax,
-      positionId: detail.data.positionId,
+      position: detail.data.position,
       bankId: detail.data.bankId,
+      note: detail.data.note,
     });
   }, [detail.data, form]);
 
@@ -154,6 +147,15 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
             className='flex flex-col overflow-hidden'
           >
             <div className='flex-1 p-6 flex flex-col gap-6'>
+              <FormRow>
+                <FormInput
+                  control={form.control}
+                  name='partnerContractCode'
+                  label='Mã đối tác hợp đồng'
+                  placeholder='Nhập mã đối tác hợp đồng'
+                />
+              </FormRow>
+
               <FormRow>
                 <FormInput
                   control={form.control}
@@ -226,12 +228,20 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
                   label='Người đại diện'
                   placeholder='Nhập tên người đại diện'
                 />
-                <FormSelect
+                <FormInput
                   control={form.control}
-                  name='positionId'
+                  name='position'
                   label='Chức vụ'
-                  placeholder='Chọn chức vụ'
-                  options={positionOptions}
+                  placeholder='Nhập chức vụ'
+                />
+              </FormRow>
+
+              <FormRow>
+                <FormInput
+                  control={form.control}
+                  name='note'
+                  label='Ghi chú'
+                  placeholder='Nhập ghi chú'
                 />
               </FormRow>
             </div>

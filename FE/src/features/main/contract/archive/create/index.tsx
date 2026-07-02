@@ -70,7 +70,8 @@ export function ContractArchiveCreate({
             >
               <DialogHeader className='border-b h-fit p-6 bg-background'>
                 <DialogTitle className='text-xl'>
-                  <ContractArchiveTitle /> <ContractArchiveSubTitle defaultFormat={defaultFormat} />
+                  <ContractArchiveTitle />{' '}
+                  <ContractArchiveSubTitle defaultFormat={defaultFormat} />
                 </DialogTitle>
                 <DialogDescription hidden />
               </DialogHeader>
@@ -96,12 +97,18 @@ function ContractArchiveTitle() {
   return isUpdate ? 'Cập nhật' : 'Tạo mới';
 }
 
-function ContractArchiveSubTitle({ defaultFormat }: { defaultFormat?: number }) {
+function ContractArchiveSubTitle({
+  defaultFormat,
+}: {
+  defaultFormat?: number;
+}) {
   const { contractFormat } = useContractEditContext();
 
-  const currentFormat = contractFormat?.contractFormat !== undefined && contractFormat?.contractFormat !== null
-    ? contractFormat.contractFormat
-    : defaultFormat;
+  const currentFormat =
+    contractFormat?.contractFormat !== undefined &&
+    contractFormat?.contractFormat !== null
+      ? contractFormat.contractFormat
+      : defaultFormat;
 
   if (currentFormat !== undefined && currentFormat !== null) {
     return ContractFormat[currentFormat].name.toLocaleLowerCase();

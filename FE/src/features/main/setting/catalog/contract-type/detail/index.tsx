@@ -74,14 +74,14 @@ export function ContractTypeDetail({
             <FormRow>
               <FormInput
                 control={form.control}
-                name='name'
-                label='Tên loại hợp đồng'
+                name='code'
+                label='Mã loại hợp đồng'
                 disabled
               />
               <FormInput
                 control={form.control}
-                name='code'
-                label='Mã loại hợp đồng'
+                name='name'
+                label='Tên loại hợp đồng'
                 disabled
               />
             </FormRow>

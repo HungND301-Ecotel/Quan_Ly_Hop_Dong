@@ -2,7 +2,6 @@ import { DataTableSelectColumn } from '@/components/data-table';
 import { ContractField } from '@/services/contract-field/type';
 import { ColumnDef } from '@tanstack/react-table';
 import { ContractFieldDelete } from './delete';
-import { ContractFieldDetail } from './detail';
 import { ContractFieldUpsert } from './upsert';
 
 export const CONTRACT_FIELD_COLUMNS: ColumnDef<ContractField>[] = [
@@ -25,7 +24,6 @@ export const CONTRACT_FIELD_COLUMNS: ColumnDef<ContractField>[] = [
     cell: (props) => {
       return (
         <div className='flex items-center gap-1 justify-end'>
-          <ContractFieldDetail {...props} />
           <ContractFieldUpsert {...props} />
           <ContractFieldDelete {...props} />
         </div>
