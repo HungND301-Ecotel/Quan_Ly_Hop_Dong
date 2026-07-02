@@ -197,6 +197,7 @@ export function FormFiles<T extends FieldValues>({
               {multiple && (
                 <Button
                   variant='ghost'
+                  type='button'
                   size='icon-lg'
                   onClick={(e) => {
                     e.stopPropagation();
@@ -210,6 +211,7 @@ export function FormFiles<T extends FieldValues>({
               <Button
                 variant='ghost'
                 size='icon-lg'
+                type='button'
                 onClick={handleRemove}
                 className='hover:bg-destructive/10 hover:text-destructive'
                 title='Xoá tất cả'

@@ -140,9 +140,7 @@ export const BasicInformationSchema = z
     contractOtherItems: z.array(
       z.object({
         materialId: z.string().nonempty({ error: 'Không được để trống' }),
-        quantity: z.coerce
-          .number<number>()
-          .nonnegative({ error: 'Phải lớn hơn 0' }),
+        quantity: z.coerce.number<number>().optional(),
         price: z.coerce
           .number<number>({ error: 'Số không hợp lệ' })
           .nonnegative({ error: 'Phải lớn hơn 0' })
