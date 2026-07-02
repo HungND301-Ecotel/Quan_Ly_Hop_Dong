@@ -244,7 +244,17 @@ export function MaterialImportDialog({
         if (!row || !row[COL.materialCode]) continue;
 
         const materialCode = String(row[COL.materialCode] ?? '').trim();
-        const quantity = isRuleContract ? 0 : Number(row[COL.quantity]) || 0;
+        const rawQuantity = row[COL.quantity];
+        const parsedQuantity = Number(rawQuantity);
+        const quantity = isRuleContract ? 0 : parsedQuantity;
+
+        if (
+          !isRuleContract &&
+          (!Number.isFinite(parsedQuantity) || parsedQuantity <= 0)
+        ) {
+          toast.error(`Số lượng không hợp lệ tại dòng ${i + 1}`);
+          return;
+        }
 
         if (!materialCode) continue;
         parsed.push({
@@ -257,13 +267,27 @@ export function MaterialImportDialog({
         });
       }
 
-      if (parsed.length === 0) {
+      // Gộp các dòng trùng mã vật tư (cộng dồn số lượng) trước khi đối chiếu danh mục
+      const mergedMap = new Map<string, ImportedRow>();
+      parsed.forEach((row) => {
+        const key = row.materialCode.toLowerCase();
+        const existing = mergedMap.get(key);
+        if (existing) {
+          existing.quantity += row.quantity;
+        } else {
+          mergedMap.set(key, { ...row });
+        }
+      });
+      const dedupedParsed = Array.from(mergedMap.values());
+      const duplicateCount = parsed.length - dedupedParsed.length;
+
+      if (dedupedParsed.length === 0) {
         toast.error('Không tìm thấy dữ liệu hợp lệ trong file');
         return;
       }
 
       // Match against existing catalog — nếu đã có thì lấy luôn info hiển thị
-      const matched = parsed.map((row) => {
+      const matched = dedupedParsed.map((row) => {
         const found = existingMaterials.find(
           (m) =>
             m.materialCode.trim().toLowerCase() ===
@@ -289,6 +313,11 @@ export function MaterialImportDialog({
       // Reset toàn bộ field array với dữ liệu mới parse được
       replace(matched);
       setOpen(true);
+      if (duplicateCount > 0) {
+        toast.warning(
+          `Phát hiện ${duplicateCount} mã vật tư bị trùng trong file, đã tự động gộp số lượng`
+        );
+      }
     } catch {
       toast.error('Lỗi khi đọc file Excel');
     }
@@ -343,8 +372,9 @@ export function MaterialImportDialog({
 
       const seen = new Set<string>();
       const toCreate = missing.filter((r) => {
-        if (seen.has(r.materialCode)) return false;
-        seen.add(r.materialCode);
+        const key = r.materialCode.trim().toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
         return true;
       });
 
@@ -398,9 +428,11 @@ export function MaterialImportDialog({
         materialId: r.materialId!,
         quantity: r.quantity,
       }));
+
       onSuccess(items);
       setOpen(false);
       replace([]);
+
       toast.success(`Đã thêm ${items.length} ${label} vào hợp đồng`);
     } finally {
       setAdding(false);

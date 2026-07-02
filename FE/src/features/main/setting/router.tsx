@@ -28,7 +28,7 @@ export const settingRouter: RouteObject = {
   children: [
     {
       index: true,
-      element: <Navigate to='account' replace />,
+      element: <Navigate to='catalog' replace />,
     },
     {
       path: 'catalog',

@@ -9,5 +9,6 @@ export type Partner = {
   fax: string;
   position: string;
   bankId: string;
+  partnerContractCode: string;
   note?: string;
 };

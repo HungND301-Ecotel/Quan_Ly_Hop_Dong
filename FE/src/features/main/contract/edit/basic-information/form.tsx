@@ -559,6 +559,13 @@ export function ContractBasicInformationForm() {
       };
     };
 
+    // Tính trước contractNumberId khớp đúng, dùng chung để match appendix
+    // đúng theo cả appendixNumber lẫn contractNumberId (tránh trùng số phụ lục
+    // giữa các hợp đồng khác nhau)
+    const matchedContractNumberId =
+      contractNumbers.find((f) => f.number === contract.contractNumber)?.id ??
+      '';
+
     const filePaths = contract.filePath
       ? contract.filePath.split(';').filter(Boolean)
       : [];
@@ -593,12 +600,12 @@ export function ContractBasicInformationForm() {
         contractRegisterId: contract.contractRegisterId,
         contractNumber: contract.contractNumber,
         appendixNumber: contract.appendixNumber,
-        contractNumberId:
-          contractNumbers.find((f) => f.number === contract.contractNumber)
-            ?.id ?? '',
+        contractNumberId: matchedContractNumberId,
         appendixNumberId:
           contractAppendixs.find(
-            (f) => f.appendixNumber === contract.appendixNumber
+            (f) =>
+              f.appendixNumber === contract.appendixNumber &&
+              f.contractNumberId === matchedContractNumberId
           )?.id ?? '',
         partnerId: contract.partnerId,
         signingDate: contract.signingDate
@@ -924,7 +931,6 @@ export function ContractBasicInformationForm() {
   }, [watchedLevel3CodeId]);
 
   const handleSubmit = (data: BasicInformationValues) => {
-    console.log('data submit', data);
     if (getContractFinalValue() < 0) {
       return form.setError('discountValue', {
         message: 'Phải nhỏ hơn giá trị hợp đồng',

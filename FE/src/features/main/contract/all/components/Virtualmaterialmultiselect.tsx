@@ -186,6 +186,8 @@ export function VirtualMaterialMultiSelect<T extends FieldValues>({
               <div
                 style={{ height: rowVirtualizer.getTotalSize() }}
                 className='relative'
+                role='listbox'
+                aria-multiselectable='true'
               >
                 {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                   const material = filtered[virtualRow.index];
@@ -194,6 +196,9 @@ export function VirtualMaterialMultiSelect<T extends FieldValues>({
                   return (
                     <div
                       key={material.id}
+                      role='option'
+                      aria-selected={isSelected}
+                      tabIndex={0}
                       style={{
                         position: 'absolute',
                         top: virtualRow.start,
@@ -202,9 +207,16 @@ export function VirtualMaterialMultiSelect<T extends FieldValues>({
                       }}
                       className={cn(
                         'flex items-center gap-2 px-3 cursor-pointer hover:bg-accent text-sm',
+                        'outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset',
                         isSelected && 'bg-accent'
                       )}
                       onClick={() => toggleItem(material.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          toggleItem(material.id);
+                        }
+                      }}
                     >
                       {/* Checkbox */}
                       <div

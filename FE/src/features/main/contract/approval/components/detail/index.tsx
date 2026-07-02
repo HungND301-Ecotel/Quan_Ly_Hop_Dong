@@ -199,23 +199,32 @@ export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
               <ContractDocuments
                 loading={detail.loading}
                 documents={[
+                  // File hợp đồng gốc (trước khi ký)
                   ...(() => {
-                    const contractUrls = (
-                      detail.data?.signedFilePath ||
-                      detail.data?.filePath ||
-                      ''
-                    )
+                    const originUrls = (detail.data?.filePath || '')
                       .split(';')
                       .filter(Boolean);
                     const contractNames = (detail.data?.contractName || '')
                       .split(';')
                       .filter(Boolean);
-                    return contractUrls.map((url, i) => ({
+                    return originUrls.map((url, i) => ({
                       name: contractNames[i] || `File hợp đồng ${i + 1}`,
                       url,
-                      group: detail.data?.signedFilePath
-                        ? ('signed' as const)
-                        : ('origin' as const),
+                      group: 'origin' as const,
+                    }));
+                  })(),
+                  // File hợp đồng đã ký
+                  ...(() => {
+                    const signedUrls = (detail.data?.signedFilePath || '')
+                      .split(';')
+                      .filter(Boolean);
+                    const contractNames = (detail.data?.contractName || '')
+                      .split(';')
+                      .filter(Boolean);
+                    return signedUrls.map((url, i) => ({
+                      name: contractNames[i] || `File hợp đồng đã ký ${i + 1}`,
+                      url,
+                      group: 'signed' as const,
                     }));
                   })(),
                   ...(detail.data?.attachments || []).map((attachment) => ({

@@ -38,7 +38,6 @@ export function ContractDocuments({
     setSelectedFile((prev) =>
       prev && documents.some((d) => d.url === prev) ? prev : documents[0].url
     );
-    setSelectedFile(documents[0].url);
   }, [documents, loading]);
 
   if (loading) {

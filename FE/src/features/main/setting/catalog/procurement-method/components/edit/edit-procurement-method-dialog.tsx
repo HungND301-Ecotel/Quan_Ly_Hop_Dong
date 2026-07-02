@@ -59,10 +59,10 @@ export function EditProcurementMethodDialog({
       <DialogContent className='flex flex-col gap-0 w-full md:min-w-2xl lg:min-w-4xl px-0 overflow-hidden'>
         <DialogHeader className='gap-1 p-6 pt-0 border-b'>
           <DialogTitle className='text-2xl font-semibold'>
-            Tạo mới hình thức lựa chọn nhà thầu
+            Cập nhật hình thức lựa chọn nhà thầu
           </DialogTitle>
           <DialogDescription>
-            Tạo mới thông tin hình thức lựa chọn nhà thầu
+            Cập nhật thông tin hình thức lựa chọn nhà thầu
           </DialogDescription>
         </DialogHeader>
         <ProcurementMethodForm

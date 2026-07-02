@@ -464,6 +464,9 @@ export function ContractRenewReviewForm() {
             ]
           : null;
 
+      const roleIds = (roles?: { userId?: string }[]) =>
+        (roles ?? []).map((x) => x.userId).filter(Boolean);
+
       const requestBody = {
         ...contractFormat,
         ...basicInformationWithoutSchedules,
@@ -476,20 +479,16 @@ export function ContractRenewReviewForm() {
         signingFlows: signFlowsWithPositions,
         parentContractId: undefined,
         contractUserRoles: {
-          draftingOfficerUserIds:
-            basicInformation?.contractUserRoles.draftingOfficer
-              .map((x: any) => x.userId)
-              .filter(Boolean),
-          managerUserIds: basicInformation?.contractUserRoles.manager
-            .map((x: any) => x.userId)
-            .filter(Boolean),
-          coordinatorUserIds: basicInformation?.contractUserRoles.coordinator
-            .map((x: any) => x.userId)
-            .filter(Boolean),
-          receivingOfficerUserIds:
-            basicInformation?.contractUserRoles.receivingOfficer
-              .map((x: any) => x.userId)
-              .filter(Boolean),
+          draftingOfficerUserIds: roleIds(
+            basicInformation?.contractUserRoles?.draftingOfficer
+          ),
+          managerUserIds: roleIds(basicInformation?.contractUserRoles?.manager),
+          coordinatorUserIds: roleIds(
+            basicInformation?.contractUserRoles?.coordinator
+          ),
+          receivingOfficerUserIds: roleIds(
+            basicInformation?.contractUserRoles?.receivingOfficer
+          ),
         },
         contractItems: allContractItems,
         contractOtherItems: undefined,

@@ -17,8 +17,6 @@ import { BankAccountService } from '@/services/bank-account';
 import { BankAccount } from '@/services/bank-account/type';
 import { partnerService } from '@/services/partner';
 import { Partner } from '@/services/partner/type';
-import { positionService } from '@/services/postion';
-import { Position } from '@/services/postion/type';
 import {
   Briefcase,
   Building2,
@@ -34,17 +32,14 @@ import { useCallback, useEffect, useState } from 'react';
 export function PartnerDetail({ row }: DataTableEvent<Partner>) {
   const [open, setOpen] = useState(false);
 
-  const [positions, setPositions] = useState<Position[]>([]);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
 
   useEffect(() => {
     if (!open) return;
     const fetchData = async () => {
-      const [posRes, bankRes] = await Promise.all([
-        positionService.getPositionList(),
+      const [bankRes] = await Promise.all([
         BankAccountService.getBankAccountList(),
       ]);
-      setPositions(posRes || []);
       setBankAccounts(bankRes || []);
     };
     fetchData();
@@ -58,9 +53,7 @@ export function PartnerDetail({ row }: DataTableEvent<Partner>) {
   const detail = useApi({ service: detailService });
   if (!row) return null;
 
-  const positionName = positions.find(
-    (p) => p.id === detail.data?.position
-  )?.name;
+  const positionName = detail.data?.position;
 
   const bankAccount = bankAccounts.find((b) => b.id === detail.data?.bankId);
 
