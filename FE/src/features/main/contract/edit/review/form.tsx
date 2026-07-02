@@ -353,7 +353,8 @@ export function ContractReviewForm() {
 
   const getContractFinalValue = () => {
     if (!basicInformation) return 0;
-    const { contractValue, discountType, discountValue } = basicInformation;
+    const { contractValue, discountType, discountValue, vatPercentage } =
+      basicInformation;
 
     const total = contractValue || 0;
 
@@ -365,7 +366,9 @@ export function ContractReviewForm() {
       discount = dValue;
     }
 
-    return total - discount;
+    const beforeTax = total - discount;
+    const vatAmount = Math.round((beforeTax * (vatPercentage || 0)) / 100);
+    return beforeTax + vatAmount;
   };
 
   const handleSubmit = async () => {

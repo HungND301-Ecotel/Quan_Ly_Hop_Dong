@@ -186,17 +186,25 @@ export function ContractArchiveReviewForm() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [contractTypes, setContractTypes] = useState<ContractType[]>([]);
-  const [contractRegisters, setContractRegisters] = useState<ContractRegister[]>([]);
-  const [procurementMethods, setProcurementMethods] = useState<ProcurementMethod[]>([]);
+  const [contractRegisters, setContractRegisters] = useState<
+    ContractRegister[]
+  >([]);
+  const [procurementMethods, setProcurementMethods] = useState<
+    ProcurementMethod[]
+  >([]);
   const [users, setUsers] = useState<User[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [otherMaterials, setOtherMaterials] = useState<Material[]>([]);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
-  const [linkedContractLabel, setLinkedContractLabel] = useState<string | null>(null);
+  const [linkedContractLabel, setLinkedContractLabel] = useState<string | null>(
+    null
+  );
   const [level1Codes, setLevel1Codes] = useState<Level1Code[]>([]);
   const [level2Codes, setLevel2Codes] = useState<Level2Code[]>([]);
   const [level3Codes, setLevel3Codes] = useState<Level3Code[]>([]);
-  const [contractStructures, setContractStructures] = useState<ContractStructureCatalog[]>([]);
+  const [contractStructures, setContractStructures] = useState<
+    ContractStructureCatalog[]
+  >([]);
 
   const level1CodeMap = useMemo(
     () => new Map(level1Codes.map((l) => [l.id, l.code])),
@@ -231,10 +239,7 @@ export function ContractArchiveReviewForm() {
     () => new Map(procurementMethods.map((pm) => [pm.id, pm.name])),
     [procurementMethods]
   );
-  const userMap = useMemo(
-    () => new Map(users.map((u) => [u.id, u])),
-    [users]
-  );
+  const userMap = useMemo(() => new Map(users.map((u) => [u.id, u])), [users]);
   const materialMap = useMemo(
     () => new Map(materials.map((m) => [m.id, m])),
     [materials]
@@ -263,21 +268,37 @@ export function ContractArchiveReviewForm() {
       level3CodeService.getLevel3CodeList(),
       contractStructureCatalogService.getContractStructureCatalogList(),
     ])
-      .then(([deps, parts, ctypes, cregs, pmethods, usrs, mats, otherMats, bankAccountsData, level1CodesData, level2CodesData, level3CodesData, contractStructuresData]) => {
-        setDepartments(deps || []);
-        setPartners(parts || []);
-        setContractTypes(ctypes || []);
-        setContractRegisters(cregs || []);
-        setProcurementMethods(pmethods || []);
-        setUsers(usrs || []);
-        setMaterials(mats || []);
-        setOtherMaterials(otherMats || []);
-        setBankAccounts(bankAccountsData || []);
-        setLevel1Codes(level1CodesData || []);
-        setLevel2Codes(level2CodesData || []);
-        setLevel3Codes(level3CodesData || []);
-        setContractStructures(contractStructuresData || []);
-      })
+      .then(
+        ([
+          deps,
+          parts,
+          ctypes,
+          cregs,
+          pmethods,
+          usrs,
+          mats,
+          otherMats,
+          bankAccountsData,
+          level1CodesData,
+          level2CodesData,
+          level3CodesData,
+          contractStructuresData,
+        ]) => {
+          setDepartments(deps || []);
+          setPartners(parts || []);
+          setContractTypes(ctypes || []);
+          setContractRegisters(cregs || []);
+          setProcurementMethods(pmethods || []);
+          setUsers(usrs || []);
+          setMaterials(mats || []);
+          setOtherMaterials(otherMats || []);
+          setBankAccounts(bankAccountsData || []);
+          setLevel1Codes(level1CodesData || []);
+          setLevel2Codes(level2CodesData || []);
+          setLevel3Codes(level3CodesData || []);
+          setContractStructures(contractStructuresData || []);
+        }
+      )
       .finally(() => setLoading(false));
   }, []);
 
@@ -291,7 +312,15 @@ export function ContractArchiveReviewForm() {
 
   const getContractFinalValue = () => {
     if (!basicInformation) return 0;
-    const { contractValue, contractItems, discountType, discountValue, contractOthersValue, contractOtherItems } = basicInformation;
+    const {
+      contractValue,
+      contractItems,
+      discountType,
+      discountValue,
+      vatPercentage,
+      contractOthersValue,
+      contractOtherItems,
+    } = basicInformation;
 
     let totalItems = 0;
     if (contractItems && contractItems.length > 0) {
@@ -305,10 +334,10 @@ export function ContractArchiveReviewForm() {
 
     let totalOthers = 0;
     if (contractOtherItems && contractOtherItems.length > 0) {
-      contractOtherItems.forEach((item) => {
-        const material = otherMaterials.find((m) => m.id === item.materialId);
-        totalOthers += (item.quantity || 0) * (material?.price || 0);
-      });
+      totalOthers = contractOtherItems.reduce(
+        (sum, item) => sum + (Number(item.price) || 0),
+        0
+      );
     } else {
       totalOthers = contractOthersValue || 0;
     }
@@ -321,7 +350,10 @@ export function ContractArchiveReviewForm() {
     } else {
       discount = dValue;
     }
-    return total - discount;
+
+    const beforeTax = total - discount;
+    const vatAmount = Math.round((beforeTax * (vatPercentage || 0)) / 100);
+    return beforeTax + vatAmount;
   };
 
   const handleSubmit = async () => {
@@ -339,10 +371,20 @@ export function ContractArchiveReviewForm() {
       });
 
       const mappedUserRoles = {
-        draftingOfficerUserIds: basicInformation?.contractUserRoles.draftingOfficer.map((x: any) => x.userId).filter(Boolean),
-        managerUserIds: basicInformation?.contractUserRoles.manager.map((x: any) => x.userId).filter(Boolean),
-        coordinatorUserIds: basicInformation?.contractUserRoles.coordinator.map((x: any) => x.userId).filter(Boolean),
-        receivingOfficerUserIds: basicInformation?.contractUserRoles.receivingOfficer.map((x: any) => x.userId).filter(Boolean),
+        draftingOfficerUserIds:
+          basicInformation?.contractUserRoles.draftingOfficer
+            .map((x: any) => x.userId)
+            .filter(Boolean),
+        managerUserIds: basicInformation?.contractUserRoles.manager
+          .map((x: any) => x.userId)
+          .filter(Boolean),
+        coordinatorUserIds: basicInformation?.contractUserRoles.coordinator
+          .map((x: any) => x.userId)
+          .filter(Boolean),
+        receivingOfficerUserIds:
+          basicInformation?.contractUserRoles.receivingOfficer
+            .map((x: any) => x.userId)
+            .filter(Boolean),
       };
 
       const allContractItems = [
@@ -359,9 +401,15 @@ export function ContractArchiveReviewForm() {
           ? null
           : contractGuarantee.parse(basicInformation?.contractGuarantee),
         isDebtTrackingEnabled: contractFormat?.isDebtTrackingEnabled ?? false,
-        childRelationships: !isRuleContract && contractFormat?.linkedContractId?.trim()
-          ? [{ childContractId: contractFormat.linkedContractId.trim(), relationType: 0 }]
-          : null,
+        childRelationships:
+          !isRuleContract && contractFormat?.linkedContractId?.trim()
+            ? [
+                {
+                  childContractId: contractFormat.linkedContractId.trim(),
+                  relationType: 0,
+                },
+              ]
+            : null,
         parentRelationship: null,
         parentContractId: undefined,
         contractUserRoles: mappedUserRoles,
@@ -382,8 +430,12 @@ export function ContractArchiveReviewForm() {
       toast.success('Tạo hợp đồng lưu trữ thành công');
       callback?.();
     } catch (error: any) {
-      const backendMessage = error?.response?.data?.title || error?.response?.data?.message;
-      const message = errorMessageMap[backendMessage] || backendMessage || 'Lỗi khi tạo hợp đồng lưu trữ';
+      const backendMessage =
+        error?.response?.data?.title || error?.response?.data?.message;
+      const message =
+        errorMessageMap[backendMessage] ||
+        backendMessage ||
+        'Lỗi khi tạo hợp đồng lưu trữ';
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -397,7 +449,10 @@ export function ContractArchiveReviewForm() {
       <Tabs defaultValue='informations' className='w-full flex-1 gap-4 py-6'>
         <div className='px-6'>
           <TabsList className='w-full'>
-            <TabsTrigger value='informations' className='flex items-center gap-2'>
+            <TabsTrigger
+              value='informations'
+              className='flex items-center gap-2'
+            >
               <Info className='size-4' />
               <span className='hidden md:inline'>Thông tin hợp đồng</span>
             </TabsTrigger>
@@ -419,21 +474,29 @@ export function ContractArchiveReviewForm() {
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
                 <InfoRow
                   label='Định dạng hợp đồng'
-                  value={ContractFormat[contractFormat?.contractFormat || 0]?.name}
+                  value={
+                    ContractFormat[contractFormat?.contractFormat || 0]?.name
+                  }
                   loading={loading}
                   highlight
                 />
                 {isRuleContract && (
                   <InfoRow
                     label='Theo dõi công nợ'
-                    value={contractFormat?.isDebtTrackingEnabled ? 'Có' : 'Không'}
+                    value={
+                      contractFormat?.isDebtTrackingEnabled ? 'Có' : 'Không'
+                    }
                     loading={loading}
                   />
                 )}
                 {!isRuleContract && (
                   <InfoRow
                     label='Hợp đồng nguyên tắc liên kết'
-                    value={linkedContractLabel || contractFormat?.linkedContractId?.trim() || 'Hợp đồng kinh tế độc lập'}
+                    value={
+                      linkedContractLabel ||
+                      contractFormat?.linkedContractId?.trim() ||
+                      'Hợp đồng kinh tế độc lập'
+                    }
                     loading={loading}
                   />
                 )}
@@ -458,7 +521,8 @@ export function ContractArchiveReviewForm() {
                         Tự động thanh lý hợp đồng
                       </Label>
                       <p className='text-xs text-muted-foreground mt-1'>
-                        Hệ thống sẽ tự động thanh lý hợp đồng khi đủ các tài liệu
+                        Hệ thống sẽ tự động thanh lý hợp đồng khi đủ các tài
+                        liệu
                       </p>
                     </div>
                   </div>
@@ -470,9 +534,27 @@ export function ContractArchiveReviewForm() {
             <Section title='Thông tin hợp đồng' icon={HashIcon}>
               <div>
                 <div className='grid grid-cols-1 md:grid-cols-3 gap-3'>
-                  <InfoRow label='Mã cấp I' value={level1CodeMap.get(basicInformation?.level1CodeId || '')} loading={loading} />
-                  <InfoRow label='Mã cấp II' value={level2CodeMap.get(basicInformation?.level2CodeId || '')} loading={loading} />
-                  <InfoRow label='Mã cấp III' value={level3CodeMap.get(basicInformation?.level3CodeId || '')} loading={loading} />
+                  <InfoRow
+                    label='Mã cấp I'
+                    value={level1CodeMap.get(
+                      basicInformation?.level1CodeId || ''
+                    )}
+                    loading={loading}
+                  />
+                  <InfoRow
+                    label='Mã cấp II'
+                    value={level2CodeMap.get(
+                      basicInformation?.level2CodeId || ''
+                    )}
+                    loading={loading}
+                  />
+                  <InfoRow
+                    label='Mã cấp III'
+                    value={level3CodeMap.get(
+                      basicInformation?.level3CodeId || ''
+                    )}
+                    loading={loading}
+                  />
                 </div>
               </div>
 
@@ -481,12 +563,16 @@ export function ContractArchiveReviewForm() {
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
                 <InfoRow
                   label='Loại hợp đồng'
-                  value={contractTypeMap.get(basicInformation?.contractTypeId || '')}
+                  value={contractTypeMap.get(
+                    basicInformation?.contractTypeId || ''
+                  )}
                   loading={loading}
                 />
                 <InfoRow
                   label='Hình thức hợp đồng'
-                  value={contractStructureMap.get(basicInformation?.contractStructureId || '')}
+                  value={contractStructureMap.get(
+                    basicInformation?.contractStructureId || ''
+                  )}
                 />
                 <InfoRow
                   label='Tên/nội dung hợp đồng'
@@ -496,7 +582,9 @@ export function ContractArchiveReviewForm() {
                 />
                 <InfoRow
                   label='Sổ theo dõi hợp đồng'
-                  value={contractRegisterMap.get(basicInformation?.contractRegisterId || '')}
+                  value={contractRegisterMap.get(
+                    basicInformation?.contractRegisterId || ''
+                  )}
                   loading={loading}
                 />
               </div>
@@ -506,12 +594,16 @@ export function ContractArchiveReviewForm() {
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
                 <InfoRow
                   label='Phòng ban'
-                  value={departmentMap.get(basicInformation?.departmentId || '')}
+                  value={departmentMap.get(
+                    basicInformation?.departmentId || ''
+                  )}
                   loading={loading}
                 />
                 <InfoRow
                   label='Hình thức lựa chọn nhà thầu/nhà cung cấp'
-                  value={procurementMethodMap.get(basicInformation?.procurementMethodId || '')}
+                  value={procurementMethodMap.get(
+                    basicInformation?.procurementMethodId || ''
+                  )}
                   loading={loading}
                 />
               </div>
@@ -535,31 +627,35 @@ export function ContractArchiveReviewForm() {
               <Separator />
 
               {(() => {
-                const partner = partnerMap.get(basicInformation?.partnerId || '');
+                const partner = partnerMap.get(
+                  basicInformation?.partnerId || ''
+                );
                 return (
                   <InfoRow
                     label='Đối tác/khách hàng'
                     loading={loading}
-                    value={partner ? (
-                      <div className='flex flex-col gap-0.5'>
-                        <span className='font-semibold'>{partner.name}</span>
-                        {partner.address && (
-                          <span className='text-xs text-muted-foreground'>
-                            <b>Địa chỉ:</b> {partner.address}
-                          </span>
-                        )}
-                        {partner.taxCode && (
-                          <span className='text-xs text-muted-foreground'>
-                            <b>Mã số thuế:</b> {partner.taxCode}
-                          </span>
-                        )}
-                        {partner.contactPerson && (
-                          <span className='text-xs text-muted-foreground'>
-                            <b>Người đại diện:</b> {partner.contactPerson}
-                          </span>
-                        )}
-                      </div>
-                    ) : undefined}
+                    value={
+                      partner ? (
+                        <div className='flex flex-col gap-0.5'>
+                          <span className='font-semibold'>{partner.name}</span>
+                          {partner.address && (
+                            <span className='text-xs text-muted-foreground'>
+                              <b>Địa chỉ:</b> {partner.address}
+                            </span>
+                          )}
+                          {partner.taxCode && (
+                            <span className='text-xs text-muted-foreground'>
+                              <b>Mã số thuế:</b> {partner.taxCode}
+                            </span>
+                          )}
+                          {partner.contactPerson && (
+                            <span className='text-xs text-muted-foreground'>
+                              <b>Người đại diện:</b> {partner.contactPerson}
+                            </span>
+                          )}
+                        </div>
+                      ) : undefined
+                    }
                   />
                 );
               })()}
@@ -571,7 +667,9 @@ export function ContractArchiveReviewForm() {
                   label='Ngày ký hợp đồng'
                   value={
                     basicInformation?.signingDate
-                      ? new Date(basicInformation.signingDate).toLocaleDateString('vi-VN')
+                      ? new Date(
+                          basicInformation.signingDate
+                        ).toLocaleDateString('vi-VN')
                       : undefined
                   }
                   loading={loading}
@@ -580,7 +678,9 @@ export function ContractArchiveReviewForm() {
                   label='Ngày hợp đồng có hiệu lực'
                   value={
                     basicInformation?.effectiveDate
-                      ? new Date(basicInformation.effectiveDate).toLocaleDateString('vi-VN')
+                      ? new Date(
+                          basicInformation.effectiveDate
+                        ).toLocaleDateString('vi-VN')
                       : undefined
                   }
                   loading={loading}
@@ -589,7 +689,9 @@ export function ContractArchiveReviewForm() {
                   label='Ngày hoàn thành hợp đồng'
                   value={
                     basicInformation?.completionDate
-                      ? new Date(basicInformation.completionDate).toLocaleDateString('vi-VN')
+                      ? new Date(
+                          basicInformation.completionDate
+                        ).toLocaleDateString('vi-VN')
                       : undefined
                   }
                   loading={loading}
@@ -598,7 +700,9 @@ export function ContractArchiveReviewForm() {
                   label='Ngày hết hạn bảo hành'
                   value={
                     basicInformation?.warrantyExpirationDate
-                      ? new Date(basicInformation.warrantyExpirationDate).toLocaleDateString('vi-VN')
+                      ? new Date(
+                          basicInformation.warrantyExpirationDate
+                        ).toLocaleDateString('vi-VN')
                       : undefined
                   }
                   loading={loading}
@@ -609,22 +713,30 @@ export function ContractArchiveReviewForm() {
             {/* 3. Phân công quản lý */}
             <Section title='Phân công quản lý' icon={Users}>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                {(
-                  [
-                    { role: 'draftingOfficer' as const, label: 'Cán bộ soạn thảo' },
-                    { role: 'manager' as const, label: 'Người quản lý' },
-                    { role: 'coordinator' as const, label: 'Người điều phối' },
-                    { role: 'receivingOfficer' as const, label: 'Cán bộ tiếp nhận' },
-                  ]
-                ).map(({ role, label }) => {
-                  const assigned = (basicInformation?.contractUserRoles?.[role] || []).filter((u: any) => u.userId);
+                {[
+                  {
+                    role: 'draftingOfficer' as const,
+                    label: 'Cán bộ soạn thảo',
+                  },
+                  { role: 'manager' as const, label: 'Người quản lý' },
+                  { role: 'coordinator' as const, label: 'Người điều phối' },
+                  {
+                    role: 'receivingOfficer' as const,
+                    label: 'Cán bộ tiếp nhận',
+                  },
+                ].map(({ role, label }) => {
+                  const assigned = (
+                    basicInformation?.contractUserRoles?.[role] || []
+                  ).filter((u: any) => u.userId);
                   return (
                     <div
                       key={role}
                       className='p-4 rounded-lg border bg-white space-y-2'
                     >
                       <div className='flex items-center gap-2'>
-                        <span className='text-xs font-medium text-muted-foreground'>{label}</span>
+                        <span className='text-xs font-medium text-muted-foreground'>
+                          {label}
+                        </span>
                       </div>
                       {loading ? (
                         <Skeleton className='h-10 w-full' />
@@ -633,15 +745,29 @@ export function ContractArchiveReviewForm() {
                           {assigned.map((item: any, idx: number) => {
                             const user = userMap.get(item.userId || '');
                             return (
-                              <div key={idx} className='text-sm border-b last:border-0 pb-1.5 last:pb-0'>
-                                <div className='font-semibold text-foreground'>{user?.fullname || 'Chưa rõ'}</div>
-                                {user && <div className='text-xs text-muted-foreground'>{user.departmentName}{user.positionName ? ` / ${user.positionName}` : ''}</div>}
+                              <div
+                                key={idx}
+                                className='text-sm border-b last:border-0 pb-1.5 last:pb-0'
+                              >
+                                <div className='font-semibold text-foreground'>
+                                  {user?.fullname || 'Chưa rõ'}
+                                </div>
+                                {user && (
+                                  <div className='text-xs text-muted-foreground'>
+                                    {user.departmentName}
+                                    {user.positionName
+                                      ? ` / ${user.positionName}`
+                                      : ''}
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
                         </div>
                       ) : (
-                        <div className='text-sm text-muted-foreground italic'>Chưa phân công</div>
+                        <div className='text-sm text-muted-foreground italic'>
+                          Chưa phân công
+                        </div>
                       )}
                     </div>
                   );
@@ -657,83 +783,48 @@ export function ContractArchiveReviewForm() {
                     Tổng giá trị hợp đồng (sau thuế)
                   </div>
                   <div className='text-3xl font-bold text-emerald-600'>
-                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(getContractFinalValue())}
+                    {new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                    }).format(getContractFinalValue())}
                   </div>
                 </div>
               )}
 
-              {basicInformation?.contractItems && basicInformation.contractItems.length > 0 && (
-                <>
-                  {!isRuleContract && <Separator />}
-                  <div>
-                    <div className='text-sm font-medium mb-3'>
-                      Danh sách vật tư ({basicInformation.contractItems.length} mục)
-                    </div>
-                    <div className='space-y-2'>
-                      <div className='grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 rounded-lg text-xs font-medium text-muted-foreground'>
-                        <div className='col-span-6'>Tên vật tư</div>
-                        <div className='col-span-3'>Đơn vị tính</div>
-                        <div className='col-span-3 text-right'>Số lượng</div>
-                      </div>
-                      {basicInformation.contractItems.map((item, index) => {
-                        const material = materialMap.get(item.materialId);
-                        return (
-                          <div
-                            key={index}
-                            className='grid grid-cols-12 gap-4 px-4 py-3 rounded-lg border hover:border-primary/50 hover:bg-muted/30 transition-colors'
-                          >
-                            <div className='col-span-6 flex flex-col justify-center'>
-                              <span className='text-sm font-medium'>{material?.name || 'N/A'}</span>
-                              {material?.materialCode && (
-                                <span className='text-xs text-muted-foreground'>{material.materialCode}</span>
-                              )}
-                            </div>
-                            <div className='col-span-3 flex items-center text-sm text-muted-foreground'>
-                              {material?.unitOfMeasureName || '—'}
-                            </div>
-                            <div className='col-span-3 flex items-center justify-end text-sm font-medium'>
-                              {item.quantity || 0}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </>
-              )}
-            </Section>
-
-            {/* 5. dịch vụ khác */}
-            {((basicInformation?.contractOthersValue && basicInformation.contractOthersValue > 0) ||
-              (basicInformation?.contractOtherItems &&
-                basicInformation.contractOtherItems.length > 0 &&
-                otherMaterials.length > 0)) && (
-                <Section title='Dịch vụ khác' icon={Layers}>
-                  {basicInformation?.contractOtherItems &&
-                    basicInformation.contractOtherItems.length > 0 &&
-                    otherMaterials.length > 0 ? (
+              {basicInformation?.contractItems &&
+                basicInformation.contractItems.length > 0 && (
+                  <>
+                    {!isRuleContract && <Separator />}
                     <div>
                       <div className='text-sm font-medium mb-3'>
-                        Danh sách dịch vụ khác ({basicInformation.contractOtherItems.length} mục)
+                        Danh sách vật tư (
+                        {basicInformation.contractItems.length} mục)
                       </div>
                       <div className='space-y-2'>
                         <div className='grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 rounded-lg text-xs font-medium text-muted-foreground'>
-                          <div className='col-span-6'>Tên thành phần</div>
+                          <div className='col-span-6'>Tên vật tư</div>
                           <div className='col-span-3'>Đơn vị tính</div>
                           <div className='col-span-3 text-right'>Số lượng</div>
                         </div>
-                        {basicInformation.contractOtherItems.map((item, index) => {
-                          const otherMaterial = otherMaterials.find((m) => m.id === item.materialId);
+                        {basicInformation.contractItems.map((item, index) => {
+                          const material = materialMap.get(item.materialId);
                           return (
                             <div
                               key={index}
                               className='grid grid-cols-12 gap-4 px-4 py-3 rounded-lg border hover:border-primary/50 hover:bg-muted/30 transition-colors'
                             >
-                              <div className='col-span-6 flex items-center'>
-                                <span className='text-sm font-medium'>{otherMaterial?.name || 'N/A'}</span>
+                              <div className='col-span-6 flex flex-col justify-center'>
+                                <span className='text-sm font-medium'>
+                                  {material?.name || 'N/A'}
+                                </span>
+                                {material?.materialCode && (
+                                  <span className='text-xs text-muted-foreground'>
+                                    {material.materialCode}
+                                  </span>
+                                )}
                               </div>
                               <div className='col-span-3 flex items-center text-sm text-muted-foreground'>
-                                {otherMaterial?.unitOfMeasureName || '—'}
+                                {material?.unitOfMeasureName || '—'}
                               </div>
                               <div className='col-span-3 flex items-center justify-end text-sm font-medium'>
                                 {item.quantity || 0}
@@ -743,16 +834,68 @@ export function ContractArchiveReviewForm() {
                         })}
                       </div>
                     </div>
-                  ) : (
-                    <InfoRow
-                      label='Giá trị thành phần khác'
-                      value={`${format.number(basicInformation?.contractOthersValue || 0)} đ`}
-                      loading={loading}
-                      icon={Banknote}
-                    />
-                  )}
-                </Section>
-              )}
+                  </>
+                )}
+            </Section>
+
+            {/* 5. dịch vụ khác */}
+            {((basicInformation?.contractOthersValue &&
+              basicInformation.contractOthersValue > 0) ||
+              (basicInformation?.contractOtherItems &&
+                basicInformation.contractOtherItems.length > 0 &&
+                otherMaterials.length > 0)) && (
+              <Section title='Dịch vụ khác' icon={Layers}>
+                {basicInformation?.contractOtherItems &&
+                basicInformation.contractOtherItems.length > 0 &&
+                otherMaterials.length > 0 ? (
+                  <div>
+                    <div className='text-sm font-medium mb-3'>
+                      Danh sách dịch vụ khác (
+                      {basicInformation.contractOtherItems.length} mục)
+                    </div>
+                    <div className='space-y-2'>
+                      <div className='grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 rounded-lg text-xs font-medium text-muted-foreground'>
+                        <div className='col-span-6'>Tên thành phần</div>
+                        <div className='col-span-3'>Đơn vị tính</div>
+                        <div className='col-span-3 text-right'>Số lượng</div>
+                      </div>
+                      {basicInformation.contractOtherItems.map(
+                        (item, index) => {
+                          const otherMaterial = otherMaterials.find(
+                            (m) => m.id === item.materialId
+                          );
+                          return (
+                            <div
+                              key={index}
+                              className='grid grid-cols-12 gap-4 px-4 py-3 rounded-lg border hover:border-primary/50 hover:bg-muted/30 transition-colors'
+                            >
+                              <div className='col-span-6 flex items-center'>
+                                <span className='text-sm font-medium'>
+                                  {otherMaterial?.name || 'N/A'}
+                                </span>
+                              </div>
+                              <div className='col-span-3 flex items-center text-sm text-muted-foreground'>
+                                {otherMaterial?.unitOfMeasureName || '—'}
+                              </div>
+                              <div className='col-span-3 flex items-center justify-end text-sm font-medium'>
+                                {item.quantity || 0}
+                              </div>
+                            </div>
+                          );
+                        }
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <InfoRow
+                    label='Giá trị thành phần khác'
+                    value={`${format.number(basicInformation?.contractOthersValue || 0)} đ`}
+                    loading={loading}
+                    icon={Banknote}
+                  />
+                )}
+              </Section>
+            )}
 
             {/* 6. Chiết khấu */}
             {basicInformation?.discountValue !== undefined &&
@@ -762,7 +905,8 @@ export function ContractArchiveReviewForm() {
                     <InfoRow
                       label='Loại chiết khấu'
                       value={
-                        basicInformation.discountType === DiscountType.Percent.id
+                        basicInformation.discountType ===
+                        DiscountType.Percent.id
                           ? DiscountType.Percent.name
                           : DiscountType.Amount.name
                       }
@@ -771,7 +915,8 @@ export function ContractArchiveReviewForm() {
                     <InfoRow
                       label='Giá trị chiết khấu'
                       value={
-                        basicInformation.discountType === DiscountType.Percent.id
+                        basicInformation.discountType ===
+                        DiscountType.Percent.id
                           ? `${basicInformation.discountValue}%`
                           : `${format.number(basicInformation.discountValue)} đ`
                       }
@@ -786,45 +931,55 @@ export function ContractArchiveReviewForm() {
               <Section title='Lịch thanh toán' icon={CalendarDays}>
                 {basicInformation.paymentSchedules.schedules.length > 0 && (
                   <div>
-                    <div className='text-sm font-medium mb-3'>Chi tiết kế hoạch thanh toán</div>
+                    <div className='text-sm font-medium mb-3'>
+                      Chi tiết kế hoạch thanh toán
+                    </div>
                     <div className='space-y-3'>
-                      {basicInformation.paymentSchedules.schedules.map((schedule, index) => {
-                        const rawAmount = schedule.amount ?? 0;
-                        const displayAmount =
-                          schedule.amountType === DiscountType.Percent.id
-                            ? (rawAmount / 100) * getContractFinalValue()
-                            : rawAmount;
-                        return (
-                          <div
-                            key={index}
-                            className='p-4 rounded-lg border bg-linear-to-br from-background to-muted/20 hover:border-primary/50 transition-colors'
-                          >
-                            <div className='flex items-center justify-between'>
-                              <div className='flex items-center gap-2'>
-                                <span className='flex items-center justify-center size-7 rounded-full bg-blue-500/10 text-blue-600 text-sm font-semibold'>
-                                  {index + 1}
-                                </span>
-                                <div className='flex flex-col'>
-                                  <span className='text-sm font-medium'>Kỳ {index + 1}</span>
-                                  <span className='text-xs text-muted-foreground'>Số ngày thanh toán/đối chiếu: {schedule.days} ngày</span>
+                      {basicInformation.paymentSchedules.schedules.map(
+                        (schedule, index) => {
+                          const rawAmount = schedule.amount ?? 0;
+                          const displayAmount =
+                            schedule.amountType === DiscountType.Percent.id
+                              ? (rawAmount / 100) * getContractFinalValue()
+                              : rawAmount;
+                          return (
+                            <div
+                              key={index}
+                              className='p-4 rounded-lg border bg-linear-to-br from-background to-muted/20 hover:border-primary/50 transition-colors'
+                            >
+                              <div className='flex items-center justify-between'>
+                                <div className='flex items-center gap-2'>
+                                  <span className='flex items-center justify-center size-7 rounded-full bg-blue-500/10 text-blue-600 text-sm font-semibold'>
+                                    {index + 1}
+                                  </span>
+                                  <div className='flex flex-col'>
+                                    <span className='text-sm font-medium'>
+                                      Kỳ {index + 1}
+                                    </span>
+                                    <span className='text-xs text-muted-foreground'>
+                                      Số ngày thanh toán/đối chiếu:{' '}
+                                      {schedule.days} ngày
+                                    </span>
+                                  </div>
                                 </div>
+                                {schedule.amount != null && (
+                                  <div className='text-right'>
+                                    <div className='text-xs text-muted-foreground'>
+                                      {schedule.amountType ===
+                                      DiscountType.Percent.id
+                                        ? `Giá trị: ${rawAmount}%`
+                                        : 'Số tiền cố định'}
+                                    </div>
+                                    <div className='text-base font-bold text-primary'>
+                                      {format.number(displayAmount)} đ
+                                    </div>
+                                  </div>
+                                )}
                               </div>
-                              {schedule.amount != null && (
-                                <div className='text-right'>
-                                  <div className='text-xs text-muted-foreground'>
-                                    {schedule.amountType === DiscountType.Percent.id
-                                      ? `Giá trị: ${rawAmount}%`
-                                      : 'Số tiền cố định'}
-                                  </div>
-                                  <div className='text-base font-bold text-primary'>
-                                    {format.number(displayAmount)} đ
-                                  </div>
-                                </div>
-                              )}
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        }
+                      )}
                     </div>
                   </div>
                 )}
@@ -835,58 +990,79 @@ export function ContractArchiveReviewForm() {
             {!isRuleContract && basicInformation?.contractGuarantee && (
               <Section title='Bảo lãnh hợp đồng' icon={ShieldCheck}>
                 <div className='space-y-4'>
-                  {(
-                    [
-                      {
-                        key: 'performanceBondGuarantee' as const,
-                        label: 'Bảo lãnh thực hiện hợp đồng',
-                        colorClass: 'bg-white',
-                        iconColor: 'text-amber-600',
-                      },
-                      {
-                        key: 'warrantyBondGuarantee' as const,
-                        label: 'Bảo lãnh bảo hành',
-                        colorClass: 'bg-white',
-                        iconColor: 'text-green-600',
-                      },
-                      {
-                        key: 'depositGuarantee' as const,
-                        label: 'Bảo lãnh đặt cọc',
-                        colorClass: 'bg-white',
-                        iconColor: 'text-blue-600',
-                      },
-                    ]
-                  ).map(({ key, colorClass }) => {
+                  {[
+                    {
+                      key: 'performanceBondGuarantee' as const,
+                      label: 'Bảo lãnh thực hiện hợp đồng',
+                      colorClass: 'bg-white',
+                      iconColor: 'text-amber-600',
+                    },
+                    {
+                      key: 'warrantyBondGuarantee' as const,
+                      label: 'Bảo lãnh bảo hành',
+                      colorClass: 'bg-white',
+                      iconColor: 'text-green-600',
+                    },
+                    {
+                      key: 'depositGuarantee' as const,
+                      label: 'Bảo lãnh đặt cọc',
+                      colorClass: 'bg-white',
+                      iconColor: 'text-blue-600',
+                    },
+                  ].map(({ key, colorClass }) => {
                     const guarantee = basicInformation.contractGuarantee?.[key];
                     if (!guarantee?.value) return null;
                     return (
-                      <div key={key} className={`p-4 rounded-lg border bg-linear-to-br ${colorClass}`}>
+                      <div
+                        key={key}
+                        className={`p-4 rounded-lg border bg-linear-to-br ${colorClass}`}
+                      >
                         <div className='grid grid-cols-2 gap-3'>
                           <InfoRow
                             label='Giá trị'
                             value={
                               guarantee.valueType === 1
                                 ? `${guarantee.value}%`
-                                : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(guarantee.value)
+                                : new Intl.NumberFormat('vi-VN', {
+                                    style: 'currency',
+                                    currency: 'VND',
+                                  }).format(guarantee.value)
                             }
                             highlight
                           />
                           {guarantee.durationDate && (
-                            <InfoRow label='Thời hạn' value={new Date(guarantee.durationDate).toLocaleDateString('vi-VN')} />
+                            <InfoRow
+                              label='Thời hạn'
+                              value={new Date(
+                                guarantee.durationDate
+                              ).toLocaleDateString('vi-VN')}
+                            />
                           )}
-                          {guarantee.bankAccountId && (() => {
-                            const bank = bankAccounts.find((b) => b.id === guarantee.bankAccountId);
-                            if (!bank) return null;
-                            return (
-                              <>
-                                <InfoRow label='Ngân hàng' value={bank.bankName} />
-                                <InfoRow label='Số tài khoản' value={bank.accountNumber} />
-                                <div className='col-span-2'>
-                                  <InfoRow label='Chủ tài khoản' value={bank.accountHolder} />
-                                </div>
-                              </>
-                            );
-                          })()}
+                          {guarantee.bankAccountId &&
+                            (() => {
+                              const bank = bankAccounts.find(
+                                (b) => b.id === guarantee.bankAccountId
+                              );
+                              if (!bank) return null;
+                              return (
+                                <>
+                                  <InfoRow
+                                    label='Ngân hàng'
+                                    value={bank.bankName}
+                                  />
+                                  <InfoRow
+                                    label='Số tài khoản'
+                                    value={bank.accountNumber}
+                                  />
+                                  <div className='col-span-2'>
+                                    <InfoRow
+                                      label='Chủ tài khoản'
+                                      value={bank.accountHolder}
+                                    />
+                                  </div>
+                                </>
+                              );
+                            })()}
                         </div>
                       </div>
                     );
@@ -913,23 +1089,28 @@ export function ContractArchiveReviewForm() {
                 description='File hợp đồng và tài liệu đính kèm'
                 icon={FileText}
               />
-              {Array.isArray(basicInformation?.contractFile) && basicInformation.contractFile.length > 1 && (
-                <Tabs value={String(selectedFileIndex)} onValueChange={(val) => {
-                  setSelectedFileIndex(Number(val));
-                }} className='w-full'>
-                  <TabsList className='w-full justify-start overflow-x-auto flex-wrap h-auto p-1 bg-muted/50 rounded-lg border'>
-                    {basicInformation.contractFile.map((file, idx) => (
-                      <TabsTrigger
-                        key={idx}
-                        value={String(idx)}
-                        className='py-2 px-4 text-sm font-medium transition-all rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm'
-                      >
-                        {file.name}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </Tabs>
-              )}
+              {Array.isArray(basicInformation?.contractFile) &&
+                basicInformation.contractFile.length > 1 && (
+                  <Tabs
+                    value={String(selectedFileIndex)}
+                    onValueChange={(val) => {
+                      setSelectedFileIndex(Number(val));
+                    }}
+                    className='w-full'
+                  >
+                    <TabsList className='w-full justify-start overflow-x-auto flex-wrap h-auto p-1 bg-muted/50 rounded-lg border'>
+                      {basicInformation.contractFile.map((file, idx) => (
+                        <TabsTrigger
+                          key={idx}
+                          value={String(idx)}
+                          className='py-2 px-4 text-sm font-medium transition-all rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm'
+                        >
+                          {file.name}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </Tabs>
+                )}
 
               {basicInformation?.contractFile && (
                 <PdfViewer
@@ -956,7 +1137,9 @@ export function ContractArchiveReviewForm() {
                           >
                             <div className='flex items-center gap-2 flex-1 min-w-0'>
                               <FileTextIcon className='size-4 shrink-0' />
-                              <span className='text-sm truncate'>{file.name}</span>
+                              <span className='text-sm truncate'>
+                                {file.name}
+                              </span>
                             </div>
                             <FilePreviewDialog
                               file={file}
