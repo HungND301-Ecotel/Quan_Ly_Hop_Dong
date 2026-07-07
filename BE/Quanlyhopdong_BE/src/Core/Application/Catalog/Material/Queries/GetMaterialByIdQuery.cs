@@ -26,7 +26,8 @@ public class GetMaterialByIdQueryHandler(IUnitOfWork unitOfWork) : IRequestHandl
                        MaterialGroupName = m.MaterialGroup != null ? m.MaterialGroup.Name : null,
                        UnitOfMeasureId = m.UnitOfMeasureId,
                        UnitOfMeasureName = m.UnitOfMeasure != null ? m.UnitOfMeasure.Name : string.Empty,
-                       Price = m.Price
+                       Price = m.Price,
+                       Description = m.Description
                    },
                    predicate: m => m.Id == request.Id,
                    include: q => q.Include(x => x.UnitOfMeasure).Include(x => x.MaterialGroup),

@@ -49,6 +49,10 @@ export const MATERIAL_COLUMNS: ColumnDef<Material>[] = [
     cell: ({ row }) => format.number(row.original.price),
   },
   {
+    accessorKey: 'description',
+    header: 'Ghi chú',
+  },
+  {
     id: 'action',
     header: () => <div className='text-right w-full pr-4'>Thao tác</div>,
     cell: (props) => {

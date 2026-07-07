@@ -138,7 +138,7 @@ public class SyncMaterialCommandHandler(
                         unitId,
                         source.Price,
                         source.IsOtherMaterial,
-                        "",
+                        existing.Description ?? "",
                         materialGroupId,
                         true);
 

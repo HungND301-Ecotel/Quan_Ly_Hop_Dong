@@ -61,6 +61,7 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
       materialCode: detail.data.materialCode,
       unitOfMeasureId: detail.data.unitOfMeasureId || '',
       price: detail.data.price ?? undefined,
+      description: detail.data.description ?? '',
     });
   }, [detail.data, form]);
 
@@ -163,6 +164,14 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
                 name='price'
                 label='Đơn giá vật tư'
                 placeholder='Nhập đơn giá, vật tư'
+              />
+            </FormRow>
+            <FormRow>
+              <FormInput
+                control={form.control}
+                name='description'
+                label='Ghi chú'
+                placeholder='Nhập ghi chú (nếu có)'
               />
             </FormRow>
           </div>

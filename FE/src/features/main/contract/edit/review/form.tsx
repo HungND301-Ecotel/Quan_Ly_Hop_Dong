@@ -1,4 +1,5 @@
 import { PdfViewer } from '@/components/pdf-viewer';
+import { useQueryClient } from '@tanstack/react-query';
 import { StepperPrev } from '@/components/stepper';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -182,6 +183,8 @@ export function ContractReviewForm() {
     isUpdate,
     contract,
   } = useContractEditContext();
+
+  const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -489,6 +492,7 @@ export function ContractReviewForm() {
       }
 
       toast.success('Tạo hợp đồng thành công');
+      queryClient.invalidateQueries({ queryKey: ['data-table'] });
       callback?.();
     } catch (error: any) {
       console.log(error);

@@ -63,7 +63,8 @@ public class GetAllMaterialQueryHandler(IUnitOfWork unitOfWork) : IRequestHandle
                     MaterialGroupName = m.MaterialGroup != null ? m.MaterialGroup.Name : null,
                     UnitOfMeasureId = m.UnitOfMeasureId,
                     UnitOfMeasureName = m.UnitOfMeasure != null ? m.UnitOfMeasure.Name : string.Empty,
-                    Price = m.Price
+                    Price = m.Price,
+                    Description = m.Description
                 },
                 predicate: predicate,
                 orderBy: q => q.OrderBy(m => m.MaterialCode),
@@ -89,7 +90,8 @@ public class GetAllMaterialQueryHandler(IUnitOfWork unitOfWork) : IRequestHandle
                     MaterialGroupName = m.MaterialGroup != null ? m.MaterialGroup.Name : null,
                     UnitOfMeasureId = m.UnitOfMeasureId,
                     UnitOfMeasureName = m.UnitOfMeasure != null ? m.UnitOfMeasure.Name : string.Empty,
-                    Price = m.Price
+                    Price = m.Price,
+                    Description = m.Description
                 },
                 predicate: predicate,
                 include: q => q.Include(x => x.UnitOfMeasure).Include(x => x.MaterialGroup),
