@@ -334,12 +334,9 @@ function RoleUserArrayInput({
   const error = form.formState.errors.contractUserRoles?.[role];
 
   return (
-    <div
-      className='space-y-3 p-4 border rounded-lg bg-white shadow-sm'
-      data-invalid={!!error}
-    >
+    <div className='space-y-3 p-4 border rounded-lg bg-white shadow-sm'>
       <div className='flex items-center justify-between border-b pb-2 mb-2'>
-        <div className='flex flex-col'>
+        <div className='flex flex-col' data-invalid={!!error}>
           <div className='text-sm font-semibold text-slate-800'>{label}</div>
           {error?.message && (
             <p className='text-xs font-medium text-destructive mt-0.5'>

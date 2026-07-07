@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { ComponentProps } from 'react';
+import { ComponentProps, useRef } from 'react';
 import {
   Control,
   FieldErrors,
@@ -27,11 +27,19 @@ export type FormProps<T extends FieldValues> = {
  * sẵn trên <Field>. Nếu field-array custom (vd RoleUserArrayInput) hay các
  * component khác (FormFiles, VirtualMaterialMultiSelect...) muốn tham gia
  * cơ chế này, chỉ cần thêm `data-invalid={invalid}` lên wrapper của chúng.
+ *
+ * QUAN TRỌNG: chỉ tìm trong phạm vi `container` (chính thẻ <form> đang
+ * submit), KHÔNG query toàn `document`. Trang có thể đang render nhiều
+ * <Form> độc lập cùng lúc (vd Dialog tạo mới vật tư lồng bên trong trang
+ * hợp đồng) — nếu query toàn document có thể vô tình nhảy/scroll sang field
+ * lỗi của một form khác không liên quan tới lần submit này.
  */
-function scrollToFirstInvalidField() {
+function scrollToFirstInvalidField(container: HTMLElement | null) {
+  if (!container) return;
+
   // Đợi 1 nhịp render để React kịp cập nhật data-invalid trên DOM
   requestAnimationFrame(() => {
-    const invalidEls = document.querySelectorAll<HTMLElement>(
+    const invalidEls = container.querySelectorAll<HTMLElement>(
       '[data-invalid="true"]'
     );
     const firstInvalid = invalidEls[0];
@@ -54,16 +62,19 @@ export function Form<T extends FieldValues>({
   className,
   ...props
 }: FormProps<T>) {
+  const formRef = useRef<HTMLFormElement>(null);
+
   const handleInvalid = (errors: FieldErrors<T>) => {
     onInvalid?.(errors);
     if (scrollToError) {
-      scrollToFirstInvalidField();
+      scrollToFirstInvalidField(formRef.current);
     }
   };
 
   return (
     <FormProvider {...context}>
       <form
+        ref={formRef}
         onSubmit={onSubmit && context.handleSubmit(onSubmit, handleInvalid)}
         className={cn('flex flex-col gap-4', className)}
         {...props}
