@@ -19,7 +19,8 @@ public class CreateBankAccountCommandHandler(IUnitOfWork unitOfWork) : IRequestH
             dto.BankName,
             dto.AccountNumber,
             dto.AccountHolder,
-            dto.IsActive);
+            dto.IsActive,
+            dto.Note);
 
         await _bankAccountRepo.InsertAsync(entity, cancellationToken);
         await unitOfWork.SaveChangesAsync();

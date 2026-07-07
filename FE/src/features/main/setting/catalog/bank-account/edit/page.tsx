@@ -58,6 +58,7 @@ export function BankAccountEdit({
         accountNumber: detail.data.accountNumber,
         accountHolder: detail.data.accountHolder,
         isActive: detail.data.isActive,
+        note: detail.data.note ?? '',
       });
     }
   }, [detail.data, form]);
@@ -132,6 +133,14 @@ export function BankAccountEdit({
                 name='accountHolder'
                 label='Chủ tài khoản'
                 placeholder='Nhập tên chủ tài khoản'
+              />
+            </FormRow>
+            <FormRow>
+              <FormInput
+                control={form.control}
+                name='note'
+                label='Ghi chú'
+                placeholder='Nhập ghi chú (nếu có)'
               />
             </FormRow>
             <FormRow>

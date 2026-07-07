@@ -138,6 +138,14 @@ export function CreateBankAccountDialog({
               />
             </FormRow>
             <FormRow>
+              <FormInput
+                control={form.control}
+                name='note'
+                label='Ghi chú'
+                placeholder='Nhập ghi chú (nếu có)'
+              />
+            </FormRow>
+            <FormRow>
               <div className='flex items-center gap-3'>
                 <Switch
                   id='isActive'

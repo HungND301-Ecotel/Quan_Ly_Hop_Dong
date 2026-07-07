@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Domain.Common.Contracts;
 
 namespace Domain.Entities.Catalog;
@@ -9,6 +10,9 @@ public class BankAccount : AuditableEntity<Guid>
     public string AccountHolder { get; protected set; } = string.Empty;
     public bool IsActive { get; protected set; } = true;
 
+    [MaxLength(1000)]
+    public string? Note { get; protected set; }
+
     // Navigation Properties
     private IList<ContractGuarantee> _contractGuarantees = new List<ContractGuarantee>();
     public virtual IReadOnlyCollection<ContractGuarantee> ContractGuarantees => _contractGuarantees.AsReadOnly();
@@ -16,7 +20,7 @@ public class BankAccount : AuditableEntity<Guid>
     // Constructor
     protected BankAccount() { }
 
-    public static BankAccount Create(string bankName, string accountNumber, string accountHolder, bool isActive = true)
+    public static BankAccount Create(string bankName, string accountNumber, string accountHolder, bool isActive = true, string? note = null)
     {
         if (string.IsNullOrWhiteSpace(bankName))
         {
@@ -38,11 +42,12 @@ public class BankAccount : AuditableEntity<Guid>
             BankName = bankName,
             AccountNumber = accountNumber,
             AccountHolder = accountHolder,
-            IsActive = isActive
+            IsActive = isActive,
+            Note = note
         };
     }
 
-    public void Update(string bankName, string accountNumber, string accountHolder, bool isActive)
+    public void Update(string bankName, string accountNumber, string accountHolder, bool isActive, string? note)
     {
         if (string.IsNullOrWhiteSpace(bankName))
         {
@@ -63,6 +68,7 @@ public class BankAccount : AuditableEntity<Guid>
         AccountNumber = accountNumber;
         AccountHolder = accountHolder;
         IsActive = isActive;
+        Note = note;
     }
 
     public void Activate() => IsActive = true;

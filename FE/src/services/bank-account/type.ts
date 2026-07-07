@@ -4,4 +4,5 @@ export type BankAccount = {
   accountNumber: string;
   accountHolder: string;
   isActive: boolean;
+  note?: string;
 };

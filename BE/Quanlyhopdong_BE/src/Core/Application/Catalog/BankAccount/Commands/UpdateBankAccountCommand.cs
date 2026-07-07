@@ -23,7 +23,8 @@ public class UpdateBankAccountCommandHandler(IUnitOfWork unitOfWork) : IRequestH
             request.UpdateModel.BankName,
             request.UpdateModel.AccountNumber,
             request.UpdateModel.AccountHolder,
-            request.UpdateModel.IsActive);
+            request.UpdateModel.IsActive,
+            request.UpdateModel.Note);
 
         _bankAccountRepo.Update(entity);
         await unitOfWork.SaveChangesAsync();

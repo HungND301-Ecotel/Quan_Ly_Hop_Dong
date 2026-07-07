@@ -20,6 +20,10 @@ export const BANK_ACCOUNT_COLUMNS: ColumnDef<BankAccount>[] = [
     header: 'Chủ tài khoản',
   },
   {
+    accessorKey: 'note',
+    header: 'Ghi chú',
+  },
+  {
     accessorKey: 'isActive',
     header: 'Trạng thái',
     cell: ({ row }) =>

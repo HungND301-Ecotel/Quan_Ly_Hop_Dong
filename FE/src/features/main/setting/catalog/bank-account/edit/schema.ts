@@ -5,6 +5,7 @@ export const BankAccountSchema = z.object({
   accountNumber: z.string().min(1, 'Vui lòng nhập số tài khoản'),
   accountHolder: z.string().min(1, 'Vui lòng nhập tên chủ tài khoản'),
   isActive: z.boolean(),
+  note: z.string().optional(),
 });
 
 export type BankAccountValues = z.infer<typeof BankAccountSchema>;
@@ -14,4 +15,5 @@ export const BankAccountDefault: BankAccountValues = {
   accountNumber: '',
   accountHolder: '',
   isActive: true,
+  note: '',
 };

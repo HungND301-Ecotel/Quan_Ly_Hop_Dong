@@ -7,6 +7,7 @@ public class BankAccountDto
     public string AccountNumber { get; set; } = string.Empty;
     public string AccountHolder { get; set; } = string.Empty;
     public bool IsActive { get; set; }
+    public string? Note { get; set; }
 }
 
 public class CreateBankAccountDto
@@ -15,6 +16,7 @@ public class CreateBankAccountDto
     public string AccountNumber { get; set; } = string.Empty;
     public string AccountHolder { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
+    public string? Note { get; set; }
 }
 
 public class UpdateBankAccountDto
@@ -24,4 +26,5 @@ public class UpdateBankAccountDto
     public string AccountNumber { get; set; } = string.Empty;
     public string AccountHolder { get; set; } = string.Empty;
     public bool IsActive { get; set; }
+    public string? Note { get; set; }
 }
