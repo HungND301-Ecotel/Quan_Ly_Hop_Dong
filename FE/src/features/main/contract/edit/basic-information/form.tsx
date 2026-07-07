@@ -334,7 +334,10 @@ function RoleUserArrayInput({
   const error = form.formState.errors.contractUserRoles?.[role];
 
   return (
-    <div className='space-y-3 p-4 border rounded-lg bg-white shadow-sm'>
+    <div
+      className='space-y-3 p-4 border rounded-lg bg-white shadow-sm'
+      data-invalid={!!error}
+    >
       <div className='flex items-center justify-between border-b pb-2 mb-2'>
         <div className='flex flex-col'>
           <div className='text-sm font-semibold text-slate-800'>{label}</div>
@@ -925,7 +928,7 @@ export function ContractBasicInformationForm() {
     // Reset level2, level3 và title khi đổi level1
     form.setValue('level2CodeId', '');
     form.setValue('level3CodeId', '');
-    form.setValue('title', '');
+    form.setValue('title', '', { shouldValidate: true });
     setLevel2Codes([]);
     setLevel3Codes([]);
 
@@ -950,14 +953,17 @@ export function ContractBasicInformationForm() {
     if (isResettingForm.current) return;
 
     // ← Xóa title cũ ngay khi đổi mã 3
-    form.setValue('title', '');
+    form.setValue('title', '', { shouldValidate: true });
 
     signedContentService
       .getSignedContentByLevel3(watchedLevel3CodeId)
       .then((data) => {
         const first = data?.[0];
         if (first?.name) {
-          form.setValue('title', first.name);
+          form.setValue('title', first.name, {
+            shouldValidate: true,
+            shouldDirty: true,
+          });
         }
       });
   }, [watchedLevel3CodeId]);
