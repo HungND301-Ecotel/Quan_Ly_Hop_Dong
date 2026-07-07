@@ -19,7 +19,7 @@ export const PARTNER_COLUMNS: ColumnDef<Partner>[] = [
     header: 'Địa chỉ',
   },
   {
-    accessorKey: 'bankId',
+    accessorKey: 'bankAccountName',
     header: 'Tài khoản ngân hàng',
   },
   {

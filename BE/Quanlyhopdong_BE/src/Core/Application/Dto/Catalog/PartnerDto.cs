@@ -14,6 +14,10 @@ public class PartnerDto
     public string? Position { get; set; }
     public string? Note { get; set; }
     public string? PartnerContractCode { get; set; }
+    public string? BankName { get; set; }
+    public string? AccountNumber { get; set; }
+    public string? AccountHolder { get; set; }
+    public string? BankAccountName { get; set; }
 }
 
 public class CreatePartnerDto

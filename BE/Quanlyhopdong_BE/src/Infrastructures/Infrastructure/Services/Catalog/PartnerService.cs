@@ -6,6 +6,7 @@ using Application.Dto.Catalog;
 using Application.Interfaces.Services.Catalog;
 using Domain.Entities.Category;
 using Mapster;
+using Microsoft.EntityFrameworkCore;
 using Shared.Constants;
 
 namespace Infrastructure.Services.Catalog;
@@ -65,9 +66,21 @@ public class PartnerService(IUnitOfWork unitOfWork, ICurrentUser currentUser) : 
         search = search ?? string.Empty;
         var list = await _partnerRepository.GetAllAsync(
             predicate: x => x.Name.Contains(search) || x.TaxCode.Contains(search),
+            include: x => x.Include(x => x.Bank),
             disableTracking: true);
 
-        return list.Adapt<List<PartnerDto>>();
+        return list.Select(partner =>
+        {
+            var dto = partner.Adapt<PartnerDto>();
+            if (partner.Bank != null)
+            {
+                dto.BankName = partner.Bank.BankName;
+                dto.AccountNumber = partner.Bank.AccountNumber;
+                dto.AccountHolder = partner.Bank.AccountHolder;
+                dto.BankAccountName = $"{partner.Bank.AccountHolder} - {partner.Bank.BankName}";
+            }
+            return dto;
+        }).ToList();
     }
 
     public async Task<PartnerDto> GetByIdAsync(int id)
@@ -78,12 +91,21 @@ public class PartnerService(IUnitOfWork unitOfWork, ICurrentUser currentUser) : 
 
     public async Task<PartnerDto> GetByIdAsync(DefaultIdType id)
     {
-        var department = await _partnerRepository.GetFirstOrDefaultAsync(
+        var partner = await _partnerRepository.GetFirstOrDefaultAsync(
             predicate: d => d.Id == id,
+            include: x => x.Include(x => x.Bank),
             disableTracking: true
             ) ?? throw new NotFoundException("Partner is not found");
 
-        return department.Adapt<PartnerDto>();
+        var dto = partner.Adapt<PartnerDto>();
+        if (partner.Bank != null)
+        {
+            dto.BankName = partner.Bank.BankName;
+            dto.AccountNumber = partner.Bank.AccountNumber;
+            dto.AccountHolder = partner.Bank.AccountHolder;
+            dto.BankAccountName = $"{partner.Bank.AccountHolder} - {partner.Bank.BankName}";
+        }
+        return dto;
     }
 
     public async Task<bool> UpdateAsync(PartnerDto dto)

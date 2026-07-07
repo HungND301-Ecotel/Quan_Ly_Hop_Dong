@@ -11,4 +11,5 @@ export type Partner = {
   bankId: string;
   partnerContractCode: string;
   note?: string;
+  bankAccountName?: string;
 };
