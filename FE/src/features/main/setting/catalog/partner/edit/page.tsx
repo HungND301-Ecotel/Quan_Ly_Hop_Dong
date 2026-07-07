@@ -48,17 +48,13 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
         const [bankRes] = await Promise.all([
           BankAccountService.getBankAccountList(),
         ]);
-        setBankAccounts(bankRes || []);
+        setBankAccounts((bankRes || []).filter((a) => a.isActive));
       } catch (error) {
         console.error('Failed to fetch filter data', error);
       }
     };
     fetchData();
   }, [open]);
-
-  const onRefresh = () => {
-    table.options.meta?.refresh();
-  };
 
   const detailService = useCallback(() => {
     if (!row || !open) return;
@@ -97,6 +93,7 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
 
   const onSubmit = async (values: PartnerInformationValues) => {
     try {
+      setLoading(true);
       if (row) {
         await partnerService.updatePartner({
           id: row.original.id,
@@ -107,7 +104,6 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
       }
       toast.success('Cập nhật thông tin đối tác thành công');
       setOpen(false);
-      onRefresh();
       table.options.meta?.refresh?.();
     } catch {
       toast.error('Lỗi khi cập nhật thông tin đối tác');
@@ -250,6 +246,7 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
               <Button
                 variant='outline'
                 type='button'
+                disabled={loading}
                 onClick={() => setOpen(false)}
               >
                 Hủy

@@ -183,7 +183,7 @@ export function getContractItemColumns({
   const columns: ColumnDef<ContractItem>[] = [
     {
       accessorKey: 'materialCode',
-      header: 'Mã svật tư, tài sản',
+      header: 'Mã vật tư, tài sản',
     },
     {
       accessorKey: 'materialName',

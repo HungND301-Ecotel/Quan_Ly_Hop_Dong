@@ -97,20 +97,6 @@ export function ContractInformation({
   information,
   loading,
 }: ContractInformationProps) {
-  const getContractFinalValue = () => {
-    const total = information?.contractValue || 0;
-
-    let discount = 0;
-    const discountVal = information?.discountValue || 0;
-    if (information?.discountType == DiscountType.Percent.id) {
-      discount = (total / 100) * discountVal;
-    } else {
-      discount = discountVal;
-    }
-
-    return total - discount;
-  };
-
   const getContractAfterTax = () => {
     return information?.contractValueAfterVat || 0;
   };
@@ -520,7 +506,7 @@ export function ContractInformation({
                 <div className='grid grid-cols-12 gap-4 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground'>
                   <div className='col-span-6'>Tên vật tư, tài sản</div>
                   <div className='col-span-3'>Đơn vị tính</div>
-                  <div className='col-span-3 text-right'>Số lượng</div>
+                  <div className='col-span-3 text-right'>Khối lượng</div>
                 </div>
                 {information.contractItems.map((item, index) => {
                   return (
@@ -635,16 +621,10 @@ export function ContractInformation({
                 </div>
                 <div className='space-y-3'>
                   {information.paymentSchedules.map((item, index) => {
-                    // Tính số tiền: nếu là % thì nhân với giá trị hợp đồng
-                    const displayAmount =
-                      item.amountType === DiscountType.Percent.id
-                        ? (item.amount / 100) * getContractFinalValue()
-                        : item.amount || 0;
-
                     return (
                       <div
                         key={index}
-                        className='p-4 rounded-lg border from-background to-muted/20 hover:border-primary/50 transition-colors'
+                        className='p-4 rounded-lg border hover:border-primary/50 transition-colors'
                       >
                         <div className='flex items-center justify-between'>
                           <div className='flex items-center gap-2'>

@@ -1,8 +1,8 @@
 import * as z from 'zod';
 
 export const MaterialSchema = z.object({
-  materialCode: z.string().min(1, 'Mã dịch vụ khác không được để trống'),
-  name: z.string().min(1, 'Tên dịch vụ khác không được để trống'),
+  materialCode: z.string().min(1, 'Không được để trống'),
+  name: z.string().min(1, 'Không được để trống'),
   unitOfMeasureId: z.string().nullable().optional(),
   price: z.number().nullable().optional(),
   description: z

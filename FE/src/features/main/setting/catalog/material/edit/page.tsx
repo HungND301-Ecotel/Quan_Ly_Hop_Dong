@@ -122,10 +122,10 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
       <DialogContent className='flex flex-col gap-0 w-full md:min-w-2xl lg:min-w-4xl px-0 overflow-hidden'>
         <DialogHeader className='gap-1 p-6 pt-0 border-b'>
           <DialogTitle className='text-2xl font-semibold'>
-            {row ? 'Chỉnh sửa' : 'Tạo mới'} thành vật tư, tài
+            {row ? 'Chỉnh sửa' : 'Tạo mới'} vật tư, tài sản
           </DialogTitle>
           <DialogDescription>
-            {row ? 'Chỉnh sửa' : 'Tạo mới'} thông tin thành vật tư, tài
+            {row ? 'Chỉnh sửa' : 'Tạo mới'} thông tin vật tư, tài sản
           </DialogDescription>
         </DialogHeader>
         <Form
