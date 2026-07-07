@@ -336,7 +336,7 @@ function RoleUserArrayInput({
   return (
     <div className='space-y-3 p-4 border rounded-lg bg-white shadow-sm'>
       <div className='flex items-center justify-between border-b pb-2 mb-2'>
-        <div className='flex flex-col'>
+        <div className='flex flex-col' data-invalid={!!error}>
           <div className='text-sm font-semibold text-slate-800'>{label}</div>
           {error?.message && (
             <p className='text-xs font-medium text-destructive mt-0.5'>
@@ -428,6 +428,10 @@ export function ContractBasicInformationForm() {
 
   const isResettingForm = useRef(false);
   const hasInitializedFromContract = useRef(false);
+
+  // Lưu lại level3CodeId của request signedContent gần nhất, dùng để
+  // bỏ qua response đến muộn (stale) khi user đổi mã cấp III liên tục
+  const latestLevel3RequestRef = useRef<string | null>(null);
 
   const [contractTypes, setContractTypes] = useState<ContractType[]>([]);
   const [contractFields, setContractFields] = useState<ContractField[]>([]);
@@ -925,7 +929,7 @@ export function ContractBasicInformationForm() {
     // Reset level2, level3 và title khi đổi level1
     form.setValue('level2CodeId', '');
     form.setValue('level3CodeId', '');
-    form.setValue('title', '');
+    form.setValue('title', '', { shouldValidate: true });
     setLevel2Codes([]);
     setLevel3Codes([]);
 
@@ -949,16 +953,25 @@ export function ContractBasicInformationForm() {
     if (!watchedLevel3CodeId) return;
     if (isResettingForm.current) return;
 
-    // ← Xóa title cũ ngay khi đổi mã 3
-    form.setValue('title', '');
+    // Đánh dấu request hiện tại là "mới nhất"
+    const requestId = watchedLevel3CodeId;
+    latestLevel3RequestRef.current = requestId;
+
+    // Xóa title cũ, nhưng CHƯA validate — tránh nhấp nháy đỏ khi đang chờ API
+    form.setValue('title', '', { shouldValidate: false });
 
     signedContentService
       .getSignedContentByLevel3(watchedLevel3CodeId)
       .then((data) => {
+        // Bỏ qua nếu người dùng đã đổi sang mã cấp III khác trong lúc chờ
+        if (latestLevel3RequestRef.current !== requestId) return;
+
         const first = data?.[0];
-        if (first?.name) {
-          form.setValue('title', first.name);
-        }
+        // Chỉ validate SAU KHI đã biết kết quả cuối cùng (có tên hoặc rỗng)
+        form.setValue('title', first?.name ?? '', {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
       });
   }, [watchedLevel3CodeId]);
 
