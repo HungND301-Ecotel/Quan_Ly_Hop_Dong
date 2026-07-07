@@ -169,17 +169,22 @@ public class UserService(
         var user = await _userRepository.GetFirstOrDefaultAsync(
                     predicate: x => x.Id == updateUser.Id,
                     include: x => x.Include(x => x.UserDepartments),
-                    disableTracking: true)
+                    disableTracking: false)
                    ?? throw new NotFoundException(MessageCommon.DataNotFound);
 
         await unitOfWork.BeginTransactionAsync();
         try
         {
-            _userDepartmentRepository.Delete(user.UserDepartments);
+            if (user.UserDepartments.Any())
+            {
+                _userDepartmentRepository.Delete(user.UserDepartments);
+            }
+
+            user.ClearUserDepartments();
 
             user.Update(updateUser.Email, updateUser.PhoneNumber, updateUser.Fullname,
                         updateUser.PositionId, updateUser.Role, updateUser.EmployeeCode, updateUser.Note);
-            user.AddUserDepartment(user.UserDepartments.Select(u => UserDepartment.Create(u.DepartmentId, u.IsPrimary)));
+            user.AddUserDepartment(UserDepartment.Create(updateUser.Department, true));
             _userRepository.Update(user);
             await unitOfWork.SaveChangesAsync();
 

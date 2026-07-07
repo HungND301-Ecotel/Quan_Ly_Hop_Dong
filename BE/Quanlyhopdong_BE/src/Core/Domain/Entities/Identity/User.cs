@@ -239,6 +239,11 @@ public class User : AuditableEntity<Guid>, IAggregateRoot
     {
         _userDepartments.Add(userDepartment);
     }
+
+    public void ClearUserDepartments()
+    {
+        _userDepartments.Clear();
+    }
     public void SetPhoneNumber(string phoneNumber)
     {
         if (!string.IsNullOrWhiteSpace(phoneNumber))
