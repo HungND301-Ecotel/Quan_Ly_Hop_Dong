@@ -429,6 +429,10 @@ export function ContractBasicInformationForm() {
   const isResettingForm = useRef(false);
   const hasInitializedFromContract = useRef(false);
 
+  // Lưu lại level3CodeId của request signedContent gần nhất, dùng để
+  // bỏ qua response đến muộn (stale) khi user đổi mã cấp III liên tục
+  const latestLevel3RequestRef = useRef<string | null>(null);
+
   const [contractTypes, setContractTypes] = useState<ContractType[]>([]);
   const [contractFields, setContractFields] = useState<ContractField[]>([]);
   const [contractAppendixs, setContractAppendixs] = useState<
@@ -949,19 +953,25 @@ export function ContractBasicInformationForm() {
     if (!watchedLevel3CodeId) return;
     if (isResettingForm.current) return;
 
-    // ← Xóa title cũ ngay khi đổi mã 3
-    form.setValue('title', '', { shouldValidate: true });
+    // Đánh dấu request hiện tại là "mới nhất"
+    const requestId = watchedLevel3CodeId;
+    latestLevel3RequestRef.current = requestId;
+
+    // Xóa title cũ, nhưng CHƯA validate — tránh nhấp nháy đỏ khi đang chờ API
+    form.setValue('title', '', { shouldValidate: false });
 
     signedContentService
       .getSignedContentByLevel3(watchedLevel3CodeId)
       .then((data) => {
+        // Bỏ qua nếu người dùng đã đổi sang mã cấp III khác trong lúc chờ
+        if (latestLevel3RequestRef.current !== requestId) return;
+
         const first = data?.[0];
-        if (first?.name) {
-          form.setValue('title', first.name, {
-            shouldValidate: true,
-            shouldDirty: true,
-          });
-        }
+        // Chỉ validate SAU KHI đã biết kết quả cuối cùng (có tên hoặc rỗng)
+        form.setValue('title', first?.name ?? '', {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
       });
   }, [watchedLevel3CodeId]);
 
