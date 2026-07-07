@@ -132,7 +132,7 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
           )}
         </DialogTrigger>
 
-        <DialogContent className='flex flex-col gap-0 w-full md:min-w-2xl lg:min-w-4xl px-0 overflow-hidden'>
+        <DialogContent className='flex flex-col gap-0 w-full md:min-w-2xl lg:min-w-4xl px-0 overflow-hidden max-h-[90vh]'>
           <DialogHeader className='gap-1 p-6 pt-0 border-b'>
             <DialogTitle className='text-2xl font-semibold'>
               {row ? 'Chỉnh sửa' : 'Tạo mới'} đối tác
@@ -144,9 +144,9 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
           <Form
             context={form}
             onSubmit={onSubmit}
-            className='flex flex-col overflow-hidden'
+            className='flex flex-col overflow-hidden flex-1 min-h-0'
           >
-            <div className='flex-1 p-6 flex flex-col gap-6'>
+            <div className='flex-1 p-6 flex flex-col gap-6 overflow-y-auto min-h-0'>
               <FormRow>
                 <FormInput
                   control={form.control}
@@ -260,7 +260,7 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
                 className='min-w-32 bg-blue-600 hover:bg-blue-700'
               >
                 <Save className='w-4 h-4 mr-2' />
-                {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+                {loading ? 'Đang lưu...' : 'Xác nhận'}
               </Button>
             </div>
           </Form>

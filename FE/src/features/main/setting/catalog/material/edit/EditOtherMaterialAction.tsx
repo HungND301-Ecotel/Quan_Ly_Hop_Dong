@@ -27,7 +27,10 @@ import {
   MaterialSchema,
 } from '../../material/edit/schema'; // Dùng lại schema cũ
 
-export function EditOtherMaterialAction({ row, table }: DataTableEvent<Material>) {
+export function EditOtherMaterialAction({
+  row,
+  table,
+}: DataTableEvent<Material>) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -71,7 +74,12 @@ export function EditOtherMaterialAction({ row, table }: DataTableEvent<Material>
       const preppedValues = {
         ...values,
         unitOfMeasureId: values.unitOfMeasureId || null,
-        price: values.price === undefined || values.price === null || String(values.price) === '' ? null : Number(values.price),
+        price:
+          values.price === undefined ||
+          values.price === null ||
+          String(values.price) === ''
+            ? null
+            : Number(values.price),
       };
       if (row) {
         const payload = {
@@ -169,7 +177,7 @@ export function EditOtherMaterialAction({ row, table }: DataTableEvent<Material>
               className='min-w-32 bg-blue-600 hover:bg-blue-700'
             >
               <Save className='w-4 h-4 mr-2' />
-              {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+              {loading ? 'Đang lưu...' : 'Xác nhận'}
             </Button>
           </div>
         </Form>

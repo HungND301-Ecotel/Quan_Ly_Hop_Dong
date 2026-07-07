@@ -644,30 +644,17 @@ export function ContractInformation({
                     return (
                       <div
                         key={index}
-                        className='p-4 rounded-lg border bg-linear-to-br from-background to-muted/20 hover:border-primary/50 transition-colors'
+                        className='p-4 rounded-lg border from-background to-muted/20 hover:border-primary/50 transition-colors'
                       >
                         <div className='flex items-center justify-between'>
                           <div className='flex items-center gap-2'>
                             <span className='flex items-center justify-center size-7 rounded-full bg-blue-500/10 text-blue-600 text-sm font-semibold'>
-                              {index + 1}
+                              <CalendarDays className='size-3.5' />
                             </span>
                             <div className='flex flex-col'>
-                              <span className='text-sm font-medium'>
-                                Kỳ {index + 1}
+                              <span className='text-sm font-medium leading-snug'>
+                                {`Thanh toán sau ${item.days} ngày kể từ ngày có biên bản nghiệm thu chất lượng hàng hoá từng đợt (hoặc biên bản kiểm nhập) và bên B cung cấp đầy đủ các chứng từ thanh toán, hoá đơn GTGT theo quy định, giấy đề nghị thanh toán.`}
                               </span>
-                              <span className='text-xs text-muted-foreground'>
-                                Số ngày thanh toán/đối chiếu: {item.days} ngày
-                              </span>
-                            </div>
-                          </div>
-                          <div className='text-right'>
-                            <div className='text-xs text-muted-foreground'>
-                              {item.amountType === DiscountType.Percent.id
-                                ? `Giá trị: ${item.amount}%`
-                                : 'Số tiền cố định'}
-                            </div>
-                            <div className='text-base font-bold text-primary'>
-                              {format.number(displayAmount)} đ
                             </div>
                           </div>
                         </div>

@@ -47,7 +47,6 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
     service: unitOfMeasureService.getUnitOfMeasureList,
   });
 
-
   const form = useForm<MaterialInformationValues>({
     resolver: zodResolver(MaterialSchema),
     defaultValues: MaterialInformationDefault,
@@ -77,7 +76,12 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
       const payload = {
         ...values,
         unitOfMeasureId: values.unitOfMeasureId || null,
-        price: values.price === undefined || values.price === null || String(values.price) === '' ? null : Number(values.price),
+        price:
+          values.price === undefined ||
+          values.price === null ||
+          String(values.price) === ''
+            ? null
+            : Number(values.price),
       };
       if (row) {
         await materialService.updateMaterial({
@@ -114,14 +118,14 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
           </Button>
         )}
       </DialogTrigger>
- 
+
       <DialogContent className='flex flex-col gap-0 w-full md:min-w-2xl lg:min-w-4xl px-0 overflow-hidden'>
         <DialogHeader className='gap-1 p-6 pt-0 border-b'>
           <DialogTitle className='text-2xl font-semibold'>
-            {row ? 'Chỉnh sửa' : 'Tạo mới'} thành vật tư, tài 
+            {row ? 'Chỉnh sửa' : 'Tạo mới'} thành vật tư, tài
           </DialogTitle>
           <DialogDescription>
-            {row ? 'Chỉnh sửa' : 'Tạo mới'} thông tin thành vật tư, tài 
+            {row ? 'Chỉnh sửa' : 'Tạo mới'} thông tin thành vật tư, tài
           </DialogDescription>
         </DialogHeader>
         <Form
@@ -144,7 +148,7 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
                 placeholder='Nhập tên vật tư, tài sản'
               />
             </FormRow>
- 
+
             <FormRow>
               <FormSelect
                 control={form.control}
@@ -156,7 +160,7 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
                   ...(unitOfMeasures.data?.map((u) => ({
                     label: u.name,
                     value: u.id,
-                  })) ?? [])
+                  })) ?? []),
                 ]}
               />
               <FormNumber
@@ -190,7 +194,7 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
               className='min-w-32 bg-blue-600 hover:bg-blue-700'
             >
               <Save className='w-4 h-4 mr-2' />
-              {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+              {loading ? 'Đang lưu...' : 'Xác nhận'}
             </Button>
           </div>
         </Form>
