@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -34,20 +34,20 @@ public class UnitOfMeasureService(
         return entity?.Adapt<UnitOfMeasureDto>();
     }
 
-    public async Task<Guid> CreateAsync(string code, string name)
+    public async Task<Guid> CreateAsync(string code, string name, string? note = null)
     {
         var isDuplicate = await _unitOfMeasureRepo.AnyAsync(x => x.Code == code.ToUpper().Trim());
         if (isDuplicate)
         {
             throw new ArgumentException($"Code '{code}' đã tồn tại.");
         }
-        var entity = UnitOfMeasure.Create(code, name);
+        var entity = UnitOfMeasure.Create(code, name, true, note);
         await _unitOfMeasureRepo.InsertAsync(entity);
         await unitOfWork.SaveChangesAsync();
         return entity.Id;
     }
 
-    public async Task<bool> UpdateAsync(Guid id, string code, string name, bool isActive)
+    public async Task<bool> UpdateAsync(Guid id, string code, string name, bool isActive, string? note)
     {
         var entity = await _unitOfMeasureRepo.GetFirstOrDefaultAsync(
             predicate: x => x.Id == id,
@@ -63,7 +63,7 @@ public class UnitOfMeasureService(
             throw new ArgumentException($"Code '{code}' đã tồn tại.");
         }
 
-        entity.Update(code, name, isActive);
+        entity.Update(code, name, isActive, note);
         _unitOfMeasureRepo.Update(entity);
         await unitOfWork.SaveChangesAsync();
         return true;

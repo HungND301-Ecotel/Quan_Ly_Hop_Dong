@@ -51,6 +51,7 @@ export function EditUnitOfMeasureAction({ row, table }: DataTableEvent<UnitOfMea
     form.reset({
       code: detail.data.code,
       name: detail.data.name,
+      note: detail.data.note ?? '',
     });
   }, [detail.data, form]);
 
@@ -128,6 +129,14 @@ export function EditUnitOfMeasureAction({ row, table }: DataTableEvent<UnitOfMea
                 name='name'
                 label='Tên đơn vị tính'
                 placeholder='Nhập tên đơn vị tính'
+              />
+            </FormRow>
+            <FormRow>
+              <FormInput
+                control={form.control}
+                name='note'
+                label='Ghi chú'
+                placeholder='Nhập ghi chú (nếu có)'
               />
             </FormRow>
           </div>

@@ -26,14 +26,14 @@ public class UnitOfMeasuresController : BaseAuthController
     [HttpPost]
     public async Task<IActionResult> CreateUnitOfMeasureAsync([FromBody] CreateUnitOfMeasureRequest createModel)
     {
-        var result = await Mediator.Send(new CreateUnitOfMeasureCommand(createModel.Code, createModel.Name));
+        var result = await Mediator.Send(new CreateUnitOfMeasureCommand(createModel.Code, createModel.Name, createModel.Note));
         return Ok(result, MessageCommon.CreateSuccess);
     }
 
     [HttpPut]
     public async Task<IActionResult> UpdateUnitOfMeasureAsync([FromBody] UnitOfMeasureDto updateModel)
     {
-        bool result = await Mediator.Send(new UpdateUnitOfMeasureCommand(updateModel.Id, updateModel.Code, updateModel.Name, updateModel.IsActive));
+        bool result = await Mediator.Send(new UpdateUnitOfMeasureCommand(updateModel.Id, updateModel.Code, updateModel.Name, updateModel.IsActive, updateModel.Note));
         return Ok(result, MessageCommon.UpdateSuccess);
     }
 

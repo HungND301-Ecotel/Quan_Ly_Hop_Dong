@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,11 +12,13 @@ public class UnitOfMeasureDto
     public string Code { get; set; }
     public string Name { get; set; }
     public bool IsActive { get; set; }
+    public string? Note { get; set; }
 }
 public class CreateUnitOfMeasureRequest
 {
     public string Code { get; set; }
     public string Name { get; set; }
+    public string? Note { get; set; }
 }
 
 public class ExternalUnitOfMeasureSyncItemDto

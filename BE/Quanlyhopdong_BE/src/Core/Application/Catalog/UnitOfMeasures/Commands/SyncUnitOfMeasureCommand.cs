@@ -66,7 +66,7 @@ public class SyncUnitOfMeasureCommandHandler(
                 bool isChanged = !string.Equals(existing.Name, name, StringComparison.Ordinal) || existing.IsActive != isActive;
                 if (isChanged)
                 {
-                    existing.Update(code, name, isActive);
+                    existing.Update(code, name, isActive, existing.Note);
                     _repo.Update(existing);
                     updatedCount++;
                 }

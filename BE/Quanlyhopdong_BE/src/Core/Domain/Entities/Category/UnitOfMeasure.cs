@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Domain.Common.Contracts;
 
 namespace Domain.Entities.Category;
@@ -8,13 +9,16 @@ public class UnitOfMeasure : AuditableEntity
     public string Name { get; protected set; } = string.Empty;
     public bool IsActive { get; protected set; } = true;
 
+    [MaxLength(1000)]
+    public string? Note { get; protected set; }
+
     // Navigation Properties
     private IList<Material> _materials = new List<Material>();
     public virtual IReadOnlyCollection<Material> Materials => _materials.AsReadOnly();
 
     protected UnitOfMeasure() { }
 
-    public static UnitOfMeasure Create(string code, string name, bool isActive = true)
+    public static UnitOfMeasure Create(string code, string name, bool isActive = true, string? note = null)
     {
         if (string.IsNullOrWhiteSpace(code))
         {
@@ -30,11 +34,12 @@ public class UnitOfMeasure : AuditableEntity
         {
             Code = code,
             Name = name,
-            IsActive = isActive
+            IsActive = isActive,
+            Note = note
         };
     }
 
-    public void Update(string code, string name, bool isActive)
+    public void Update(string code, string name, bool isActive, string? note)
     {
         if (string.IsNullOrWhiteSpace(code))
         {
@@ -49,5 +54,6 @@ public class UnitOfMeasure : AuditableEntity
         Code = code;
         Name = name;
         IsActive = isActive;
+        Note = note;
     }
 }

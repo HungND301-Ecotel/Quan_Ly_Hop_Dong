@@ -15,6 +15,10 @@ export const UNIT_OF_MEASURE_COLUMNS: ColumnDef<UnitOfMeasure>[] = [
     header: 'Tên đơn vị tính',
   },
   {
+    accessorKey: 'note',
+    header: 'Ghi chú',
+  },
+  {
     id: 'action',
     header: () => <div className='text-right w-full pr-4'>Thao tác</div>,
     cell: (props) => (

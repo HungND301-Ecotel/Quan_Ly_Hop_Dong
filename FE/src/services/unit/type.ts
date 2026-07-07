@@ -3,4 +3,5 @@ export type UnitOfMeasure = {
   code: string;
   name: string;
   isActive: boolean;
+  note?: string;
 };
