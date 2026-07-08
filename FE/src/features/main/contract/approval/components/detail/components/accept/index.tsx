@@ -1,6 +1,12 @@
 import { PdfViewer } from '@/components/pdf-viewer';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogClose,
@@ -57,9 +63,11 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
 
   useEffect(() => {
     if (!contract || !open) return;
-    const paths = (contract.signedFilePath || contract.filePath || '').split(';').filter(Boolean);
-    Promise.all(paths.map((path) => fileService.getFile(path))).then((downloadedFiles) =>
-      setFiles(downloadedFiles)
+    const paths = (contract.signedFilePath || contract.filePath || '')
+      .split(';')
+      .filter(Boolean);
+    Promise.all(paths.map((path) => fileService.getFile(path))).then(
+      (downloadedFiles) => setFiles(downloadedFiles)
     );
   }, [contract, open]);
 
@@ -75,7 +83,8 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
   }, [userFlow]);
 
   // Bước hiện tại thực tế: nếu needsPosition thì bắt đầu ở 'signing', không thì 'confirm'
-  const resolvedStep: Step = step === 'confirm' && needsPosition ? 'signing' : step;
+  const resolvedStep: Step =
+    step === 'confirm' && needsPosition ? 'signing' : step;
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
@@ -119,7 +128,9 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
       const signedPath = detail?.signedFilePath || detail?.filePath;
       if (signedPath) {
         const paths = signedPath.split(';').filter(Boolean);
-        const signed = await Promise.all(paths.map((path) => fileService.getFile(path)));
+        const signed = await Promise.all(
+          paths.map((path) => fileService.getFile(path))
+        );
         setSignedFiles(signed);
         setSelectedFileIndex(0); // reset selected file index for preview
         setStep('preview'); // ✅ chuyển sang preview, KHÔNG đóng dialog
@@ -176,27 +187,34 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
             <div className='bg-green-50 border-y border-green-200 px-6 py-2 flex items-center gap-3'>
               <CheckIcon className='text-green-600 size-5 shrink-0' />
               <p className='text-sm text-green-800 font-medium'>
-                Hợp đồng đã được ký thành công. Dưới đây là bản hợp đồng có chữ ký của bạn.
+                Hợp đồng đã được ký thành công. Dưới đây là bản hợp đồng có chữ
+                ký của bạn.
               </p>
             </div>
             {signedFiles.length > 1 && (
               <div className='px-6 pt-2'>
-                <Tabs value={String(selectedFileIndex)} onValueChange={(val) => {
-                  setSelectedFileIndex(Number(val));
-                  setCurrentPage(1);
-                }} className='w-full'>
-                  <TabsList className='w-full justify-start overflow-x-auto flex-wrap h-auto p-1 bg-muted/50 rounded-lg border'>
+                <Select
+                  value={String(selectedFileIndex)}
+                  onValueChange={(val) => {
+                    setSelectedFileIndex(Number(val));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger className='w-full sm:w-[280px]'>
+                    <SelectValue placeholder='Chọn file để xem' />
+                  </SelectTrigger>
+                  <SelectContent>
                     {signedFiles.map((f, idx) => (
-                      <TabsTrigger
+                      <SelectItem
                         key={idx}
                         value={String(idx)}
-                        className='py-2 px-4 text-sm font-medium transition-all rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm'
+                        className='truncate'
                       >
                         {f.name}
-                      </TabsTrigger>
+                      </SelectItem>
                     ))}
-                  </TabsList>
-                </Tabs>
+                  </SelectContent>
+                </Select>
               </div>
             )}
             <div className='flex-1 overflow-auto p-6'>
@@ -222,22 +240,28 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
             </div>
             {files.length > 1 && (
               <div className='px-6 pt-2'>
-                <Tabs value={String(selectedFileIndex)} onValueChange={(val) => {
-                  setSelectedFileIndex(Number(val));
-                  setCurrentPage(1);
-                }} className='w-full'>
-                  <TabsList className='w-full justify-start overflow-x-auto flex-wrap h-auto p-1 bg-muted/50 rounded-lg border'>
+                <Select
+                  value={String(selectedFileIndex)}
+                  onValueChange={(val) => {
+                    setSelectedFileIndex(Number(val));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger className='w-full sm:w-[280px]'>
+                    <SelectValue placeholder='Chọn file để xem' />
+                  </SelectTrigger>
+                  <SelectContent>
                     {files.map((f, idx) => (
-                      <TabsTrigger
+                      <SelectItem
                         key={idx}
                         value={String(idx)}
-                        className='py-2 px-4 text-sm font-medium transition-all rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm'
+                        className='truncate'
                       >
                         {f.name}
-                      </TabsTrigger>
+                      </SelectItem>
                     ))}
-                  </TabsList>
-                </Tabs>
+                  </SelectContent>
+                </Select>
               </div>
             )}
             <div className='flex-1 overflow-auto p-6'>
@@ -245,7 +269,9 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
                 file={files[selectedFileIndex]}
                 onPageClick={(event) => {
                   if (selectedFileIndex !== 0) {
-                    toast.warning('Chữ ký chỉ được cấu hình trên file hợp đồng chính (file đầu tiên)');
+                    toast.warning(
+                      'Chữ ký chỉ được cấu hình trên file hợp đồng chính (file đầu tiên)'
+                    );
                     return;
                   }
                   if (position) return;
@@ -262,7 +288,9 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
                 }}
                 onSignButtonClick={(clickPos) => {
                   if (selectedFileIndex !== 0) {
-                    toast.warning('Chữ ký chỉ được cấu hình trên file hợp đồng chính (file đầu tiên)');
+                    toast.warning(
+                      'Chữ ký chỉ được cấu hình trên file hợp đồng chính (file đầu tiên)'
+                    );
                     return;
                   }
                   if (position) return;
@@ -288,18 +316,20 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
                       currentPage={currentPage}
                       onRemove={() => setPosition(undefined)}
                       onPositionChange={(x, y) =>
-                        setPosition((p) => p && { ...p, positionX: x, positionY: y })
+                        setPosition(
+                          (p) => p && { ...p, positionX: x, positionY: y }
+                        )
                       }
                       onSizeChange={(w, h, x, y) =>
                         setPosition(
                           (p) =>
-                              p && {
-                                ...p,
-                                width: w,
-                                height: h,
-                                ...(x !== undefined && { positionX: x }),
-                                ...(y !== undefined && { positionY: y }),
-                              }
+                            p && {
+                              ...p,
+                              width: w,
+                              height: h,
+                              ...(x !== undefined && { positionX: x }),
+                              ...(y !== undefined && { positionY: y }),
+                            }
                         )
                       }
                       zoom={zoom}
@@ -323,7 +353,9 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
                 <CircleAlert className='text-amber-600 size-5' />
               </ItemMedia>
               <ItemContent>
-                <ItemTitle className='text-amber-800 font-bold'>Lưu ý</ItemTitle>
+                <ItemTitle className='text-amber-800 font-bold'>
+                  Lưu ý
+                </ItemTitle>
                 <ItemDescription className='text-amber-800'>
                   Sau khi xác nhận, chữ ký điện tử của bạn sẽ được thêm vào hợp
                   đồng và không thể hoàn tác.
@@ -333,10 +365,17 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
           </div>
         )}
 
-        <DialogFooter className={cn('gap-2', isExpanded && 'p-6 pt-2 border-t')}>
+        <DialogFooter
+          className={cn('gap-2', isExpanded && 'p-6 pt-2 border-t')}
+        >
           {resolvedStep === 'preview' ? (
             // Sau khi ký xong: chỉ nút Đóng
-            <Button variant={'default'} size={'lg'} className='px-4' onClick={handleClosePreview}>
+            <Button
+              variant={'default'}
+              size={'lg'}
+              className='px-4'
+              onClick={handleClosePreview}
+            >
               <CheckIcon />
               <span>Đóng</span>
             </Button>

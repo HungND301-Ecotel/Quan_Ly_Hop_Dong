@@ -88,7 +88,6 @@ export function ContractSignPostionsForm() {
     ];
   }, [contractFiles, attachmentFiles]);
 
-
   const [open, setOpen] = useState(false);
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
@@ -132,7 +131,12 @@ export function ContractSignPostionsForm() {
   };
 
   const addSignature = useCallback(
-    (signer: User, signerIndex: number, position: ClickPosition, fileIndex: number) => {
+    (
+      signer: User,
+      signerIndex: number,
+      position: ClickPosition,
+      fileIndex: number
+    ) => {
       if (!signers) return;
 
       // Find the signer in the signers array to get signTypeId
@@ -219,7 +223,8 @@ export function ContractSignPostionsForm() {
     return watchedPositions
       .map((position, index) => ({ position, index })) // giữ index gốc
       .filter(({ position }) => (position.fileIndex ?? 0) === selectedFileIndex)
-      .map(({ position, index }) => { // index ở đây là index gốc trong watchedPositions
+      .map(({ position, index }) => {
+        // index ở đây là index gốc trong watchedPositions
         const user = users.find((u) => u.id === position.userId);
         const signatureFile = user?.signatures.find(
           (s) => s.signatureType === position.signatureType
@@ -245,7 +250,17 @@ export function ContractSignPostionsForm() {
           />
         );
       });
-  }, [watchedPositions, users, fields, currentPage, selectedFileIndex, remove, handlePositionChange, handleSizeChange, zoom]);
+  }, [
+    watchedPositions,
+    users,
+    fields,
+    currentPage,
+    selectedFileIndex,
+    remove,
+    handlePositionChange,
+    handleSizeChange,
+    zoom,
+  ]);
 
   // Filter out signers who have already been added
   const availableSigners = useMemo(() => {
@@ -270,7 +285,7 @@ export function ContractSignPostionsForm() {
           {contractFiles.length > 0 && (
             <FileCombobox
               icon={<FileText className='h-4 w-4 text-primary' />}
-              label='File hợp đồng'
+              label='Hợp đồng'
               placeholder='Chọn hợp đồng'
               files={allFiles.filter((f) => f.group === 'contract')}
               selectedIndex={
@@ -288,8 +303,8 @@ export function ContractSignPostionsForm() {
           {attachmentFiles.length > 0 && (
             <FileCombobox
               icon={<Paperclip className='h-4 w-4 text-primary' />}
-              label='Tài liệu đính kèm'
-              placeholder='Chọn tệp đính kèm'
+              label='Phụ lục hợp đồng và tài liệu khác'
+              placeholder='Chọn phụ lục hợp đồng và tài liệu khác'
               files={allFiles.filter((f) => f.group === 'attachment')}
               selectedIndex={
                 allFiles[selectedFileIndex]?.group === 'attachment'

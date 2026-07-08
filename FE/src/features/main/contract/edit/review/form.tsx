@@ -62,6 +62,13 @@ import { level3CodeService } from '@/services/level3code';
 import { ContractStructureCatalog } from '@/services/structure/type';
 import { contractStructureCatalogService } from '@/services/structure';
 import { SignatureType } from '@/constants/signature-type';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 // ─── Zod schemas ─────────────────────────────────────────────────────────────
 
 const emptyStringToNull = z.preprocess(
@@ -1355,26 +1362,28 @@ export function ContractReviewForm() {
               />
               {Array.isArray(basicInformation?.contractFile) &&
                 basicInformation.contractFile.length > 1 && (
-                  <Tabs
+                  <Select
                     value={String(selectedFileIndex)}
                     onValueChange={(val) => {
                       setSelectedFileIndex(Number(val));
                       setCurrentPage(1);
                     }}
-                    className='w-full'
                   >
-                    <TabsList className='w-full justify-start overflow-x-auto flex-wrap h-auto p-1 bg-muted/50 rounded-lg border'>
+                    <SelectTrigger className='w-full'>
+                      <SelectValue placeholder='Chọn file để xem' />
+                    </SelectTrigger>
+                    <SelectContent>
                       {basicInformation.contractFile.map((file, idx) => (
-                        <TabsTrigger
+                        <SelectItem
                           key={idx}
                           value={String(idx)}
-                          className='py-2 px-4 text-sm font-medium transition-all rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm'
+                          className='truncate'
                         >
                           {file.name}
-                        </TabsTrigger>
+                        </SelectItem>
                       ))}
-                    </TabsList>
-                  </Tabs>
+                    </SelectContent>
+                  </Select>
                 )}
 
               {basicInformation?.contractFile && (
@@ -1394,7 +1403,7 @@ export function ContractReviewForm() {
                     <Separator className='my-4' />
                     <div>
                       <div className='text-sm font-medium text-muted-foreground mb-2'>
-                        Tài liệu đính kèm
+                        Phụ lục hợp đồng và tài liệu khác
                       </div>
                       <div className='space-y-2'>
                         {basicInformation.attachmentFiles.map((file, index) => (
