@@ -1053,12 +1053,8 @@ export function ContractRenewReviewForm() {
                                   {index + 1}
                                 </span>
                                 <div className='flex flex-col'>
-                                  <span className='text-sm font-medium'>
-                                    Kỳ {index + 1}
-                                  </span>
                                   <span className='text-xs text-muted-foreground'>
-                                    Số ngày thanh toán/đối chiếu:{' '}
-                                    {schedule.days} ngày
+                                    {`Thanh toán sau ${schedule.days} ngày kể từ ngày có biên bản nghiệm thu chất lượng hàng hoá từng đợt (hoặc biên bản kiểm nhập) và bên B cung cấp đầy đủ các chứng từ thanh toán, hoá đơn GTGT theo quy định, giấy đề nghị thanh toán.`}
                                   </span>
                                 </div>
                               </div>

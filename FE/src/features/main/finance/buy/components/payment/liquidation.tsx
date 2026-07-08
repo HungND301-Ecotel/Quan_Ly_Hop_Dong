@@ -7,7 +7,13 @@ import {
   ItemTitle,
 } from '@/components/ui/item';
 import { Button } from '@/components/ui/button';
-import { EyeIcon, FileTextIcon, HistoryIcon, Trash2Icon, Loader2 } from 'lucide-react';
+import {
+  EyeIcon,
+  FileTextIcon,
+  HistoryIcon,
+  Trash2Icon,
+  Loader2,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FileViewerModal } from './modal/PDFViewModal';
 import { api } from '@/lib/api';
@@ -89,7 +95,13 @@ export function LiquidationSection({
       <div className='flex items-center gap-4 w-full'>
         {!file ? (
           disabled ? (
-            <Button variant='destructive' type='button' size='lg' className='w-full' disabled>
+            <Button
+              variant='destructive'
+              type='button'
+              size='lg'
+              className='w-full'
+              disabled
+            >
               <HistoryIcon className='size-4' />
               Thanh lý hợp đồng
             </Button>
@@ -101,7 +113,12 @@ export function LiquidationSection({
                 onSuccess?.();
               }}
               trigger={
-                <Button variant='destructive' type='button' size='lg' className='w-full'>
+                <Button
+                  variant='destructive'
+                  type='button'
+                  size='lg'
+                  className='w-full'
+                >
                   <HistoryIcon className='size-4' />
                   Thanh lý hợp đồng
                 </Button>
@@ -111,17 +128,22 @@ export function LiquidationSection({
         ) : (
           <div className='w-full'>
             <Item variant='outline' className='bg-background shadow-xs'>
-              <ItemMedia variant='icon' className='bg-primary/10 text-primary size-10 rounded-md'>
+              <ItemMedia
+                variant='icon'
+                className='bg-primary/10 text-primary size-10 rounded-md'
+              >
                 <FileTextIcon className='size-5' />
               </ItemMedia>
               <ItemContent>
-                <ItemTitle className='text-sm font-medium'>{getFileName(file)}</ItemTitle>
+                <ItemTitle className='text-sm font-medium'>
+                  {getFileName(file)}
+                </ItemTitle>
               </ItemContent>
               <ItemActions>
-                <Button 
-                  size='icon-xs' 
-                  variant='ghost' 
-                  className='hover:bg-transparent hover:text-primary' 
+                <Button
+                  size='icon-xs'
+                  variant='ghost'
+                  className='hover:bg-transparent hover:text-primary'
                   type='button'
                   onClick={() => handlePreviewFile(file)}
                   disabled={isLoadingFile}
@@ -133,10 +155,10 @@ export function LiquidationSection({
                   )}
                 </Button>
                 {!disabled && (
-                  <Button 
-                    size='icon-xs' 
-                    variant='ghost' 
-                    className='hover:bg-transparent hover:text-destructive text-muted-foreground' 
+                  <Button
+                    size='icon-xs'
+                    variant='ghost'
+                    className='hover:bg-transparent hover:text-destructive text-muted-foreground'
                     type='button'
                     onClick={handleDelete}
                   >

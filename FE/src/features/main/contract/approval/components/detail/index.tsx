@@ -27,6 +27,7 @@ import {
   Workflow,
 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
+import { cn } from '@/lib/utils';
 import { ContractAccept } from './components/accept';
 import { ContractDocuments } from './components/documents';
 import { ContractFlow } from './components/flow';
@@ -44,6 +45,7 @@ export type ContractDetailProps = {
 
 export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
   const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('information');
   const { user } = useAuthContext();
 
   const detailService = useCallback(() => {
@@ -112,7 +114,11 @@ export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue='information' className='w-full flex-1 gap-4 py-6'>
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className='w-full flex-1 min-h-0 gap-4 py-6 flex flex-col'
+        >
           <div className='px-6'>
             <TabsList className='w-full grid grid-cols-7'>
               <TabsTrigger
@@ -154,7 +160,7 @@ export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
             </TabsList>
           </div>
 
-          <ScrollArea className='px-6 h-[calc(100vh-23rem)]'>
+          <ScrollArea className={cn('px-6 flex-1 min-h-0', activeTab === 'documents' && 'hidden')}>
             <TabsContent value='information'>
               <ContractInformation
                 information={detail.data}
@@ -195,47 +201,6 @@ export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
               />
             </TabsContent>
 
-            <TabsContent value='documents'>
-              <ContractDocuments
-                loading={detail.loading}
-                documents={[
-                  // File hợp đồng gốc (trước khi ký)
-                  ...(() => {
-                    const originUrls = (detail.data?.filePath || '')
-                      .split(';')
-                      .filter(Boolean);
-                    const contractNames = (detail.data?.contractName || '')
-                      .split(';')
-                      .filter(Boolean);
-                    return originUrls.map((url, i) => ({
-                      name: contractNames[i] || `File hợp đồng ${i + 1}`,
-                      url,
-                      group: 'origin' as const,
-                    }));
-                  })(),
-                  // File hợp đồng đã ký
-                  ...(() => {
-                    const signedUrls = (detail.data?.signedFilePath || '')
-                      .split(';')
-                      .filter(Boolean);
-                    const contractNames = (detail.data?.contractName || '')
-                      .split(';')
-                      .filter(Boolean);
-                    return signedUrls.map((url, i) => ({
-                      name: contractNames[i] || `File hợp đồng đã ký ${i + 1}`,
-                      url,
-                      group: 'signed' as const,
-                    }));
-                  })(),
-                  ...(detail.data?.attachments || []).map((attachment) => ({
-                    name: attachment.fileName,
-                    url: attachment.filePath,
-                    group: 'attachment' as const,
-                  })),
-                ]}
-              />
-            </TabsContent>
-
             <TabsContent value='evidence'>
               <ContractEvidence
                 payments={paymentsDetail.data?.payments || []}
@@ -246,6 +211,47 @@ export function ContractDetail({ row, onSubmit }: ContractDetailProps) {
 
             <ScrollBar />
           </ScrollArea>
+
+          <TabsContent value='documents' className='flex-1 min-h-0 px-6'>
+            <ContractDocuments
+              loading={detail.loading}
+              documents={[
+                // File hợp đồng gốc (trước khi ký)
+                ...(() => {
+                  const originUrls = (detail.data?.filePath || '')
+                    .split(';')
+                    .filter(Boolean);
+                  const contractNames = (detail.data?.contractName || '')
+                    .split(';')
+                    .filter(Boolean);
+                  return originUrls.map((url, i) => ({
+                    name: contractNames[i] || `File hợp đồng ${i + 1}`,
+                    url,
+                    group: 'origin' as const,
+                  }));
+                })(),
+                // File hợp đồng đã ký
+                ...(() => {
+                  const signedUrls = (detail.data?.signedFilePath || '')
+                    .split(';')
+                    .filter(Boolean);
+                  const contractNames = (detail.data?.contractName || '')
+                    .split(';')
+                    .filter(Boolean);
+                  return signedUrls.map((url, i) => ({
+                    name: contractNames[i] || `File hợp đồng đã ký ${i + 1}`,
+                    url,
+                    group: 'signed' as const,
+                  }));
+                })(),
+                ...(detail.data?.attachments || []).map((attachment) => ({
+                  name: attachment.fileName,
+                  url: attachment.filePath,
+                  group: 'attachment' as const,
+                })),
+              ]}
+            />
+          </TabsContent>
         </Tabs>
 
         <DialogFooter className='border-t p-6 pb-0'>
