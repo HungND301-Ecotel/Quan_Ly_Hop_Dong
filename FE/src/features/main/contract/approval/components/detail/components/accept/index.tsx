@@ -200,7 +200,7 @@ export function ContractAccept({ contract, onSubmit }: ContractAcceptProps) {
                     setCurrentPage(1);
                   }}
                 >
-                  <SelectTrigger className='w-full sm:w-[280px]'>
+                  <SelectTrigger className='w-full'>
                     <SelectValue placeholder='Chọn file để xem' />
                   </SelectTrigger>
                   <SelectContent>
