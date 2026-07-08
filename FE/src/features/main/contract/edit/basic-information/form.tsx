@@ -536,12 +536,18 @@ export function ContractBasicInformationForm() {
 
     // Nếu đã có level1CodeId, cần load lại danh sách level2/level3 tương ứng
     if (basicInformation.level1CodeId) {
-      level2CodeService
-        .getLevel2CodeByLevel1(basicInformation.level1CodeId)
-        .then((data) => setLevel2Codes(data || []));
-      level3CodeService
-        .getLevel3CodeByLevel1(basicInformation.level1CodeId)
-        .then((data) => setLevel3Codes(data || []));
+      void Promise.allSettled([
+        level2CodeService
+          .getLevel2CodeByLevel1(basicInformation.level1CodeId)
+          .then((data) => setLevel2Codes(data || [])),
+        level3CodeService
+          .getLevel3CodeByLevel1(basicInformation.level1CodeId)
+          .then((data) => setLevel3Codes(data || [])),
+      ]).then((results) => {
+        if (results.some((r) => r.status === 'rejected')) {
+          toast.error('Không tải được mã cấp II/III');
+        }
+      });
     }
 
     setTimeout(() => {
@@ -642,12 +648,18 @@ export function ContractBasicInformationForm() {
       .then(([files, attachments]) => {
         isResettingForm.current = true;
         if (contract.level1CodeId) {
-          level2CodeService
-            .getLevel2CodeByLevel1(contract.level1CodeId)
-            .then((data) => setLevel2Codes(data || []));
-          level3CodeService
-            .getLevel3CodeByLevel1(contract.level1CodeId)
-            .then((data) => setLevel3Codes(data || []));
+          void Promise.allSettled([
+            level2CodeService
+              .getLevel2CodeByLevel1(contract.level1CodeId)
+              .then((data) => setLevel2Codes(data || [])),
+            level3CodeService
+              .getLevel3CodeByLevel1(contract.level1CodeId)
+              .then((data) => setLevel3Codes(data || [])),
+          ]).then((results) => {
+            if (results.some((r) => r.status === 'rejected')) {
+              toast.error('Không tải được mã cấp II/III');
+            }
+          });
         }
         form.reset({
           departmentId: contract.departmentId,
@@ -747,6 +759,7 @@ export function ContractBasicInformationForm() {
         }, 100);
       })
       .catch((err) => {
+        isResettingForm.current = false;
         // fallback đề phòng lỗi ngoài dự kiến (vd: level2/level3 service lỗi)
         console.error('Lỗi khi load dữ liệu hợp đồng:', err);
         toast.error('Có lỗi khi tải dữ liệu hợp đồng, vui lòng thử lại');
