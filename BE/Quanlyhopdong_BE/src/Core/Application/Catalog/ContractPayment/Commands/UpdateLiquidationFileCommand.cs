@@ -19,11 +19,6 @@ public class UpdateLiquidationFileCommandHandler(IContractPaymentService contrac
             throw new BadRequestException("Contract ID is required");
         }
 
-        if (string.IsNullOrWhiteSpace(request.Request.LiquidationFilePath))
-        {
-            throw new BadRequestException("Liquidation file path is required");
-        }
-
         await contractPaymentService.UpdateLiquidationFileAsync(request.Request);
         return Unit.Value;
     }

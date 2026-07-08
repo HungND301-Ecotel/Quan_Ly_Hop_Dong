@@ -22,6 +22,15 @@ namespace Infrastructure.Services.Catalog;
 
 public partial class ContractService
 {
+    private class FileSignPosition
+    {
+        public decimal PositionX { get; set; }
+        public decimal PositionY { get; set; }
+        public int PageNumber { get; set; }
+        public decimal Width { get; set; }
+        public decimal Height { get; set; }
+        public int FileIndex { get; set; }
+    }
 
     public async Task<List<SignatureInfoDto>> GetSignatureInfoAsync(string filePath)
     {
@@ -82,11 +91,22 @@ public partial class ContractService
             throw new NotFoundException("Không tìm thấy file hợp đồng");
         }
 
-        var x = (float)(flow.PositionX ?? 100);
-        var y = (float)(flow.PositionY ?? 100);
-        var width = (float)(flow.Width ?? DEFAULT_WIDTH);
-        var height = (float)(flow.Height ?? DEFAULT_HEIGHT);
-        var pageNumber = flow.PageNumber ?? 1;
+        List<FileSignPosition>? signPositions = null;
+        if (!string.IsNullOrEmpty(flow.SignPositions))
+        {
+            try
+            {
+                signPositions = System.Text.Json.JsonSerializer.Deserialize<List<FileSignPosition>>(
+                    flow.SignPositions, 
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                );
+            }
+            catch
+            {
+                // Fallback
+            }
+        }
+
         var signatureType = flow.SignatureType;
 
         var signedFilePaths = new List<string>();
@@ -99,12 +119,43 @@ public partial class ContractService
             string currentPath = filePaths[i];
             if (currentPath.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
             {
+                float currentX, currentY, currentWidth, currentHeight;
+                int currentPageNumber;
+
+                if (signPositions != null)
+                {
+                    var filePos = signPositions.FirstOrDefault(p => p.FileIndex == i);
+                    if (filePos == null)
+                    {
+                        // Skip signing this file for this signer, keep it unsigned
+                        signedFilePaths.Add(currentPath);
+                        if (i == 0)
+                        {
+                            mainSignedFilePath = currentPath;
+                        }
+                        continue;
+                    }
+                    currentX = (float)filePos.PositionX;
+                    currentY = (float)filePos.PositionY;
+                    currentWidth = (float)filePos.Width;
+                    currentHeight = (float)filePos.Height;
+                    currentPageNumber = filePos.PageNumber;
+                }
+                else
+                {
+                    currentX = (float)(flow.PositionX ?? 100);
+                    currentY = (float)(flow.PositionY ?? 100);
+                    currentWidth = (float)(flow.Width ?? DEFAULT_WIDTH);
+                    currentHeight = (float)(flow.Height ?? DEFAULT_HEIGHT);
+                    currentPageNumber = flow.PageNumber ?? 1;
+                }
+
                 // Download from S3
                 var awsFileDownloadPath = await awsS3Service.GetPresignedDownloadUrl(currentPath, Application.Dto.Cloud.AWS.BucketType.SourceDefault);
                 var pdfBytes = await fileStorageService.GetFileBytesFromPresignedUrlAsync(awsFileDownloadPath);
 
                 // Adjust page count
-                int adjustedPageNumber = pageNumber;
+                int adjustedPageNumber = currentPageNumber;
                 try
                 {
                     using var tempMs = new MemoryStream(pdfBytes);
@@ -131,7 +182,7 @@ public partial class ContractService
                 if (signatureType == SignatureType.Digital)
                 {
                     (signedPdfBytes, signatureHash) = await SignWithDigitalCAAsync(
-                        pdfBytes, certificateUuid, pin, userId, x, y, width, height, adjustedPageNumber);
+                        pdfBytes, certificateUuid, pin, userId, currentX, currentY, currentWidth, currentHeight, adjustedPageNumber);
                 }
                 else
                 {
@@ -140,7 +191,7 @@ public partial class ContractService
                         throw new ConflictException("Vui lòng chọn chữ ký trong profile của bạn");
                     }
                     (signedPdfBytes, signatureHash) = await SignWithImageAsync(
-                        pdfBytes, (Guid)userSignatureId, userId, x, y, width, height, adjustedPageNumber);
+                        pdfBytes, (Guid)userSignatureId, userId, currentX, currentY, currentWidth, currentHeight, adjustedPageNumber);
                 }
 
                 // Save signed file
@@ -165,17 +216,47 @@ public partial class ContractService
 
         // 2. Sign attachments
         var attachments = await _contractAttachmentRepo.GetAllAsync(predicate: a => a.ContractId == contract.Id, disableTracking: false);
-        foreach (var attachment in attachments)
+        for (int idx = 0; idx < attachments.Count; idx++)
         {
+            var attachment = attachments[idx];
             if (attachment.FilePath.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) || 
                 (attachment.FileType != null && attachment.FileType.Equals(".pdf", StringComparison.OrdinalIgnoreCase)))
             {
+                float currentX, currentY, currentWidth, currentHeight;
+                int currentPageNumber;
+
+                // Attachment's global fileIndex = filePaths.Length + idx
+                int globalFileIndex = filePaths.Length + idx;
+
+                if (signPositions != null)
+                {
+                    var filePos = signPositions.FirstOrDefault(p => p.FileIndex == globalFileIndex);
+                    if (filePos == null)
+                    {
+                        // Skip signing this attachment for this signer
+                        continue;
+                    }
+                    currentX = (float)filePos.PositionX;
+                    currentY = (float)filePos.PositionY;
+                    currentWidth = (float)filePos.Width;
+                    currentHeight = (float)filePos.Height;
+                    currentPageNumber = filePos.PageNumber;
+                }
+                else
+                {
+                    currentX = (float)(flow.PositionX ?? 100);
+                    currentY = (float)(flow.PositionY ?? 100);
+                    currentWidth = (float)(flow.Width ?? DEFAULT_WIDTH);
+                    currentHeight = (float)(flow.Height ?? DEFAULT_HEIGHT);
+                    currentPageNumber = flow.PageNumber ?? 1;
+                }
+
                 // Download from S3
                 var awsFileDownloadPath = await awsS3Service.GetPresignedDownloadUrl(attachment.FilePath, Application.Dto.Cloud.AWS.BucketType.SourceDefault);
                 var pdfBytes = await fileStorageService.GetFileBytesFromPresignedUrlAsync(awsFileDownloadPath);
 
                 // Adjust page count
-                int adjustedPageNumber = pageNumber;
+                int adjustedPageNumber = currentPageNumber;
                 try
                 {
                     using var tempMs = new MemoryStream(pdfBytes);
@@ -202,7 +283,7 @@ public partial class ContractService
                 if (signatureType == SignatureType.Digital)
                 {
                     (signedPdfBytes, signatureHash) = await SignWithDigitalCAAsync(
-                        pdfBytes, certificateUuid, pin, userId, x, y, width, height, adjustedPageNumber);
+                        pdfBytes, certificateUuid, pin, userId, currentX, currentY, currentWidth, currentHeight, adjustedPageNumber);
                 }
                 else
                 {
@@ -211,7 +292,7 @@ public partial class ContractService
                         throw new ConflictException("Vui lòng chọn chữ ký trong profile của bạn");
                     }
                     (signedPdfBytes, signatureHash) = await SignWithImageAsync(
-                        pdfBytes, (Guid)userSignatureId, userId, x, y, width, height, adjustedPageNumber);
+                        pdfBytes, (Guid)userSignatureId, userId, currentX, currentY, currentWidth, currentHeight, adjustedPageNumber);
                 }
 
                 // Save signed file

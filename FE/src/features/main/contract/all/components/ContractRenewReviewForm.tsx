@@ -412,16 +412,30 @@ export function ContractRenewReviewForm() {
       const signFlowsWithPositions: ContractSignFlow[] = [];
       if (signFlows && signFlows.signers.length > 0) {
         signFlows.signers.forEach((signer, index) => {
-          const position = signPositions?.postions.find(
-            (p) => p.userId === signer.signerId
-          );
-          signFlowsWithPositions.push(
-            position || {
-              userId: signer.signerId,
-              sequenceOrder: index + 1,
-              signatureType: Number(signer.signTypeId),
-            }
-          );
+          const userPositions = signPositions?.postions
+            .filter((p) => p.userId === signer.signerId)
+            .map((p) => ({
+              positionX: p.positionX,
+              positionY: p.positionY,
+              pageNumber: p.pageNumber,
+              width: p.width,
+              height: p.height,
+              fileIndex: p.fileIndex ?? 0,
+            }));
+
+          const firstPosition = userPositions?.[0];
+
+          signFlowsWithPositions.push({
+            userId: signer.signerId,
+            sequenceOrder: index + 1,
+            signatureType: Number(signer.signTypeId),
+            positionX: firstPosition?.positionX,
+            positionY: firstPosition?.positionY,
+            pageNumber: firstPosition?.pageNumber,
+            width: firstPosition?.width,
+            height: firstPosition?.height,
+            signPositions: userPositions && userPositions.length > 0 ? JSON.stringify(userPositions) : undefined,
+          });
         });
       }
 

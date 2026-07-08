@@ -65,6 +65,7 @@ export type ContractSignFlow = {
   pageNumber?: number;
   width?: number;
   height?: number;
+  signPositions?: string;
 };
 
 export type UpdateContractSignFlow = ContractSignFlow & {
@@ -246,6 +247,7 @@ export type Contract = {
     revisionNotes: string | null;
     departmentId: string;
     departmentName: string;
+    signPositions?: string | null;
   }[]
   | null;
   contractStructure?: string;

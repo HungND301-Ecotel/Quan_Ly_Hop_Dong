@@ -242,6 +242,7 @@ public class ContractSigningFlowDto
     public int? PageNumber { get; set; }
     public decimal? Width { get; set; }
     public decimal? Height { get; set; }
+    public string? SignPositions { get; set; }
     public string Status { get; set; }
     public DateTimeOffset? SignedAt { get; set; }
     public string? RejectionReason { get; set; }
@@ -275,6 +276,7 @@ public class CreateContractSigningFlowDto
     public int? PageNumber { get; set; }
     public decimal? Width { get; set; }
     public decimal? Height { get; set; }
+    public string? SignPositions { get; set; }
 }
 
 public class ContractSigningFlowPositionDto

@@ -1781,7 +1781,7 @@ public partial class ContractService(
         {
             if (newFlowMap.TryGetValue(existingFlow.Id, out var updateDto))
             {
-                existingFlow.Update(updateDto.UserId, updateDto.SequenceOrder, updateDto.SignatureType, updateDto.PositionX, updateDto.PositionY, updateDto.PageNumber, updateDto.Width, updateDto.Height);
+                existingFlow.Update(updateDto.UserId, updateDto.SequenceOrder, updateDto.SignatureType, updateDto.PositionX, updateDto.PositionY, updateDto.PageNumber, updateDto.Width, updateDto.Height, updateDto.SignPositions);
 
                 updateFlowList.Add(existingFlow);
                 insertFlowDtos.Remove(updateDto);
@@ -1858,7 +1858,7 @@ public partial class ContractService(
             {
                 foreach (var item in insertFlowDtos)
                 {
-                    entity.AddFlow(ContractSigningFlow.Create(item.UserId, item.SequenceOrder, item.SignatureType, item.PositionX, item.PositionY, item.PageNumber, item.Width, item.Height));
+                    entity.AddFlow(ContractSigningFlow.Create(item.UserId, item.SequenceOrder, item.SignatureType, item.PositionX, item.PositionY, item.PageNumber, item.Width, item.Height, item.SignPositions));
                 }
             }
 

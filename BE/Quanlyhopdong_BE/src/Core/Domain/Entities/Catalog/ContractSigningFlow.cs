@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using Domain.Common.Contracts;
 using Domain.Common.Enums;
 using Domain.Entities.Identity;
@@ -16,6 +16,7 @@ public class ContractSigningFlow : AuditableEntity<Guid>
     public int? PageNumber { get; protected set; }
     public decimal? Width { get; protected set; }
     public decimal? Height { get; protected set; }
+    public string? SignPositions { get; protected set; }
     public SigningFlowStatus Status { get; protected set; } = SigningFlowStatus.Pending;
     public DateTime? SignedAt { get; protected set; }
     public string? SignedFile { get; protected set; }
@@ -36,7 +37,7 @@ public class ContractSigningFlow : AuditableEntity<Guid>
         Status = status;
     }
 
-    public static ContractSigningFlow Create(Guid userId, int sequenceOrder, SignatureType signatureType, decimal? positionX, decimal? positionY, int? pageNumber, decimal? width, decimal? height)
+    public static ContractSigningFlow Create(Guid userId, int sequenceOrder, SignatureType signatureType, decimal? positionX, decimal? positionY, int? pageNumber, decimal? width, decimal? height, string? signPositions = null)
     {
         return new ContractSigningFlow
         {
@@ -47,7 +48,8 @@ public class ContractSigningFlow : AuditableEntity<Guid>
             PositionY = positionY,
             PageNumber = pageNumber,
             Width = width,
-            Height = height
+            Height = height,
+            SignPositions = signPositions
         };
     }
 
@@ -86,9 +88,10 @@ public class ContractSigningFlow : AuditableEntity<Guid>
         PositionY = positionY;
         Width = width;
         Height = height;
+        PageNumber = pageNumber;
     }
 
-    public void Update(Guid userId, int sequenceOrder, SignatureType signatureType, decimal? positionX, decimal? positionY, int? pageNumber, decimal? width, decimal? height)
+    public void Update(Guid userId, int sequenceOrder, SignatureType signatureType, decimal? positionX, decimal? positionY, int? pageNumber, decimal? width, decimal? height, string? signPositions = null)
     {
         UserId = userId;
         SignatureType = signatureType;
@@ -98,6 +101,8 @@ public class ContractSigningFlow : AuditableEntity<Guid>
         PositionY = positionY;
         Width = width;
         Height = height;
+        PageNumber = pageNumber;
+        SignPositions = signPositions;
     }
 
     public void Reset()

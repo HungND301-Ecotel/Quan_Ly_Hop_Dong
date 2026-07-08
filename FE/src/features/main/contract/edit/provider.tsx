@@ -70,8 +70,33 @@ export function ContractEditProvider({
 
     // Load signingFlows vào signPositions
     if (data.signingFlows && data.signingFlows.length > 0) {
-      setSignPositions({
-        postions: data.signingFlows.map((flow) => ({
+      const positions: any[] = [];
+      data.signingFlows.forEach((flow) => {
+        if (flow.signPositions) {
+          try {
+            const parsed = JSON.parse(flow.signPositions);
+            if (Array.isArray(parsed)) {
+              parsed.forEach((pos) => {
+                positions.push({
+                  userId: flow.userId,
+                  signatureType: flow.signatureType,
+                  sequenceOrder: flow.sequenceOrder,
+                  positionX: pos.positionX,
+                  positionY: pos.positionY,
+                  pageNumber: pos.pageNumber,
+                  width: pos.width,
+                  height: pos.height,
+                  fileIndex: pos.fileIndex ?? 0,
+                });
+              });
+              return;
+            }
+          } catch (e) {
+            console.error('Failed to parse signPositions', e);
+          }
+        }
+
+        positions.push({
           userId: flow.userId,
           positionX: flow.positionX,
           positionY: flow.positionY,
@@ -80,7 +105,12 @@ export function ContractEditProvider({
           sequenceOrder: flow.sequenceOrder,
           width: flow.width,
           height: flow.height,
-        })),
+          fileIndex: 0,
+        });
+      });
+
+      setSignPositions({
+        postions: positions,
       });
     }
 
