@@ -48,17 +48,13 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
         const [bankRes] = await Promise.all([
           BankAccountService.getBankAccountList(),
         ]);
-        setBankAccounts(bankRes || []);
+        setBankAccounts((bankRes || []).filter((a) => a.isActive));
       } catch (error) {
         console.error('Failed to fetch filter data', error);
       }
     };
     fetchData();
   }, [open]);
-
-  const onRefresh = () => {
-    table.options.meta?.refresh();
-  };
 
   const detailService = useCallback(() => {
     if (!row || !open) return;
@@ -97,6 +93,7 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
 
   const onSubmit = async (values: PartnerInformationValues) => {
     try {
+      setLoading(true);
       if (row) {
         await partnerService.updatePartner({
           id: row.original.id,
@@ -107,7 +104,6 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
       }
       toast.success('Cập nhật thông tin đối tác thành công');
       setOpen(false);
-      onRefresh();
       table.options.meta?.refresh?.();
     } catch {
       toast.error('Lỗi khi cập nhật thông tin đối tác');
@@ -132,7 +128,7 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
           )}
         </DialogTrigger>
 
-        <DialogContent className='flex flex-col gap-0 w-full md:min-w-2xl lg:min-w-4xl px-0 overflow-hidden'>
+        <DialogContent className='flex flex-col gap-0 w-full md:min-w-2xl lg:min-w-4xl px-0 overflow-hidden max-h-[90vh]'>
           <DialogHeader className='gap-1 p-6 pt-0 border-b'>
             <DialogTitle className='text-2xl font-semibold'>
               {row ? 'Chỉnh sửa' : 'Tạo mới'} đối tác
@@ -144,9 +140,9 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
           <Form
             context={form}
             onSubmit={onSubmit}
-            className='flex flex-col overflow-hidden'
+            className='flex flex-col overflow-hidden flex-1 min-h-0'
           >
-            <div className='flex-1 p-6 flex flex-col gap-6'>
+            <div className='flex-1 p-6 flex flex-col gap-6 overflow-y-auto min-h-0'>
               <FormRow>
                 <FormInput
                   control={form.control}
@@ -250,6 +246,7 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
               <Button
                 variant='outline'
                 type='button'
+                disabled={loading}
                 onClick={() => setOpen(false)}
               >
                 Hủy
@@ -260,7 +257,7 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
                 className='min-w-32 bg-blue-600 hover:bg-blue-700'
               >
                 <Save className='w-4 h-4 mr-2' />
-                {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+                {loading ? 'Đang lưu...' : 'Xác nhận'}
               </Button>
             </div>
           </Form>

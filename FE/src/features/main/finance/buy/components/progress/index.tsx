@@ -235,8 +235,11 @@ export function ProgressSection({
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
 
-  const { connections, loading: loadingConnections, loadConnections } =
-    useExternalSyncConnections();
+  const {
+    connections,
+    loading: loadingConnections,
+    loadConnections,
+  } = useExternalSyncConnections();
 
   useEffect(() => {
     if (showConnectionPicker) {
@@ -401,11 +404,14 @@ export function ProgressSection({
 
   return (
     <div className='space-y-8'>
-      <Dialog open={showConnectionPicker} onOpenChange={setShowConnectionPicker}>
-        <DialogContent className="sm:max-w-lg">
+      <Dialog
+        open={showConnectionPicker}
+        onOpenChange={setShowConnectionPicker}
+      >
+        <DialogContent className='sm:max-w-lg'>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Database className="w-5 h-5" />
+            <DialogTitle className='flex items-center gap-2'>
+              <Database className='w-5 h-5' />
               Chọn kết nối đồng bộ
             </DialogTitle>
             <DialogDescription>
@@ -413,16 +419,16 @@ export function ProgressSection({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-3 py-2">
+          <div className='space-y-3 py-2'>
             {loadingConnections ? (
-              <div className="flex justify-center items-center gap-2 py-8 text-muted-foreground">
-                <Loader2 className="w-5 h-5 animate-spin" />
+              <div className='flex justify-center items-center gap-2 py-8 text-muted-foreground'>
+                <Loader2 className='w-5 h-5 animate-spin' />
                 <span>Đang tải danh sách kết nối...</span>
               </div>
             ) : connections.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Database className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                <p className="text-sm">Chưa có kết nối nào được cấu hình</p>
+              <div className='text-center py-8 text-muted-foreground'>
+                <Database className='w-10 h-10 mx-auto mb-2 opacity-30' />
+                <p className='text-sm'>Chưa có kết nối nào được cấu hình</p>
               </div>
             ) : (
               connections.map((conn) => (
@@ -430,27 +436,32 @@ export function ProgressSection({
                   key={conn.id}
                   onClick={() => handleSelectConnection(conn)}
                   disabled={!conn.isActive}
-                  className="w-full text-left p-4 rounded-lg border hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className='w-full text-left p-4 rounded-lg border hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-100 rounded-md">
-                        <Database className="w-4 h-4 text-blue-600" />
+                  <div className='flex items-center justify-between'>
+                    <div className='flex items-center gap-3'>
+                      <div className='p-2 bg-blue-100 rounded-md'>
+                        <Database className='w-4 h-4 text-blue-600' />
                       </div>
                       <div>
-                        <p className="font-semibold text-sm text-slate-900">
+                        <p className='font-semibold text-sm text-slate-900'>
                           {conn.connection.server}
-                          <span className="text-slate-400 font-normal">:{conn.connection.port}</span>
+                          <span className='text-slate-400 font-normal'>
+                            :{conn.connection.port}
+                          </span>
                         </p>
-                        <p className="text-xs text-slate-500 mt-0.5">
+                        <p className='text-xs text-slate-500 mt-0.5'>
                           {conn.connection.database} · {conn.connection.userId}
                         </p>
                       </div>
                     </div>
-                    <span className={`px-2.5 py-1 text-xs rounded-full font-semibold ${conn.isActive
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-gray-100 text-gray-500'
-                      }`}>
+                    <span
+                      className={`px-2.5 py-1 text-xs rounded-full font-semibold ${
+                        conn.isActive
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
                       {conn.isActive ? 'Hoạt động' : 'Không hoạt động'}
                     </span>
                   </div>
@@ -469,14 +480,15 @@ export function ProgressSection({
           </div>
         </div>
 
-        <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
-          <div className="flex items-center gap-2">
-            <FileTextIcon className="size-4 text-blue-600" />
-            <span className="text-sm font-medium">Hóa đơn:</span>
-            {syncResult
-              ? <SyncResultBadges result={syncResult} />
-              : <span className="text-xs text-muted-foreground">—</span>
-            }
+        <div className='flex items-center justify-between p-4 rounded-lg border bg-muted/30'>
+          <div className='flex items-center gap-2'>
+            <FileTextIcon className='size-4 text-blue-600' />
+            <span className='text-sm font-medium'>Hóa đơn:</span>
+            {syncResult ? (
+              <SyncResultBadges result={syncResult} />
+            ) : (
+              <span className='text-xs text-muted-foreground'>—</span>
+            )}
           </div>
           <Button
             size='sm'
@@ -485,7 +497,9 @@ export function ProgressSection({
             disabled={syncing || !contractInfo}
             className='gap-1.5 shrink-0'
           >
-            <RefreshCwIcon className={cn('size-4', syncing && 'animate-spin')} />
+            <RefreshCwIcon
+              className={cn('size-4', syncing && 'animate-spin')}
+            />
             {syncing ? 'Đang đồng bộ...' : 'Đồng bộ hóa đơn'}
           </Button>
         </div>
@@ -494,18 +508,34 @@ export function ProgressSection({
           <DataTableHeader>
             {progressDetail && (
               <>
-                <Item variant={'outline'} size={'sm'} className='bg-background shadow-xs'>
-                  <ItemMedia variant={'icon'} className='size-10 bg-primary/20 text-primary rounded-md'>
+                <Item
+                  variant={'outline'}
+                  size={'sm'}
+                  className='bg-background shadow-xs'
+                >
+                  <ItemMedia
+                    variant={'icon'}
+                    className='size-10 bg-primary/20 text-primary rounded-md'
+                  >
                     <CalendarIcon className='size-5' />
                   </ItemMedia>
                   <ItemContent>
                     <ItemDescription>Từ ngày</ItemDescription>
-                    <ItemTitle>{format.date(progressDetail.fromDate)}</ItemTitle>
+                    <ItemTitle>
+                      {format.date(progressDetail.fromDate)}
+                    </ItemTitle>
                   </ItemContent>
                 </Item>
 
-                <Item variant={'outline'} size={'sm'} className='bg-background shadow-xs'>
-                  <ItemMedia variant={'icon'} className='size-10 bg-primary/20 text-primary rounded-md'>
+                <Item
+                  variant={'outline'}
+                  size={'sm'}
+                  className='bg-background shadow-xs'
+                >
+                  <ItemMedia
+                    variant={'icon'}
+                    className='size-10 bg-primary/20 text-primary rounded-md'
+                  >
                     <CalendarCheckIcon className='size-5' />
                   </ItemMedia>
                   <ItemContent>
@@ -514,8 +544,15 @@ export function ProgressSection({
                   </ItemContent>
                 </Item>
 
-                <Item variant={'outline'} size={'sm'} className='bg-background shadow-xs'>
-                  <ItemMedia variant={'icon'} className='size-10 bg-primary/20 text-primary rounded-md'>
+                <Item
+                  variant={'outline'}
+                  size={'sm'}
+                  className='bg-background shadow-xs'
+                >
+                  <ItemMedia
+                    variant={'icon'}
+                    className='size-10 bg-primary/20 text-primary rounded-md'
+                  >
                     <BanknoteIcon className='size-5' />
                   </ItemMedia>
                   <ItemContent>
@@ -526,13 +563,22 @@ export function ProgressSection({
               </>
             )}
 
-            <Item variant={'outline'} size={'sm'} className='bg-background shadow-xs'>
-              <ItemMedia variant={'icon'} className='size-10 bg-primary/20 text-primary rounded-md'>
+            <Item
+              variant={'outline'}
+              size={'sm'}
+              className='bg-background shadow-xs'
+            >
+              <ItemMedia
+                variant={'icon'}
+                className='size-10 bg-primary/20 text-primary rounded-md'
+              >
                 <TrendingUpIcon className='size-5' />
               </ItemMedia>
               <ItemContent>
                 <ItemDescription>Giá trị thực hiện</ItemDescription>
-                <ItemTitle>{format.number(progressDetail?.total || 0)}</ItemTitle>
+                <ItemTitle>
+                  {format.number(progressDetail?.total || 0)}
+                </ItemTitle>
               </ItemContent>
             </Item>
           </DataTableHeader>
@@ -540,7 +586,13 @@ export function ProgressSection({
           <DataTableContent />
 
           {!disabled && (
-            <Button onClick={handleAdd} type='button' variant='default' size={'lg'} className='w-full shadow'>
+            <Button
+              onClick={handleAdd}
+              type='button'
+              variant='default'
+              size={'lg'}
+              className='w-full shadow'
+            >
               <PlusIcon className='size-4' />
               Thêm mới thời gian thực hiện
             </Button>
@@ -561,8 +613,15 @@ export function ProgressSection({
           <DataTableHeader>
             {yearSummary && (
               <>
-                <Item variant={'outline'} size={'sm'} className='bg-background shadow-xs'>
-                  <ItemMedia variant={'icon'} className='size-10 bg-primary/20 text-primary rounded-md'>
+                <Item
+                  variant={'outline'}
+                  size={'sm'}
+                  className='bg-background shadow-xs'
+                >
+                  <ItemMedia
+                    variant={'icon'}
+                    className='size-10 bg-primary/20 text-primary rounded-md'
+                  >
                     <CalendarArrowUpIcon className='size-5' />
                   </ItemMedia>
                   <ItemContent>
@@ -571,8 +630,15 @@ export function ProgressSection({
                   </ItemContent>
                 </Item>
 
-                <Item variant={'outline'} size={'sm'} className='bg-background shadow-xs'>
-                  <ItemMedia variant={'icon'} className='size-10 bg-primary/20 text-primary rounded-md'>
+                <Item
+                  variant={'outline'}
+                  size={'sm'}
+                  className='bg-background shadow-xs'
+                >
+                  <ItemMedia
+                    variant={'icon'}
+                    className='size-10 bg-primary/20 text-primary rounded-md'
+                  >
                     <CalendarArrowDownIcon className='size-5' />
                   </ItemMedia>
                   <ItemContent>
@@ -581,8 +647,15 @@ export function ProgressSection({
                   </ItemContent>
                 </Item>
 
-                <Item variant={'outline'} size={'sm'} className='bg-background shadow-xs'>
-                  <ItemMedia variant={'icon'} className='size-10 bg-primary/20 text-primary rounded-md'>
+                <Item
+                  variant={'outline'}
+                  size={'sm'}
+                  className='bg-background shadow-xs'
+                >
+                  <ItemMedia
+                    variant={'icon'}
+                    className='size-10 bg-primary/20 text-primary rounded-md'
+                  >
                     <BanknoteIcon className='size-5' />
                   </ItemMedia>
                   <ItemContent>
@@ -591,8 +664,15 @@ export function ProgressSection({
                   </ItemContent>
                 </Item>
 
-                <Item variant={'outline'} size={'sm'} className='bg-background shadow-xs'>
-                  <ItemMedia variant={'icon'} className='size-10 bg-primary/20 text-primary rounded-md'>
+                <Item
+                  variant={'outline'}
+                  size={'sm'}
+                  className='bg-background shadow-xs'
+                >
+                  <ItemMedia
+                    variant={'icon'}
+                    className='size-10 bg-primary/20 text-primary rounded-md'
+                  >
                     <TrendingUpIcon className='size-5' />
                   </ItemMedia>
                   <ItemContent>
@@ -629,8 +709,15 @@ export function ProgressSection({
           <DataTableHeader>
             {workInProgress && (
               <>
-                <Item variant={'outline'} size={'sm'} className='bg-background shadow-xs'>
-                  <ItemMedia variant={'icon'} className='size-10 bg-primary/20 text-primary rounded-md'>
+                <Item
+                  variant={'outline'}
+                  size={'sm'}
+                  className='bg-background shadow-xs'
+                >
+                  <ItemMedia
+                    variant={'icon'}
+                    className='size-10 bg-primary/20 text-primary rounded-md'
+                  >
                     <BanknoteIcon className='size-5' />
                   </ItemMedia>
                   <ItemContent>
@@ -639,23 +726,41 @@ export function ProgressSection({
                   </ItemContent>
                 </Item>
 
-                <Item variant={'outline'} size={'sm'} className='bg-background shadow-xs'>
-                  <ItemMedia variant={'icon'} className='size-10 bg-primary/20 text-primary rounded-md'>
+                <Item
+                  variant={'outline'}
+                  size={'sm'}
+                  className='bg-background shadow-xs'
+                >
+                  <ItemMedia
+                    variant={'icon'}
+                    className='size-10 bg-primary/20 text-primary rounded-md'
+                  >
                     <TrendingUpIcon className='size-5' />
                   </ItemMedia>
                   <ItemContent>
                     <ItemDescription>Giá trị thực hiện</ItemDescription>
-                    <ItemTitle>{format.number(progressDetail?.total || 0)}</ItemTitle>
+                    <ItemTitle>
+                      {format.number(progressDetail?.total || 0)}
+                    </ItemTitle>
                   </ItemContent>
                 </Item>
 
-                <Item variant={'outline'} size={'sm'} className='bg-background shadow-xs'>
-                  <ItemMedia variant={'icon'} className='size-10 bg-primary/20 text-primary rounded-md'>
+                <Item
+                  variant={'outline'}
+                  size={'sm'}
+                  className='bg-background shadow-xs'
+                >
+                  <ItemMedia
+                    variant={'icon'}
+                    className='size-10 bg-primary/20 text-primary rounded-md'
+                  >
                     <CalculatorIcon className='size-5' />
                   </ItemMedia>
                   <ItemContent>
                     <ItemDescription>Giá trị dở dang</ItemDescription>
-                    <ItemTitle>{format.number(workInProgress.totalAmount)}</ItemTitle>
+                    <ItemTitle>
+                      {format.number(workInProgress.totalAmount)}
+                    </ItemTitle>
                   </ItemContent>
                 </Item>
               </>
@@ -784,12 +889,14 @@ function ProgressFormDialog({
     defaultValues: ContractProgressFormDefault as ContractProgressFormValues,
   });
 
-
   const [loadingItems, setLoadingItems] = useState(false);
-  const [invoices, setInvoices] = useState<{ label: string; value: string }[]>([]);
+  const [invoices, setInvoices] = useState<{ label: string; value: string }[]>(
+    []
+  );
   const [payments, setPayments] = useState<any[]>([]);
   // executedQuantity của lần N+1 theo contractItemId
-  const [nextProgressItemMap, setNextProgressItemMap] = useState<NextProgressItemMap>({});
+  const [nextProgressItemMap, setNextProgressItemMap] =
+    useState<NextProgressItemMap>({});
   const hasNextProgress = Object.keys(nextProgressItemMap).length > 0;
   const [allProgresses, setAllProgresses] = useState<ApiContractProgress[]>([]);
 
@@ -814,7 +921,8 @@ function ProgressFormDialog({
         setLoadingItems(true);
         setNextProgressItemMap({});
 
-        const paymentDetail = await contractPaymentService.getContractPaymentDetail(contractId);
+        const paymentDetail =
+          await contractPaymentService.getContractPaymentDetail(contractId);
         const rawPayments = paymentDetail?.payments || [];
         setPayments(rawPayments);
 
@@ -826,7 +934,8 @@ function ProgressFormDialog({
           }));
         setInvoices(invoiceOptions);
 
-        const schedulesPromise = contractPaymentService.getPaymentSchedules(contractId);
+        const schedulesPromise =
+          contractPaymentService.getPaymentSchedules(contractId);
 
         if (isEdit && progress) {
           const [detail] = await Promise.all([
@@ -836,10 +945,14 @@ function ProgressFormDialog({
 
           const allProgresses = detail?.contractProgresses || [];
           setAllProgresses(allProgresses);
-          const currentProgressApi = allProgresses.find((item) => item.id === progress.id);
+          const currentProgressApi = allProgresses.find(
+            (item) => item.id === progress.id
+          );
 
           if (!currentProgressApi) {
-            toast.error('Không tìm thấy dữ liệu cũ của thời gian thực hiện để chỉnh sửa');
+            toast.error(
+              'Không tìm thấy dữ liệu cũ của thời gian thực hiện để chỉnh sửa'
+            );
             onOpenChange(false);
             return;
           }
@@ -862,7 +975,10 @@ function ProgressFormDialog({
             setNextProgressItemMap(map);
           }
 
-          const items = currentProgressApi.contractProgressItems?.map(mapApiContractItemToUi) || [];
+          const items =
+            currentProgressApi.contractProgressItems?.map(
+              mapApiContractItemToUi
+            ) || [];
           const totals = calculateProgressTotals(items);
 
           form.reset({
@@ -902,9 +1018,10 @@ function ProgressFormDialog({
         // Lấy lần thực hiện cuối cùng (nếu có) để dùng remainingQuantity làm contractQuantity
         const allProgresses = detail?.contractProgresses || [];
         setAllProgresses(allProgresses);
-        const lastProgress = allProgresses.length > 0
-          ? allProgresses[allProgresses.length - 1]
-          : null;
+        const lastProgress =
+          allProgresses.length > 0
+            ? allProgresses[allProgresses.length - 1]
+            : null;
 
         // Map contractItemId → remainingQuantity của lần cuối
         const lastRemainingMap: Record<string, number> = {};
@@ -959,7 +1076,15 @@ function ProgressFormDialog({
     };
 
     fetchItems();
-  }, [open, isEdit, progress?.id, progressIndex, contractId, form, onOpenChange]);
+  }, [
+    open,
+    isEdit,
+    progress?.id,
+    progressIndex,
+    contractId,
+    form,
+    onOpenChange,
+  ]);
 
   const watchedPaymentId = form.watch('contractPaymentId');
   const watchedExecutedAmount = form.watch('executedAmount');
@@ -975,10 +1100,17 @@ function ProgressFormDialog({
     const invoiceAmount = selectedPayment.amount ?? 0;
 
     const otherProgressesAmount = allProgresses
-      .filter((p) => p.contractPaymentId === watchedPaymentId && (!isEdit || p.id !== progress?.id))
+      .filter(
+        (p) =>
+          p.contractPaymentId === watchedPaymentId &&
+          (!isEdit || p.id !== progress?.id)
+      )
       .reduce((sum, p) => sum + (p.executedAmount ?? 0), 0);
 
-    const remainingInvoiceAmount = Math.max(0, invoiceAmount - otherProgressesAmount);
+    const remainingInvoiceAmount = Math.max(
+      0,
+      invoiceAmount - otherProgressesAmount
+    );
 
     return {
       invoiceAmount,
@@ -996,16 +1128,27 @@ function ProgressFormDialog({
 
   const onSubmit = async (data: ContractProgressFormValues) => {
     if (data.contractPaymentId) {
-      const selectedPayment = payments.find((p) => p.id === data.contractPaymentId);
+      const selectedPayment = payments.find(
+        (p) => p.id === data.contractPaymentId
+      );
       if (selectedPayment) {
         const invoiceAmount = selectedPayment.amount ?? 0;
         const otherProgressesAmount = allProgresses
-          .filter((p) => p.contractPaymentId === data.contractPaymentId && (!isEdit || p.id !== progress?.id))
+          .filter(
+            (p) =>
+              p.contractPaymentId === data.contractPaymentId &&
+              (!isEdit || p.id !== progress?.id)
+          )
           .reduce((sum, p) => sum + (p.executedAmount ?? 0), 0);
-        const remainingInvoiceAmount = Math.max(0, invoiceAmount - otherProgressesAmount);
+        const remainingInvoiceAmount = Math.max(
+          0,
+          invoiceAmount - otherProgressesAmount
+        );
 
         if (Number(data.executedAmount || 0) > remainingInvoiceAmount) {
-          toast.error(`Số tiền thực hiện vượt quá số tiền còn lại của hóa đơn (tối đa còn lại: ${format.number(remainingInvoiceAmount)} đ)`);
+          toast.error(
+            `Số tiền thực hiện vượt quá số tiền còn lại của hóa đơn (tối đa còn lại: ${format.number(remainingInvoiceAmount)} đ)`
+          );
           return;
         }
       }
@@ -1035,17 +1178,25 @@ function ProgressFormDialog({
           paymentScheduleId: data.paymentScheduleId || null,
           periodStart: data.periodStart,
           periodEnd: data.periodEnd,
-          contractProgressItems: data.isHasMaterial === false ? [] : data.contractProgressItems.map((item) => ({
-            id: item.id,
-            contractItemId: item.contractItemId,
-            executedQuantity: item.currentExecutedQuantity,
-          })),
+          contractProgressItems:
+            data.isHasMaterial === false
+              ? []
+              : data.contractProgressItems.map((item) => ({
+                  id: item.id,
+                  contractItemId: item.contractItemId,
+                  executedQuantity: item.currentExecutedQuantity,
+                })),
           contractPaymentId: data.contractPaymentId || null,
           executedAmount: Number(data.executedAmount) || 0,
         };
 
-        const res = await contractProgressService.updateContractProgressWithItems(payload);
-        toast.success(res?.message || 'Cập nhật thời gian thực hiện thành công');
+        const res =
+          await contractProgressService.updateContractProgressWithItems(
+            payload
+          );
+        toast.success(
+          res?.message || 'Cập nhật thời gian thực hiện thành công'
+        );
         onSaved('edit');
       } catch (error) {
         toast.error(
@@ -1063,17 +1214,21 @@ function ProgressFormDialog({
         paymentScheduleId: data.paymentScheduleId || null,
         periodStart: data.periodStart,
         periodEnd: data.periodEnd,
-        contractProgressItems: data.isHasMaterial === false ? [] : data.contractProgressItems
-          .filter((item) => item.currentExecutedQuantity > 0)
-          .map((item) => ({
-            contractItemId: item.contractItemId,
-            executedQuantity: item.currentExecutedQuantity,
-          })),
+        contractProgressItems:
+          data.isHasMaterial === false
+            ? []
+            : data.contractProgressItems
+                .filter((item) => item.currentExecutedQuantity > 0)
+                .map((item) => ({
+                  contractItemId: item.contractItemId,
+                  executedQuantity: item.currentExecutedQuantity,
+                })),
         contractPaymentId: data.contractPaymentId || null,
         executedAmount: Number(data.executedAmount) || 0,
       };
 
-      const res = await contractProgressService.createContractProgressWithItems(payload);
+      const res =
+        await contractProgressService.createContractProgressWithItems(payload);
       toast.success(res?.message || 'Thêm mới thời gian thực hiện thành công');
       onSaved('create');
       form.reset(ContractProgressFormDefault as ContractProgressFormValues);
@@ -1091,7 +1246,9 @@ function ProgressFormDialog({
       <DialogContent className='max-w-6xl! sm:max-w-6xl! max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? 'Chỉnh sửa thời gian thực hiện' : 'Thêm mới thời gian thực hiện'}
+            {isEdit
+              ? 'Chỉnh sửa thời gian thực hiện'
+              : 'Thêm mới thời gian thực hiện'}
           </DialogTitle>
           <DialogDescription>
             {loadingItems
@@ -1129,11 +1286,17 @@ function ProgressFormDialog({
                   name='executedAmount'
                   label='Số tiền thực hiện (đ)'
                   placeholder='Nhập số tiền thực hiện'
-                  className={isOverRemaining ? 'border-destructive focus-within:ring-destructive' : ''}
+                  className={
+                    isOverRemaining
+                      ? 'border-destructive focus-within:ring-destructive'
+                      : ''
+                  }
                 />
                 {isOverRemaining && (
                   <p className='text-xs text-destructive font-medium'>
-                    Số tiền thực hiện không được vượt quá số tiền còn lại của hóa đơn ({format.number(invoiceInfo?.remainingInvoiceAmount || 0)} đ)
+                    Số tiền thực hiện không được vượt quá số tiền còn lại của
+                    hóa đơn (
+                    {format.number(invoiceInfo?.remainingInvoiceAmount || 0)} đ)
                   </p>
                 )}
               </div>
@@ -1147,16 +1310,28 @@ function ProgressFormDialog({
                 </h5>
                 <div className='grid grid-cols-3 gap-4 text-xs sm:text-sm'>
                   <div className='p-2 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-lg shadow-xs'>
-                    <span className='text-muted-foreground block text-[11px] font-medium uppercase tracking-wider'>Giá trị hóa đơn gốc</span>
-                    <span className='font-bold text-slate-900 dark:text-slate-100'>{format.number(invoiceInfo.invoiceAmount)} đ</span>
+                    <span className='text-muted-foreground block text-[11px] font-medium uppercase tracking-wider'>
+                      Giá trị hóa đơn gốc
+                    </span>
+                    <span className='font-bold text-slate-900 dark:text-slate-100'>
+                      {format.number(invoiceInfo.invoiceAmount)} đ
+                    </span>
                   </div>
                   <div className='p-2 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-lg shadow-xs'>
-                    <span className='text-muted-foreground block text-[11px] font-medium uppercase tracking-wider'>Tổng đã thực hiện trước đó</span>
-                    <span className='font-bold text-amber-600 dark:text-amber-400'>{format.number(invoiceInfo.otherProgressesAmount)} đ</span>
+                    <span className='text-muted-foreground block text-[11px] font-medium uppercase tracking-wider'>
+                      Tổng đã thực hiện trước đó
+                    </span>
+                    <span className='font-bold text-amber-600 dark:text-amber-400'>
+                      {format.number(invoiceInfo.otherProgressesAmount)} đ
+                    </span>
                   </div>
                   <div className='p-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/30 rounded-lg shadow-xs'>
-                    <span className='text-blue-600 dark:text-blue-400 block text-[11px] font-semibold uppercase tracking-wider'>Giá trị tối đa còn lại</span>
-                    <span className='font-extrabold text-blue-700 dark:text-blue-300'>{format.number(invoiceInfo.remainingInvoiceAmount)} đ</span>
+                    <span className='text-blue-600 dark:text-blue-400 block text-[11px] font-semibold uppercase tracking-wider'>
+                      Giá trị tối đa còn lại
+                    </span>
+                    <span className='font-extrabold text-blue-700 dark:text-blue-300'>
+                      {format.number(invoiceInfo.remainingInvoiceAmount)} đ
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1164,7 +1339,9 @@ function ProgressFormDialog({
 
             {fields && fields.length > 0 && (
               <div>
-                <h4 className='font-semibold mb-4'>Danh sách vật tư / thành phần hợp đồng</h4>
+                <h4 className='font-semibold mb-4'>
+                  Danh sách vật tư, tài sản
+                </h4>
                 {loadingItems ? (
                   <div className='text-center py-8 text-muted-foreground'>
                     Đang tải danh sách vật tư...
@@ -1174,8 +1351,8 @@ function ProgressFormDialog({
                     <Table className='w-full'>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Mã thành phần hợp đồng</TableHead>
-                          <TableHead>Tên thành phần hợp đồng</TableHead>
+                          <TableHead>Mã vật tư, tài sản</TableHead>
+                          <TableHead>Tên vật tư, tài sản</TableHead>
                           <TableHead>Khối lượng hợp đồng</TableHead>
                           <TableHead>Khối lượng thực hiện</TableHead>
                           <TableHead>Khối lượng chưa thực hiện</TableHead>
@@ -1184,18 +1361,25 @@ function ProgressFormDialog({
                       <TableBody>
                         {fields?.map((field, index) => {
                           const currentItem = watchedItems?.[index];
-                          const currentQty = Number(currentItem?.currentExecutedQuantity) || 0;
+                          const currentQty =
+                            Number(currentItem?.currentExecutedQuantity) || 0;
                           // maxQty = remainingQuantity đã được tính đúng lần 1/lần 2+ trong mapApiContractItemToUi
                           const maxQty = Number(field.remainingQuantity) || 0;
                           // nextQty = executedQuantity của lần N+1 cho vật tư này (nếu có)
-                          const nextQty = nextProgressItemMap[field.contractItemId] ?? 0;
+                          const nextQty =
+                            nextProgressItemMap[field.contractItemId] ?? 0;
 
                           const isOverMax = currentQty > maxQty;
                           // Cảnh báo nếu nhập thấp hơn lần N+1 đã dùng
-                          const isUnderNext = hasNextProgress && nextQty > 0 && currentQty < nextQty;
+                          const isUnderNext =
+                            hasNextProgress &&
+                            nextQty > 0 &&
+                            currentQty < nextQty;
                           const hasError = isOverMax || isUnderNext;
 
-                          const unexecuted = hasError ? null : maxQty - currentQty;
+                          const unexecuted = hasError
+                            ? null
+                            : maxQty - currentQty;
 
                           return (
                             <TableRow key={field.id}>
@@ -1203,7 +1387,8 @@ function ProgressFormDialog({
                               <TableCell>{field.itemName}</TableCell>
                               {/* Khối lượng HĐ: contractQuantity đã được map đúng lần 1/2+ */}
                               <TableCell>
-                                {format.number(field.contractQuantity)} {field.unit}
+                                {format.number(field.contractQuantity)}{' '}
+                                {field.unit}
                               </TableCell>
                               <TableCell>
                                 <div className='space-y-1'>
@@ -1211,18 +1396,23 @@ function ProgressFormDialog({
                                     control={form.control}
                                     name={`contractProgressItems.${index}.currentExecutedQuantity`}
                                     placeholder='Nhập khối lượng thực hiện'
-                                    className={hasError ? 'border-destructive' : ''}
+                                    className={
+                                      hasError ? 'border-destructive' : ''
+                                    }
                                   />
                                   {/* Vượt quá khối lượng hợp đồng */}
                                   {isOverMax && (
                                     <p className='text-xs text-destructive'>
-                                      Vượt quá khối lượng cho phép ({format.number(maxQty)})
+                                      Vượt quá khối lượng cho phép (
+                                      {format.number(maxQty)})
                                     </p>
                                   )}
                                   {/* Thấp hơn lần N+1 đã dùng */}
                                   {!isOverMax && isUnderNext && (
                                     <p className='text-xs text-destructive'>
-                                      Không thể chỉnh sửa vì khối lượng lần thực hiện sau bị thiếu hụt, vui lòng sửa hợp lý (tối thiểu {format.number(nextQty)})
+                                      Không thể chỉnh sửa vì khối lượng lần thực
+                                      hiện sau bị thiếu hụt, vui lòng sửa hợp lý
+                                      (tối thiểu {format.number(nextQty)})
                                     </p>
                                   )}
                                 </div>
@@ -1230,7 +1420,9 @@ function ProgressFormDialog({
                               {/* KL chưa thực hiện */}
                               <TableCell>
                                 {hasError ? (
-                                  <span className='text-destructive font-medium'>—</span>
+                                  <span className='text-destructive font-medium'>
+                                    —
+                                  </span>
                                 ) : (
                                   format.number(unexecuted)
                                 )}
@@ -1246,7 +1438,6 @@ function ProgressFormDialog({
             )}
 
             <div className='grid grid-cols-2 gap-4'>
-
               <div className='flex gap-2 items-center p-4 rounded-lg'>
                 <span className='font-semibold'>Tổng giá trị:</span>
                 <span className='text-xl font-bold text-primary'>
@@ -1264,7 +1455,9 @@ function ProgressFormDialog({
               </DialogClose>
               <Button
                 type='submit'
-                disabled={loadingItems || form.formState.isSubmitting || isOverRemaining}
+                disabled={
+                  loadingItems || form.formState.isSubmitting || isOverRemaining
+                }
               >
                 {form.formState.isSubmitting ? (
                   <Spinner className='size-4' />
@@ -1307,12 +1500,20 @@ function ViewProgressDialog({
           {progress.isHasValue && (
             <div className='grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg'>
               <div>
-                <span className='font-semibold text-muted-foreground block text-xs'>Số hóa đơn</span>
-                <span className='font-medium'>{progress.numberInvoice || '—'}</span>
+                <span className='font-semibold text-muted-foreground block text-xs'>
+                  Số hóa đơn
+                </span>
+                <span className='font-medium'>
+                  {progress.numberInvoice || '—'}
+                </span>
               </div>
               <div>
-                <span className='font-semibold text-muted-foreground block text-xs'>Số tiền thực hiện</span>
-                <span className='font-bold text-primary'>{format.number(progress.executedAmount || 0)} đ</span>
+                <span className='font-semibold text-muted-foreground block text-xs'>
+                  Số tiền thực hiện
+                </span>
+                <span className='font-bold text-primary'>
+                  {format.number(progress.executedAmount || 0)} đ
+                </span>
               </div>
             </div>
           )}
@@ -1325,8 +1526,9 @@ function ViewProgressDialog({
                     <TableHead>Mã thành phần</TableHead>
                     <TableHead>Tên thành phần</TableHead>
                     <TableHead>Đơn giá (đ)</TableHead>
-                    <TableHead>Khối lượng hợp đồng</TableHead>  {/* ✅ thêm */}
-                    <TableHead>Thành tiền hợp đồng (đ)</TableHead>  {/* ✅ thêm */}
+                    <TableHead>Khối lượng hợp đồng</TableHead> {/* ✅ thêm */}
+                    <TableHead>Thành tiền hợp đồng (đ)</TableHead>{' '}
+                    {/* ✅ thêm */}
                     <TableHead>Khối lượng thực hiện</TableHead>
                     <TableHead>Thành tiền thực hiện (đ)</TableHead>
                   </TableRow>
@@ -1339,14 +1541,22 @@ function ViewProgressDialog({
                         <TableCell>{item.itemCode}</TableCell>
                         <TableCell>{item.itemName}</TableCell>
                         <TableCell>{format.number(item.unitPrice)}</TableCell>
-                        <TableCell>                                      {/* ✅ thêm */}
+                        <TableCell>
+                          {' '}
+                          {/* ✅ thêm */}
                           {format.number(item.contractQuantity)} {item.unit}
                         </TableCell>
-                        <TableCell>{format.number(item.contractAmount)}</TableCell>  {/* ✅ thêm */}
                         <TableCell>
-                          {format.number(item.currentExecutedQuantity)} {item.unit}
+                          {format.number(item.contractAmount)}
+                        </TableCell>{' '}
+                        {/* ✅ thêm */}
+                        <TableCell>
+                          {format.number(item.currentExecutedQuantity)}{' '}
+                          {item.unit}
                         </TableCell>
-                        <TableCell>{format.number(item.currentExecutedAmount)}</TableCell>
+                        <TableCell>
+                          {format.number(item.currentExecutedAmount)}
+                        </TableCell>
                       </TableRow>
                     ))}
                 </TableBody>

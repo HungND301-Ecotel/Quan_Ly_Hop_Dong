@@ -28,7 +28,10 @@ import {
   Level1CodeValues,
 } from './schema';
 
-export function EditLevel1CodeAction({ row, table }: DataTableEvent<Level1Code>) {
+export function EditLevel1CodeAction({
+  row,
+  table,
+}: DataTableEvent<Level1Code>) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -152,7 +155,7 @@ export function EditLevel1CodeAction({ row, table }: DataTableEvent<Level1Code>)
                 }
               />
             </FormRow>
-             <FormRow>
+            <FormRow>
               <FormSelect
                 control={form.control}
                 name='contractRegisterId'
@@ -188,7 +191,7 @@ export function EditLevel1CodeAction({ row, table }: DataTableEvent<Level1Code>)
               className='min-w-32 bg-blue-600 hover:bg-blue-700'
             >
               <Save className='w-4 h-4 mr-2' />
-              {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+              {loading ? 'Đang lưu...' : 'Xác nhận'}
             </Button>
           </div>
         </Form>

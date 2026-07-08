@@ -214,7 +214,7 @@ function CreateMaterialDialog({
               className='min-w-32 bg-blue-600 hover:bg-blue-700'
             >
               <Save className='w-4 h-4 mr-2' />
-              {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+              {loading ? 'Đang lưu...' : 'Xác nhận'}
             </Button>
           </div>
         </Form>
@@ -1243,7 +1243,7 @@ export function ContractBasicInformationForm() {
                         {!isRuleContract && (
                           <>
                             <th className='w-44 border-b bg-muted px-3 py-2 text-left font-medium'>
-                              Số lượng
+                              Khối lượng
                             </th>
                             <th className='w-40 border-b bg-muted px-3 py-2 text-left font-medium'>
                               Thành tiền
@@ -1304,7 +1304,7 @@ export function ContractBasicInformationForm() {
                                   <FormNumber
                                     control={form.control}
                                     name={`contractItems.${index}.quantity`}
-                                    placeholder='Nhập số lượng'
+                                    placeholder='Nhập khối lượng'
                                   />
                                 </td>
 
