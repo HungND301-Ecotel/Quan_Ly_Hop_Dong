@@ -271,7 +271,7 @@ export function EditFinanceDialog() {
               </DialogClose>
               <Button type='submit' size='lg'>
                 <SaveIcon />
-                Lưu thay đổi
+                Xác nhận
               </Button>
             </DialogFooter>
           </Tabs>

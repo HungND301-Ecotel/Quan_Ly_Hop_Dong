@@ -129,7 +129,7 @@ export function EconomicContractDetail({
             </DialogClose>
           </div>
 
-          <ScrollArea className='flex-1 overflow-hidden bg-muted'>
+          <ScrollArea className='flex-1 overflow-hidden'>
             <div className='p-6'>
               <TabsContent value='information'>
                 {tab === 'information' && (

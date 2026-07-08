@@ -170,7 +170,7 @@ export function CreateBankAccountDialog({
               className='min-w-32 bg-blue-600 hover:bg-blue-700'
             >
               <Save className='w-4 h-4 mr-2' />
-              {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+              {loading ? 'Đang lưu...' : 'Xác nhận'}
             </Button>
           </div>
         </Form>
@@ -247,7 +247,10 @@ export function BankAccountSelect({
               <ChevronsUpDown className='h-4 w-4 shrink-0 opacity-50' />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className='w-[var(--radix-popover-trigger-width)] p-0' align='start'>
+          <PopoverContent
+            className='w-[var(--radix-popover-trigger-width)] p-0'
+            align='start'
+          >
             <Command>
               <CommandInput placeholder='Tìm số TK, chủ TK, ngân hàng...' />
               <CommandList onWheel={(e) => e.stopPropagation()}>

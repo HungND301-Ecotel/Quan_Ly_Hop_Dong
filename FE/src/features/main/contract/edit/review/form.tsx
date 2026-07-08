@@ -501,11 +501,12 @@ export function ContractReviewForm() {
 
       if (isUpdate && contract) {
         await contractService.updateContract(contract.id, requestBody);
+        toast.success('Sửa hợp đồng thành công');
       } else {
         await contractService.createContract(requestBody);
+        toast.success('Tạo hợp đồng thành công');
       }
 
-      toast.success('Tạo hợp đồng thành công');
       queryClient.invalidateQueries({ queryKey: ['data-table'] });
       callback?.();
     } catch (error: any) {

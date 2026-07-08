@@ -27,10 +27,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
-export function BankAccountEdit({
-  row,
-  table,
-}: DataTableEvent<BankAccount>) {
+export function BankAccountEdit({ row, table }: DataTableEvent<BankAccount>) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -71,7 +68,10 @@ export function BankAccountEdit({
     try {
       setLoading(true);
       if (row) {
-        await BankAccountService.updateBankAccount({ id: row.original.id, ...values });
+        await BankAccountService.updateBankAccount({
+          id: row.original.id,
+          ...values,
+        });
         toast.success('Cập nhật tài khoản ngân hàng thành công');
       } else {
         await BankAccountService.createBankAccount(values);
@@ -90,7 +90,9 @@ export function BankAccountEdit({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {row ? (
-          <Button variant='ghost' size='icon'><Edit /></Button>
+          <Button variant='ghost' size='icon'>
+            <Edit />
+          </Button>
         ) : (
           <Button variant='default' size='lg'>
             <PlusIcon />
@@ -109,7 +111,11 @@ export function BankAccountEdit({
           </DialogDescription>
         </DialogHeader>
 
-        <Form context={form} onSubmit={onSubmit} className='flex flex-col overflow-hidden'>
+        <Form
+          context={form}
+          onSubmit={onSubmit}
+          className='flex flex-col overflow-hidden'
+        >
           <div className='flex-1 p-6 flex flex-col gap-4'>
             <FormRow>
               <FormInput
@@ -156,7 +162,11 @@ export function BankAccountEdit({
           </div>
 
           <div className='flex justify-end items-center gap-3 p-4 px-6 pb-0 border-t'>
-            <Button variant='outline' type='button' onClick={() => setOpen(false)}>
+            <Button
+              variant='outline'
+              type='button'
+              onClick={() => setOpen(false)}
+            >
               Hủy
             </Button>
             <Button
@@ -165,7 +175,7 @@ export function BankAccountEdit({
               className='min-w-32 bg-blue-600 hover:bg-blue-700'
             >
               <Save className='w-4 h-4 mr-2' />
-              {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+              {loading ? 'Đang lưu...' : 'Xác nhận'}
             </Button>
           </div>
         </Form>
