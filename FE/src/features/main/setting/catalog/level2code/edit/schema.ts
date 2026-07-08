@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const Level2CodeSchema = z.object({
   code: z.string().min(1, 'Mã cấp 2 không được để trống'),
   description: z.string().optional(),
-  level1CodeId: z.string().min(1, 'Vui lòng chọn mã cấp 1'),
+  level1CodeId: z.string().min(1, 'Mã cấp 1 không được để trống'),
 });
 
 export type Level2CodeValues = z.infer<typeof Level2CodeSchema>;

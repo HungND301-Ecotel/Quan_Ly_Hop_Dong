@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export const BankAccountSchema = z.object({
-  bankName: z.string().min(1, 'Vui lòng nhập tên ngân hàng'),
-  accountNumber: z.string().min(1, 'Vui lòng nhập số tài khoản'),
-  accountHolder: z.string().min(1, 'Vui lòng nhập tên chủ tài khoản'),
+  bankName: z.string().min(1, 'Tên ngân hàng không được để trống'),
+  accountNumber: z.string().min(1, 'Số tài khoản không được để trống'),
+  accountHolder: z.string().min(1, 'Tên chủ tài khoản không được để trống'),
   isActive: z.boolean(),
   note: z.string().optional(),
 });

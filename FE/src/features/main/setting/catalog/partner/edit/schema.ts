@@ -10,7 +10,9 @@ export const PartnerSchema = z.object({
   fax: z.string().min(1, 'Fax không được để trống'),
   bankId: z.string().min(1, 'Tài khoản ngân hàng không được để trống'),
   note: z.string().optional(),
-  partnerContractCode: z.string().min(1, 'Mã đối tác hợp đồng'),
+  partnerContractCode: z
+    .string()
+    .min(1, 'Mã đối tác hợp đồng không được để trống'),
 });
 
 export type PartnerInformationValues = z.infer<typeof PartnerSchema>;
