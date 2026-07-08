@@ -8,6 +8,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SummarySection } from '@/features/main/finance/buy/components/summary';
 import { Contract } from '@/services/contract/type';
@@ -129,7 +130,12 @@ export function EconomicContractDetail({
             </DialogClose>
           </div>
 
-          <ScrollArea className='flex-1 overflow-hidden'>
+          <ScrollArea
+            className={cn(
+              'flex-1 overflow-hidden',
+              tab === 'document' && 'hidden'
+            )}
+          >
             <div className='p-6'>
               <TabsContent value='information'>
                 {tab === 'information' && (
@@ -181,49 +187,48 @@ export function EconomicContractDetail({
                   />
                 )}
               </TabsContent>
-
-              <TabsContent value='document'>
-                {tab === 'document' && (
-                  <ContractDocuments
-                    loading={detail.loading}
-                    documents={[
-                      ...(detail.data?.filePath
-                        ? detail.data.filePath
-                            .split(';')
-                            .filter(Boolean)
-                            .map((url, i) => ({
-                              url,
-                              name: detail.data?.contractName
-                                ? `${detail.data.contractName}${i > 0 ? ` (${i + 1})` : ''}`
-                                : url,
-                              group: 'origin' as const,
-                            }))
-                        : []),
-                      ...(detail.data?.signedFilePath
-                        ? detail.data.signedFilePath
-                            .split(';')
-                            .filter(Boolean)
-                            .filter((url) => url !== detail.data?.filePath)
-                            .map((url, i) => ({
-                              url,
-                              name: detail.data?.contractName
-                                ? `${detail.data.contractName} (đã ký${i > 0 ? ` ${i + 1}` : ''})`
-                                : url,
-                              group: 'signed' as const,
-                            }))
-                        : []),
-                      ...(detail.data?.attachments ?? []).map((a) => ({
-                        url: a.filePath,
-                        name: a.fileName,
-                        group: 'attachment' as const,
-                      })),
-                    ]}
-                  />
-                )}
-              </TabsContent>
             </div>
-            <ScrollArea />
           </ScrollArea>
+
+          <TabsContent value='document' className='flex-1 min-h-0 p-6'>
+            {tab === 'document' && (
+              <ContractDocuments
+                loading={detail.loading}
+                documents={[
+                  ...(detail.data?.filePath
+                    ? detail.data.filePath
+                        .split(';')
+                        .filter(Boolean)
+                        .map((url, i) => ({
+                          url,
+                          name: detail.data?.contractName
+                            ? `${detail.data.contractName}${i > 0 ? ` (${i + 1})` : ''}`
+                            : url,
+                          group: 'origin' as const,
+                        }))
+                    : []),
+                  ...(detail.data?.signedFilePath
+                    ? detail.data.signedFilePath
+                        .split(';')
+                        .filter(Boolean)
+                        .filter((url) => url !== detail.data?.filePath)
+                        .map((url, i) => ({
+                          url,
+                          name: detail.data?.contractName
+                            ? `${detail.data.contractName} (đã ký${i > 0 ? ` ${i + 1}` : ''})`
+                            : url,
+                          group: 'signed' as const,
+                        }))
+                    : []),
+                  ...(detail.data?.attachments ?? []).map((a) => ({
+                    url: a.filePath,
+                    name: a.fileName,
+                    group: 'attachment' as const,
+                  })),
+                ]}
+              />
+            )}
+          </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>

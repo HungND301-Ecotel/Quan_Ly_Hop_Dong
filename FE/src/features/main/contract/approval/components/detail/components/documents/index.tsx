@@ -69,7 +69,7 @@ export function ContractDocuments({
   );
 
   return (
-    <div className='flex flex-col gap-3 h-full flex-1'>
+    <div className='flex flex-col gap-3 h-full flex-1 min-h-0'>
       <Select value={selectedFile} onValueChange={setSelectedFile}>
         <SelectTrigger className='w-full data-[size=default]:h-10'>
           <SelectValue />
@@ -119,7 +119,7 @@ export function ContractDocuments({
       {selectedFile && (
         <iframe
           src={selectedFile}
-          className='w-full rounded-lg h-[calc(100vh-26.3rem)]'
+          className='w-full rounded-lg flex-1 min-h-0'
         />
       )}
     </div>

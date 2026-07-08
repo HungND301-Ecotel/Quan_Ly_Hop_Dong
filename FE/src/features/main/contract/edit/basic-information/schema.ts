@@ -113,10 +113,9 @@ export const BasicInformationSchema = z
       .optional(),
 
     contractValue: z.coerce
-      .number<number>({ error: 'Số không hợp lệ' })
-      .nonnegative({ error: 'Phải lớn hơn 0' })
-      .nullable()
-      .optional(),
+      .number<number>({ error: 'Giá trị hợp đồng không hợp lệ' })
+      .positive({ error: 'Giá trị hợp đồng phải lớn hơn 0' }),
+
     vatPercentage: z.coerce
       .number<number>({ error: 'Số không hợp lệ' })
       .min(0, { error: 'Phải >= 0' })

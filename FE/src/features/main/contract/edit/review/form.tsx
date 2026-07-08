@@ -1191,11 +1191,7 @@ export function ContractReviewForm() {
                   <div className='p-4 rounded-lg border bg-white shadow-sm hover:border-primary/50 transition-colors'>
                     <div className='flex flex-col gap-1'>
                       <span className='text-sm font-medium text-slate-800'>
-                        Số ngày thanh toán/đối chiếu
-                      </span>
-                      <span className='text-2xl font-bold text-primary'>
-                        {basicInformation.paymentSchedules.schedules[0].days}{' '}
-                        ngày
+                        {`Thanh toán sau ${basicInformation.paymentSchedules.schedules[0].days} ngày kể từ ngày có biên bản nghiệm thu chất lượng hàng hoá từng đợt (hoặc biên bản kiểm nhập) và bên B cung cấp đầy đủ các chứng từ thanh toán, hoá đơn GTGT theo quy định, giấy đề nghị thanh toán.`}
                       </span>
                     </div>
                   </div>

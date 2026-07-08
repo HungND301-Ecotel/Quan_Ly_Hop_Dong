@@ -414,6 +414,31 @@ const formatDateDisplay = (dateStr: string | null | undefined): string => {
   return `${dd}/${mm}/${yy}`;
 };
 
+function getSettledValue<T>(
+  result: PromiseSettledResult<T[] | undefined>,
+  label: string
+): T[] {
+  if (result.status === 'fulfilled') {
+    return result.value || [];
+  }
+  console.error(`Lỗi khi tải "${label}":`, result.reason);
+  return [];
+}
+async function fetchFilesSafely(paths: string[]) {
+  const results = await Promise.allSettled(
+    paths.map((path) => fileService.getFile(path))
+  );
+
+  const failedCount = results.filter((r) => r.status === 'rejected').length;
+  if (failedCount > 0) {
+    toast.error(`Không tải được ${failedCount} file đính kèm`);
+  }
+
+  return results
+    .filter((r) => r.status === 'fulfilled')
+    .map((r) => (r as PromiseFulfilledResult<any>).value);
+}
+
 export function ContractBasicInformationForm() {
   const { user } = useAuthContext();
   const { next: nextStep } = useStepperContext();
@@ -609,117 +634,123 @@ export function ContractBasicInformationForm() {
       contract.attachments?.map((attachment) => attachment.filePath) || [];
 
     const promises = Promise.all([
-      Promise.all(filePaths.map((path) => fileService.getFile(path))),
-      Promise.all(attachmentPaths.map((path) => fileService.getFile(path))),
+      fetchFilesSafely(filePaths),
+      fetchFilesSafely(attachmentPaths),
     ]);
 
-    promises.then(([files, attachments]) => {
-      isResettingForm.current = true;
-      if (contract.level1CodeId) {
-        level2CodeService
-          .getLevel2CodeByLevel1(contract.level1CodeId)
-          .then((data) => setLevel2Codes(data || []));
-        level3CodeService
-          .getLevel3CodeByLevel1(contract.level1CodeId)
-          .then((data) => setLevel3Codes(data || []));
-      }
-      form.reset({
-        departmentId: contract.departmentId,
-        level1CodeId: contract.level1CodeId,
-        level2CodeId: contract.level2CodeId,
-        level3CodeId: contract.level3CodeId,
-        procurementMethodId: contract.procurementMethodId,
-        contractStructureId: contract.contractStructureId,
-        contractTypeId: contract.contractTypeId,
-        contractFieldId: contract.contractFieldId,
-        title: contract.title,
-        contractRegisterId: contract.contractRegisterId,
-        contractNumber: contract.contractNumber,
-        appendixNumber: contract.appendixNumber,
-        contractNumberId: matchedContractNumberId,
-        appendixNumberId:
-          contractAppendixs.find(
-            (f) =>
-              f.appendixNumber === contract.appendixNumber &&
-              f.contractNumberId === matchedContractNumberId
-          )?.id ?? '',
-        partnerId: contract.partnerId,
-        signingDate: contract.signingDate
-          ? contract.signingDate.slice(0, 10)
-          : '',
-        effectiveDate: contract.effectiveDate
-          ? contract.effectiveDate.slice(0, 10)
-          : '',
-        completionDurationDays: diffDays(
-          contract.effectiveDate,
-          contract.completionDate
-        ),
-        completionDate: contract.completionDate
-          ? contract.completionDate.slice(0, 10)
-          : '',
-        warrantyDurationDays: (() => {
-          const diff = diffDays(
-            contract.completionDate,
-            contract.warrantyExpirationDate
-          );
-          return diff !== undefined ? diff - 1 : undefined; // trừ 1 vì bảo hành tính từ ngày kế tiếp
-        })(),
-        warrantyExpirationDate: contract.warrantyExpirationDate
-          ? contract.warrantyExpirationDate.slice(0, 10)
-          : '',
-        contractFile: files,
-        attachmentFiles: attachments.length > 0 ? attachments : null,
-        discountType: contract.discountType,
-        discountValue: contract.discountValue,
-        contractUserRoles: {
-          draftingOfficer: getContractUserRoles(
-            ContractRole.DraftingOfficer.id
-          ),
-          manager: getContractUserRoles(ContractRole.Manager.id),
-          coordinator: getContractUserRoles(ContractRole.Coordinator.id),
-          receivingOfficer: getContractUserRoles(
-            ContractRole.ReceivingOfficer.id
-          ),
-        },
-        contractValue: contract.contractValue,
-        vatPercentage: contract.vatPercentage,
-        contractItems: contract.contractItems,
-        contractOthersValue: contract.contractOthersValue,
-        contractOtherItems: contract.contractOtherItems,
-        paymentSchedules: {
-          schedules:
-            contract.paymentSchedules && contract.paymentSchedules.length > 0
-              ? contract.paymentSchedules.map((schedule) => ({
-                  amountType: schedule.amountType,
-                  amount: schedule.amount,
-                  days: schedule.days,
-                }))
-              : [{ amountType: 0, amount: 0, days: 30 }],
-        },
-        contractGuarantee: {
-          performanceBondGuarantee: getContractGuarantee(
-            GuaranteeType.PerformanceBond,
-            contract.contractGuarantee || []
-          ),
-          depositGuarantee: getContractGuarantee(
-            GuaranteeType.Deposit,
-            contract.contractGuarantee || []
-          ),
-          warrantyBondGuarantee: getContractGuarantee(
-            GuaranteeType.WarrantyBond,
-            contract.contractGuarantee || []
-          ),
-        },
-        notes: contract.notes,
-      });
-      setTimeout(() => {
-        isResettingForm.current = false;
-        const schedules = form.getValues('paymentSchedules.schedules');
-        if (schedules && schedules.length > 0) {
-          replacePaymentSchedules(schedules);
+    promises
+      .then(([files, attachments]) => {
+        isResettingForm.current = true;
+        if (contract.level1CodeId) {
+          level2CodeService
+            .getLevel2CodeByLevel1(contract.level1CodeId)
+            .then((data) => setLevel2Codes(data || []));
+          level3CodeService
+            .getLevel3CodeByLevel1(contract.level1CodeId)
+            .then((data) => setLevel3Codes(data || []));
         }
-      }, 100);
-    });
+        form.reset({
+          departmentId: contract.departmentId,
+          level1CodeId: contract.level1CodeId,
+          level2CodeId: contract.level2CodeId,
+          level3CodeId: contract.level3CodeId,
+          procurementMethodId: contract.procurementMethodId,
+          contractStructureId: contract.contractStructureId,
+          contractTypeId: contract.contractTypeId,
+          contractFieldId: contract.contractFieldId,
+          title: contract.title,
+          contractRegisterId: contract.contractRegisterId,
+          contractNumber: contract.contractNumber,
+          appendixNumber: contract.appendixNumber,
+          contractNumberId: matchedContractNumberId,
+          appendixNumberId:
+            contractAppendixs.find(
+              (f) =>
+                f.appendixNumber === contract.appendixNumber &&
+                f.contractNumberId === matchedContractNumberId
+            )?.id ?? '',
+          partnerId: contract.partnerId,
+          signingDate: contract.signingDate
+            ? contract.signingDate.slice(0, 10)
+            : '',
+          effectiveDate: contract.effectiveDate
+            ? contract.effectiveDate.slice(0, 10)
+            : '',
+          completionDurationDays: diffDays(
+            contract.effectiveDate,
+            contract.completionDate
+          ),
+          completionDate: contract.completionDate
+            ? contract.completionDate.slice(0, 10)
+            : '',
+          warrantyDurationDays: (() => {
+            const diff = diffDays(
+              contract.completionDate,
+              contract.warrantyExpirationDate
+            );
+            return diff !== undefined ? diff - 1 : undefined; // trừ 1 vì bảo hành tính từ ngày kế tiếp
+          })(),
+          warrantyExpirationDate: contract.warrantyExpirationDate
+            ? contract.warrantyExpirationDate.slice(0, 10)
+            : '',
+          contractFile: files,
+          attachmentFiles: attachments.length > 0 ? attachments : null,
+          discountType: contract.discountType,
+          discountValue: contract.discountValue,
+          contractUserRoles: {
+            draftingOfficer: getContractUserRoles(
+              ContractRole.DraftingOfficer.id
+            ),
+            manager: getContractUserRoles(ContractRole.Manager.id),
+            coordinator: getContractUserRoles(ContractRole.Coordinator.id),
+            receivingOfficer: getContractUserRoles(
+              ContractRole.ReceivingOfficer.id
+            ),
+          },
+          contractValue: contract.contractValue,
+          vatPercentage: contract.vatPercentage,
+          contractItems: contract.contractItems,
+          contractOthersValue: contract.contractOthersValue,
+          contractOtherItems: contract.contractOtherItems,
+          paymentSchedules: {
+            schedules:
+              contract.paymentSchedules && contract.paymentSchedules.length > 0
+                ? contract.paymentSchedules.map((schedule) => ({
+                    amountType: schedule.amountType,
+                    amount: schedule.amount,
+                    days: schedule.days,
+                  }))
+                : [{ amountType: 0, amount: 0, days: 30 }],
+          },
+          contractGuarantee: {
+            performanceBondGuarantee: getContractGuarantee(
+              GuaranteeType.PerformanceBond,
+              contract.contractGuarantee || []
+            ),
+            depositGuarantee: getContractGuarantee(
+              GuaranteeType.Deposit,
+              contract.contractGuarantee || []
+            ),
+            warrantyBondGuarantee: getContractGuarantee(
+              GuaranteeType.WarrantyBond,
+              contract.contractGuarantee || []
+            ),
+          },
+          notes: contract.notes,
+        });
+        setTimeout(() => {
+          isResettingForm.current = false;
+          const schedules = form.getValues('paymentSchedules.schedules');
+          if (schedules && schedules.length > 0) {
+            replacePaymentSchedules(schedules);
+          }
+        }, 100);
+      })
+      .catch((err) => {
+        // fallback đề phòng lỗi ngoài dự kiến (vd: level2/level3 service lỗi)
+        console.error('Lỗi khi load dữ liệu hợp đồng:', err);
+        toast.error('Có lỗi khi tải dữ liệu hợp đồng, vui lòng thử lại');
+      });
   }, [isUpdate, contract, users, loading, isCatalogLoading]);
 
   const {
@@ -790,13 +821,27 @@ export function ContractBasicInformationForm() {
   const isRuleContract = [0, 1].includes(contractFormat?.contractFormat || 0);
   const watchedContractNumberId = form.watch('contractNumberId');
   const watchedAppendixNumberId = form.watch('appendixNumberId');
+  const prevContractNumberIdRef = useRef(watchedContractNumberId);
   const filteredAppendixs = contractAppendixs.filter(
     (appendix) => appendix.contractNumberId === watchedContractNumberId
   );
 
   useEffect(() => {
-    if (isResettingForm.current) return;
+    // Khi đang reset form (load lại dữ liệu có sẵn), luôn đồng bộ ref
+    // trước tiên — bất kể contractNumbers đã tải xong hay chưa —
+    // để tránh việc ref bị "kẹt" ở giá trị cũ khi catalog load chậm hơn reset
+    if (isResettingForm.current) {
+      prevContractNumberIdRef.current = watchedContractNumberId;
+      return;
+    }
+
     if (contractNumbers.length === 0) return;
+
+    // Chỉ xử lý khi contractNumberId THỰC SỰ thay đổi giá trị,
+    // không phải khi contractNumbers đổi reference do load lại từ API
+    if (prevContractNumberIdRef.current === watchedContractNumberId) return;
+    prevContractNumberIdRef.current = watchedContractNumberId;
+
     const selected = contractNumbers.find(
       (f) => f.id === watchedContractNumberId
     );
@@ -849,7 +894,7 @@ export function ContractBasicInformationForm() {
   };
 
   useEffect(() => {
-    const promises = Promise.all([
+    const promises = Promise.allSettled([
       contractTypeService.getContractTypeList(),
       ContractRegisterService.getContractRegisterList(),
       partnerService.getPartnerList(),
@@ -869,34 +914,60 @@ export function ContractBasicInformationForm() {
     promises
       .then(
         ([
-          contractTypes,
-          contractRegisters,
-          partners,
-          procurementMethods,
-          users,
-          materials,
-          otherMaterials,
-          departments,
-          _positions,
-          level1CodesData,
-          contractStructuresData,
-          contractFieldsData,
-          contractNumbersData,
-          contractAppendixsData,
+          contractTypesRes,
+          contractRegistersRes,
+          partnersRes,
+          procurementMethodsRes,
+          usersRes,
+          materialsRes,
+          otherMaterialsRes,
+          departmentsRes,
+          _positionsRes,
+          level1CodesRes,
+          contractStructuresRes,
+          contractFieldsRes,
+          contractNumbersRes,
+          contractAppendixsRes,
         ]) => {
-          setContractTypes(contractTypes || []);
-          setContractRegisters(contractRegisters || []);
-          setPartners(partners || []);
-          setProcurementMethods(procurementMethods || []);
-          setUsers(users || []);
-          setMaterials(materials || []);
-          setOtherMaterials(otherMaterials || []);
-          setDepartments(departments || []);
-          setLevel1Codes(level1CodesData || []);
-          setContractStructures(contractStructuresData || []);
-          setContractFields(contractFieldsData || []);
-          setContractNumbers(contractNumbersData || []);
-          setContractAppendixs(contractAppendixsData || []);
+          const failedLabels: string[] = [];
+
+          const collect = <T,>(
+            res: PromiseSettledResult<T[] | undefined>,
+            label: string
+          ) => {
+            if (res.status === 'rejected') failedLabels.push(label);
+            return getSettledValue(res, label);
+          };
+
+          setContractTypes(collect(contractTypesRes, 'Loại hợp đồng'));
+          setContractRegisters(
+            collect(contractRegistersRes, 'Sổ theo dõi hợp đồng')
+          );
+          setPartners(collect(partnersRes, 'Đối tác'));
+          setProcurementMethods(
+            collect(procurementMethodsRes, 'Hình thức lựa chọn nhà thầu')
+          );
+          setUsers(collect(usersRes, 'Người dùng'));
+          setMaterials(collect(materialsRes, 'Vật tư, tài sản'));
+          setOtherMaterials(collect(otherMaterialsRes, 'Dịch vụ khác'));
+          setDepartments(collect(departmentsRes, 'Phòng ban'));
+          setLevel1Codes(collect(level1CodesRes, 'Mã cấp I'));
+          setContractStructures(
+            collect(contractStructuresRes, 'Hình thức hợp đồng')
+          );
+          setContractFields(collect(contractFieldsRes, 'Lĩnh vực hợp đồng'));
+          setContractNumbers(
+            collect(contractNumbersRes, 'Số ký hiệu hợp đồng')
+          );
+          setContractAppendixs(
+            collect(contractAppendixsRes, 'Số ký hiệu phụ lục')
+          );
+
+          if (failedLabels.length > 0) {
+            toast.error(
+              `Không tải được: ${failedLabels.join(', ')}. Vui lòng tải lại trang.`
+            );
+          }
         }
       )
       .finally(() => {
