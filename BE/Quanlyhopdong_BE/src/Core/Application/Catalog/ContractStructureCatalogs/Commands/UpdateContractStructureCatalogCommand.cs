@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.Catalog.ContractStructureCatalogs.Commands;
 
-public record UpdateContractStructureCatalogCommand(Guid Id, string Name, string Code, string? Description, bool IsActive) : IRequest<bool>;
+public record UpdateContractStructureCatalogCommand(Guid Id, string Name, string? Code, string? Description, bool IsActive) : IRequest<bool>;
 
 public class UpdateContractStructureCatalogCommandHandler(IContractStructureCatalogService service)
     : IRequestHandler<UpdateContractStructureCatalogCommand, bool>

@@ -266,7 +266,7 @@ export function ContractArchiveReviewForm() {
       level1CodeService.getLevel1CodeList(),
       level2CodeService.getLevel2CodeList(),
       level3CodeService.getLevel3CodeList(),
-      contractStructureCatalogService.getContractStructureCatalogList(),
+      contractStructureCatalogService.getContractStructureCatalogList({ isActive: true }),
     ])
       .then(
         ([

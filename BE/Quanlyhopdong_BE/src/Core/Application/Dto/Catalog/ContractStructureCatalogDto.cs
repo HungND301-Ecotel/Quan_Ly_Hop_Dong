@@ -4,7 +4,7 @@ public class ContractStructureCatalogDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; }
-    public string Code { get; set; }
+    public string? Code { get; set; }
     public string? Description { get; set; }
     public bool IsActive { get; set; }
 }
@@ -12,6 +12,7 @@ public class ContractStructureCatalogDto
 public class CreateContractStructureCatalogRequest
 {
     public string Name { get; set; }
-    public string Code { get; set; }
+    public string? Code { get; set; }
     public string? Description { get; set; }
+    public bool? IsActive { get; set; }
 }

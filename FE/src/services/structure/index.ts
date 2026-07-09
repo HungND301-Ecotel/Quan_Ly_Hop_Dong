@@ -6,9 +6,10 @@ import {
   UpdateContractStructureCatalogReq,
 } from './type';
 
-async function getContractStructureCatalogList() {
-  return await api.get<ContractStructureCatalog[], undefined>(
-    API.CONTRACT_STRUCTURE_CATALOG.LIST
+async function getContractStructureCatalogList(params?: { isActive?: boolean; search?: string }) {
+  return await api.get<ContractStructureCatalog[], { isActive?: boolean; search?: string }>(
+    API.CONTRACT_STRUCTURE_CATALOG.LIST,
+    params
   );
 }
 

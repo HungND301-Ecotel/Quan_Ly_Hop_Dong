@@ -12,11 +12,12 @@ public class ContractStructureCatalogService(IUnitOfWork unitOfWork) : IContract
     private readonly IWriteRepository<ContractStructureCatalog> _contractStructureRepo = unitOfWork.GetRepository<ContractStructureCatalog>();
     private readonly IWriteRepository<Domain.Entities.Catalog.Contract> _contractRepo = unitOfWork.GetRepository<Domain.Entities.Catalog.Contract>();
 
-    public async Task<IList<ContractStructureCatalogDto>> GetAllAsync(string? search)
+    public async Task<IList<ContractStructureCatalogDto>> GetAllAsync(string? search, bool? isActive = null)
     {
         search ??= string.Empty;
         var list = await _contractStructureRepo.GetAllAsync(
-            predicate: x => x.Name.Contains(search) || x.Code.Contains(search),
+            predicate: x => (x.Name.Contains(search) || x.Code.Contains(search))
+                            && (isActive == null || x.IsActive == isActive),
             disableTracking: true);
 
         return list.Adapt<List<ContractStructureCatalogDto>>();
@@ -31,28 +32,31 @@ public class ContractStructureCatalogService(IUnitOfWork unitOfWork) : IContract
         return entity?.Adapt<ContractStructureCatalogDto>();
     }
 
-    public async Task<Guid> CreateAsync(string name, string code, string? description)
+    public async Task<Guid> CreateAsync(string name, string? code, string? description, bool isActive = true)
     {
         var normalizedName = name.Trim();
-        var normalizedCode = code.Trim();
+        var normalizedCode = code?.Trim() ?? string.Empty;
         var isDuplicateName = await _contractStructureRepo.AnyAsync(x => x.Name.ToLower() == normalizedName.ToLower());
         if (isDuplicateName)
         {
             throw new ArgumentException($"Name '{name}' already exists.");
         }
-        var isDuplicateCode = await _contractStructureRepo.AnyAsync(x => x.Code.ToLower() == normalizedCode.ToLower());
-        if (isDuplicateCode)
+        if (!string.IsNullOrWhiteSpace(normalizedCode))
         {
-            throw new ArgumentException($"Code '{code}' already exists.");
+            var isDuplicateCode = await _contractStructureRepo.AnyAsync(x => x.Code.ToLower() == normalizedCode.ToLower());
+            if (isDuplicateCode)
+            {
+                throw new ArgumentException($"Code '{code}' already exists.");
+            }
         }
 
-        var entity = ContractStructureCatalog.Create(normalizedName, normalizedCode, description);
+        var entity = ContractStructureCatalog.Create(normalizedName, normalizedCode, description, isActive);
         await _contractStructureRepo.InsertAsync(entity);
         await unitOfWork.SaveChangesAsync();
         return entity.Id;
     }
 
-    public async Task<bool> UpdateAsync(Guid id, string name, string code, string? description, bool isActive)
+    public async Task<bool> UpdateAsync(Guid id, string name, string? code, string? description, bool isActive)
     {
         var entity = await _contractStructureRepo.GetFirstOrDefaultAsync(
             predicate: x => x.Id == id,
@@ -64,16 +68,19 @@ public class ContractStructureCatalogService(IUnitOfWork unitOfWork) : IContract
         }
 
         var normalizedName = name.Trim();
-        var normalizedCode = code.Trim();
+        var normalizedCode = code?.Trim() ?? string.Empty;
         var isDuplicateName = await _contractStructureRepo.AnyAsync(x => x.Name.ToLower() == normalizedName.ToLower() && x.Id != id);
         if (isDuplicateName)
         {
             throw new ArgumentException($"Name '{name}' already exists.");
         }
-        var isDuplicateCode = await _contractStructureRepo.AnyAsync(x => x.Code.ToLower() == normalizedCode.ToLower() && x.Id != id);
-        if (isDuplicateCode)
+        if (!string.IsNullOrWhiteSpace(normalizedCode))
         {
-            throw new ArgumentException($"Code '{code}' already exists.");
+            var isDuplicateCode = await _contractStructureRepo.AnyAsync(x => x.Code.ToLower() == normalizedCode.ToLower() && x.Id != id);
+            if (isDuplicateCode)
+            {
+                throw new ArgumentException($"Code '{code}' already exists.");
+            }
         }
 
         entity.Update(normalizedName, normalizedCode, description, isActive);

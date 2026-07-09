@@ -10,9 +10,9 @@ namespace Host.Controllers.Catalog;
 public class ContractStructureCatalogController : BaseAuthController
 {
     [HttpGet]
-    public async Task<IActionResult> GetAllAsync([FromQuery] string? search)
+    public async Task<IActionResult> GetAllAsync([FromQuery] string? search, [FromQuery] bool? isActive)
     {
-        var result = await Mediator.Send(new GetAllContractStructureCatalogQuery(search));
+        var result = await Mediator.Send(new GetAllContractStructureCatalogQuery(search, isActive));
         return Ok(result, MessageCommon.GetDataSuccess);
     }
 
@@ -26,7 +26,7 @@ public class ContractStructureCatalogController : BaseAuthController
     [HttpPost]
     public async Task<IActionResult> CreateAsync([FromBody] CreateContractStructureCatalogRequest createModel)
     {
-        var result = await Mediator.Send(new CreateContractStructureCatalogCommand(createModel.Name, createModel.Code, createModel.Description));
+        var result = await Mediator.Send(new CreateContractStructureCatalogCommand(createModel.Name, createModel.Code, createModel.Description, createModel.IsActive ?? true));
         return Ok(result, MessageCommon.CreateSuccess);
     }
 

@@ -918,7 +918,7 @@ export function ContractBasicInformationForm() {
       departmentService.getDepartmentList(),
       positionService.getPositionList(),
       level1CodeService.getLevel1CodeList(),
-      contractStructureCatalogService.getContractStructureCatalogList(),
+      contractStructureCatalogService.getContractStructureCatalogList({ isActive: true }),
       contractFieldService.getContractFieldList(),
       contractNumberService.getContractNumberList(),
       contractAppendixService.getContractAppendixList(),

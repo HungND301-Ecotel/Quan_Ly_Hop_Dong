@@ -12,6 +12,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useApi } from '@/hooks/use-api';
 import { contractStructureCatalogService } from '@/services/structure/index';
 import { ContractStructureCatalog } from '@/services/structure/type';
@@ -58,6 +60,7 @@ export function EditContractStructureCatalogAction({
       name: detail.data.name,
       code: detail.data.code,
       description: detail.data.description ?? '',
+      isActive: detail.data.isActive ?? true,
     });
   }, [detail.data, form]);
 
@@ -147,6 +150,16 @@ export function EditContractStructureCatalogAction({
                 label='Ghi chú'
                 placeholder='Nhập ghi chú'
               />
+            </FormRow>
+            <FormRow>
+              <div className='flex items-center gap-3'>
+                <Switch
+                  id='isActive'
+                  checked={form.watch('isActive')}
+                  onCheckedChange={(val) => form.setValue('isActive', val)}
+                />
+                <Label htmlFor='isActive'>Đang hoạt động</Label>
+              </div>
             </FormRow>
           </div>
 
