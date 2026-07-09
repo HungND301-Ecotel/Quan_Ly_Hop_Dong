@@ -24,6 +24,7 @@ import {
 } from './schema';
 import { UnitOfMeasure } from '@/services/unit/type';
 import { unitOfMeasureService } from '@/services/unit';
+import { FormTextArea } from '@/components/form/form-text-area';
 
 export function EditUnitOfMeasureAction({
   row,
@@ -137,11 +138,12 @@ export function EditUnitOfMeasureAction({
               />
             </FormRow>
             <FormRow>
-              <FormInput
+              <FormTextArea
                 control={form.control}
                 name='note'
                 label='Ghi chú'
                 placeholder='Nhập ghi chú (nếu có)'
+                rows={3}
               />
             </FormRow>
           </div>

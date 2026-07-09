@@ -28,6 +28,7 @@ import { FormSelect } from '@/components/form/form-select';
 import { BankAccount } from '@/services/bank-account/type';
 import { BankAccountService } from '@/services/bank-account';
 import { CreateBankAccountDialog } from '@/components/form/bank-form';
+import { FormTextArea } from '@/components/form/form-text-area';
 
 export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
   const [open, setOpen] = useState(false);
@@ -233,11 +234,12 @@ export function EditPartnerAction({ row, table }: DataTableEvent<Partner>) {
               </FormRow>
 
               <FormRow>
-                <FormInput
+                <FormTextArea
                   control={form.control}
                   name='note'
                   label='Ghi chú'
                   placeholder='Nhập ghi chú'
+                  rows={3}
                 />
               </FormRow>
             </div>
