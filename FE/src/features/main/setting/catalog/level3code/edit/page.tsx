@@ -28,6 +28,7 @@ import {
   Level3CodeSchema,
   Level3CodeValues,
 } from './schema';
+import { FormTextArea } from '@/components/form/form-text-area';
 
 export function EditLevel3CodeAction({
   row,
@@ -249,11 +250,12 @@ export function EditLevel3CodeAction({
                 placeholder='Mã cấp 3 tự sinh'
               />
             </FormRow>
-            <FormInput
+            <FormTextArea
               control={form.control}
               name='description'
               label='Ghi chú'
               placeholder='Nhập ghi chú'
+              rows={3}
             />
           </div>
 

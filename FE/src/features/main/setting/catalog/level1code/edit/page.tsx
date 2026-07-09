@@ -27,6 +27,7 @@ import {
   Level1CodeSchema,
   Level1CodeValues,
 } from './schema';
+import { FormTextArea } from '@/components/form/form-text-area';
 
 export function EditLevel1CodeAction({
   row,
@@ -155,26 +156,26 @@ export function EditLevel1CodeAction({
                 }
               />
             </FormRow>
-            <FormRow>
-              <FormSelect
-                control={form.control}
-                name='contractRegisterId'
-                label='Sổ theo dõi hợp đồng'
-                placeholder='Chọn sổ theo dõi'
-                options={
-                  contractRegisters.data?.map((r) => ({
-                    label: `${r.name} - ${r.year ? `Năm ${r.year}` : ''}`,
-                    value: r.id,
-                  })) ?? []
-                }
-              />
-              <FormInput
-                control={form.control}
-                name='description'
-                label='Ghi chú'
-                placeholder='Nhập ghi chú'
-              />
-            </FormRow>
+
+            <FormSelect
+              control={form.control}
+              name='contractRegisterId'
+              label='Sổ theo dõi hợp đồng'
+              placeholder='Chọn sổ theo dõi'
+              options={
+                contractRegisters.data?.map((r) => ({
+                  label: `${r.name} - ${r.year ? `Năm ${r.year}` : ''}`,
+                  value: r.id,
+                })) ?? []
+              }
+            />
+            <FormTextArea
+              control={form.control}
+              name='description'
+              label='Ghi chú'
+              placeholder='Nhập ghi chú'
+              rows={3}
+            />
           </div>
 
           <div className='flex justify-end items-center gap-3 p-4 px-6 pb-0 border-t'>

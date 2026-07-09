@@ -27,6 +27,7 @@ import {
 } from './schema';
 import { FormSelect } from '@/components/form/form-select';
 import { unitOfMeasureService } from '@/services/unit';
+import { FormTextArea } from '@/components/form/form-text-area';
 
 export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
   const [open, setOpen] = useState(false);
@@ -171,11 +172,12 @@ export function EditMaterialAction({ row, table }: DataTableEvent<Material>) {
               />
             </FormRow>
             <FormRow>
-              <FormInput
+              <FormTextArea
                 control={form.control}
                 name='description'
                 label='Ghi chú'
                 placeholder='Nhập ghi chú (nếu có)'
+                rows={3}
               />
             </FormRow>
           </div>

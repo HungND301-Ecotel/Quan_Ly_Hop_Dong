@@ -25,6 +25,7 @@ import {
   ContractRegisterInformationValues,
   ContractRegisterSchema,
 } from './schema';
+import { FormTextArea } from '@/components/form/form-text-area';
 
 export function ContractRegisterEdit({
   row,
@@ -134,11 +135,12 @@ export function ContractRegisterEdit({
               />
             </FormRow>
             <FormRow>
-              <FormInput
+              <FormTextArea
                 control={form.control}
                 name='description'
                 label='Ghi chú'
                 placeholder='Nhập ghi chú sổ theo dõi hợp đồng'
+                rows={3}
               />
             </FormRow>
           </div>

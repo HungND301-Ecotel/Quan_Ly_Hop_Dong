@@ -26,6 +26,7 @@ import {
   Level2CodeSchema,
   Level2CodeValues,
 } from './schema';
+import { FormTextArea } from '@/components/form/form-text-area';
 
 export function EditLevel2CodeAction({
   row,
@@ -144,11 +145,12 @@ export function EditLevel2CodeAction({
                 }
               />
             </FormRow>
-            <FormInput
+            <FormTextArea
               control={form.control}
               name='description'
               label='Ghi chú'
               placeholder='Nhập ghi chú'
+              rows={3}
             />
           </div>
 

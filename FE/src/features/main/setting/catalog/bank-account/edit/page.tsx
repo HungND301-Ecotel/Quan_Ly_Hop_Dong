@@ -26,6 +26,7 @@ import {
 } from './schema';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { FormTextArea } from '@/components/form/form-text-area';
 
 export function BankAccountEdit({ row, table }: DataTableEvent<BankAccount>) {
   const [open, setOpen] = useState(false);
@@ -142,11 +143,12 @@ export function BankAccountEdit({ row, table }: DataTableEvent<BankAccount>) {
               />
             </FormRow>
             <FormRow>
-              <FormInput
+              <FormTextArea
                 control={form.control}
                 name='note'
                 label='Ghi chú'
                 placeholder='Nhập ghi chú (nếu có)'
+                rows={3}
               />
             </FormRow>
             <FormRow>
