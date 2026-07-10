@@ -12,8 +12,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+// import { Label } from '@/components/ui/label';
+// import { Switch } from '@/components/ui/switch';
 import { useApi } from '@/hooks/use-api';
 import { contractStructureCatalogService } from '@/services/structure/index';
 import { ContractStructureCatalog } from '@/services/structure/type';
@@ -151,7 +151,7 @@ export function EditContractStructureCatalogAction({
                 placeholder='Nhập ghi chú'
               />
             </FormRow>
-            <FormRow>
+            {/* <FormRow>
               <div className='flex items-center gap-3'>
                 <Switch
                   id='isActive'
@@ -160,7 +160,7 @@ export function EditContractStructureCatalogAction({
                 />
                 <Label htmlFor='isActive'>Đang hoạt động</Label>
               </div>
-            </FormRow>
+            </FormRow> */}
           </div>
 
           <div className='flex justify-end items-center gap-3 p-4 px-6 pb-0 border-t'>
