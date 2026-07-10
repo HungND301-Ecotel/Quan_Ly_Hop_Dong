@@ -162,7 +162,12 @@ function CreateMaterialDialog({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className='flex flex-col gap-0 w-full md:min-w-2xl lg:min-w-4xl px-0 overflow-hidden'>
+      <DialogContent
+        className='flex flex-col gap-0 w-full md:min-w-2xl lg:min-w-4xl px-0 overflow-hidden'
+        onSubmit={(e) => {
+          e.stopPropagation();
+        }}
+      >
         <DialogHeader className='gap-1 p-6 pt-0 border-b'>
           <DialogTitle className='text-2xl font-semibold'>
             Tạo mới {isOtherMaterial ? 'dịch vụ khác' : 'vật tư, tài sản'}
@@ -192,7 +197,7 @@ function CreateMaterialDialog({
                 placeholder={`Nhập tên ${isOtherMaterial ? 'dịch vụ khác' : 'vật tư, tài sản'}`}
               />
             </FormRow>
-            <FormInput
+            <FormTextArea
               control={form.control}
               name='description'
               label={`Ghi chú`}
@@ -918,7 +923,9 @@ export function ContractBasicInformationForm() {
       departmentService.getDepartmentList(),
       positionService.getPositionList(),
       level1CodeService.getLevel1CodeList(),
-      contractStructureCatalogService.getContractStructureCatalogList({ isActive: true }),
+      contractStructureCatalogService.getContractStructureCatalogList({
+        isActive: true,
+      }),
       contractFieldService.getContractFieldList(),
       contractNumberService.getContractNumberList(),
       contractAppendixService.getContractAppendixList(),
@@ -2009,7 +2016,7 @@ export function ContractBasicInformationForm() {
                 control={form.control}
                 name='attachmentFiles'
                 label='Phụ lục hợp đồng và tài liệu khác'
-                placeholder='Chọn file phụ lục hợp đồng và các tài liệu đính kèm (Chỉ PDF)'
+                placeholder='Chọn file phụ lục hợp đồng và tài liệu khác (Chỉ PDF)'
               />
             </FormRow>
           </FormGroupContent>
