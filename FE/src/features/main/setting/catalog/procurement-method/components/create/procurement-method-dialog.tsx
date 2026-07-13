@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, Save } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { ProcurementMethodForm } from '../form/procurement-method-form';
@@ -48,7 +48,7 @@ export function CreateProcurementMethodDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant={'default'} size={'lg'} className='px-4'>
-          <PlusIcon size={16} className='mr-2' />
+          <PlusIcon size={16} />
           <span>Tạo mới</span>
         </Button>
       </DialogTrigger>
@@ -79,6 +79,7 @@ export function CreateProcurementMethodDialog({
               form='create-procurement-method-form'
               disabled={isSubmitting}
             >
+              <Save className='w-4 h-4' />
               {isSubmitting ? 'Đang xử lý...' : 'Xác nhận'}
             </Button>
           </DialogFooter>

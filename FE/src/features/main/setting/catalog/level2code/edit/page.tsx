@@ -165,9 +165,9 @@ export function EditLevel2CodeAction({
             <Button
               type='submit'
               disabled={loading}
-              className='min-w-32 bg-blue-600 hover:bg-blue-700'
+              className='bg-blue-600 hover:bg-blue-700'
             >
-              <Save className='w-4 h-4 mr-2' />
+              <Save className='w-4 h-4' />
               {loading ? 'Đang lưu...' : 'Xác nhận'}
             </Button>
           </div>

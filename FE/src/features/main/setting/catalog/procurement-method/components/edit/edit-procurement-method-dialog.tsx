@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { CreateProcurementMethodValues } from '../create/procurement-method-schema';
 import { ProcurementMethodForm } from '../form/procurement-method-form';
+import { Save } from 'lucide-react';
 
 interface EditProcurementMethodDialogProps {
   procurement_method: ProcurementMethod;
@@ -84,6 +85,7 @@ export function EditProcurementMethodDialog({
               form='edit-procurement-method-form'
               disabled={isSubmitting}
             >
+              <Save className='w-4 h-4' />
               {isSubmitting ? 'Đang xử lý...' : 'Xác nhận'}
             </Button>
           </DialogFooter>
