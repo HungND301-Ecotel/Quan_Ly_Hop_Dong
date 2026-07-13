@@ -102,7 +102,7 @@ export function ContractFieldUpsert({
           </Button>
         ) : (
           <Button variant={'default'} size={'lg'}>
-            <PlusIcon className='w-4 h-4 mr-2' />
+            <PlusIcon className='w-4 h-4' />
             <span>Tạo mới</span>
           </Button>
         )}
@@ -156,9 +156,9 @@ export function ContractFieldUpsert({
             <Button
               type='submit'
               disabled={loading}
-              className='min-w-32 bg-blue-600 hover:bg-blue-700'
+              className='bg-blue-600 hover:bg-blue-700'
             >
-              <Save className='w-4 h-4 mr-2' />
+              <Save className='w-4 h-4' />
               {loading ? 'Đang lưu...' : 'Xác nhận'}
             </Button>
           </div>

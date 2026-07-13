@@ -56,7 +56,7 @@ export function CreateUserDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant={'default'} size={'lg'} className='px-4'>
-          <PlusIcon size={16} className='mr-2' />
+          <PlusIcon size={16} />
           <span>Tạo mới</span>
         </Button>
       </DialogTrigger>
