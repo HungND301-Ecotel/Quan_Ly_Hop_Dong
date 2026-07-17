@@ -552,7 +552,7 @@ export function ContractInformation({
               <div className='space-y-2'>
                 <div className='grid grid-cols-12 gap-4 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground'>
                   <div className='col-span-9'>Tên dịch vụ khác</div>
-                  <div className='col-span-3'>Đơn vị tính</div>
+                  <div className='col-span-3'>Thành tiền</div>
                 </div>
                 {information.contractOtherItems.map((item, index) => {
                   return (
@@ -566,7 +566,7 @@ export function ContractInformation({
                         </span>
                       </div>
                       <div className='col-span-3 flex items-center text-sm text-muted-foreground'>
-                        {item?.unitOfMeasureName || '—'}
+                        {format.number(item.price || 0)} đ
                       </div>
                     </div>
                   );
