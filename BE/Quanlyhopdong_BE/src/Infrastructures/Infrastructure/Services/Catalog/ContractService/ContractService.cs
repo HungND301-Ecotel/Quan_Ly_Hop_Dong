@@ -1328,7 +1328,7 @@ public partial class ContractService(
             .Include(x => x.Department)
             .Include(x => x.ContractUserRoles).ThenInclude(x => x.User).ThenInclude(u => u.UserDepartments).ThenInclude(ud => ud.Department)
             .Include(x => x.PaymentSchedules)
-            .Include(x => x.ContractItems).ThenInclude(x => x.Material)
+            .Include(x => x.ContractItems).ThenInclude(x => x.Material).ThenInclude(x => x.UnitOfMeasure)
             .Include(x => x.ContractGuarantees).ThenInclude(x => x.BankAccount)
             .Include(x => x.ProcurementMethod)
             .Include(x => x.ContractRegister)
@@ -1431,6 +1431,8 @@ public partial class ContractService(
             {
                 item.MaterialCode = contractItem.Material.MaterialCode;
                 item.MaterialName = contractItem.Material.Name;
+                item.UnitOfMeasureName = contractItem.Material.UnitOfMeasure?.Name;
+                item.UnitOfMeasureCode = contractItem.Material.UnitOfMeasure?.Code;
                 if (contractItem.Material.IsOtherMaterial)
                 {
                     dto.ContractOtherItems.Add(item);

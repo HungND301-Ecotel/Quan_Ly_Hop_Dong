@@ -123,7 +123,10 @@ export function PaymentSection({
       <LiquidationSection
         contractId={contractId}
         initialFile={liquidationFile}
-        onSuccess={onSaved}
+        onSuccess={() => {
+          table.refresh?.();
+          onSaved?.();
+        }}
         disabled={disabled}
         onSave={async (file: File) => {
           try {

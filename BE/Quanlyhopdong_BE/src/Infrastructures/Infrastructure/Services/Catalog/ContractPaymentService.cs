@@ -460,6 +460,8 @@ public class ContractPaymentService(
                         contract.Id);
                 }
                 
+                _contractRepo.Update(contract);
+                
                 await unitOfWork.SaveChangesAsync();
                 await unitOfWork.CommitAsync();
             }

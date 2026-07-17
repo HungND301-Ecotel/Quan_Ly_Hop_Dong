@@ -761,7 +761,7 @@ public partial class ContractService
         // Get all contract items with material information
         var contractItems = await _contractItemRepo.GetAllAsync(
             predicate: ci => ci.ContractId == contractId,
-            include: ci => ci.Include(x => x.Material),
+            include: ci => ci.Include(x => x.Material).ThenInclude(x => x.UnitOfMeasure),
             orderBy: q => q.OrderBy(ci => ci.Material.MaterialCode),
             disableTracking: true);
 
@@ -775,7 +775,9 @@ public partial class ContractService
             MaterialName = ci.Material.Name,
             Quantity = ci.Quantity,
             Price = ci.Price,
-            Amount = ci.Amount
+            Amount = ci.Amount,
+            UnitOfMeasureName = ci.Material.UnitOfMeasure?.Name,
+            UnitOfMeasureCode = ci.Material.UnitOfMeasure?.Code
         }).ToList();
 
         return result;

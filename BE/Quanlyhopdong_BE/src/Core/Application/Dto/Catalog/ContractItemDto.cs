@@ -11,6 +11,8 @@ public class ContractItemDto
     public decimal Price { get; set; }
     public decimal Quantity { get; set; }
     public decimal Amount { get; set; }
+    public string? UnitOfMeasureName { get; set; }
+    public string? UnitOfMeasureCode { get; set; }
 }
 
 public class UpdateContractItemDto

@@ -1434,7 +1434,7 @@ public class ContractProgressService(
             // Get all contract items with material details
             var contractItems = await _contractItemRepo.GetAllAsync(
                 predicate: ci => ci.ContractId == contractId,
-                include: ci => ci.Include(x => x.Material),
+                include: ci => ci.Include(x => x.Material).ThenInclude(x => x.UnitOfMeasure),
                 orderBy: q => q.OrderBy(ci => ci.Material.MaterialCode)
                               .ThenBy(ci => ci.Material.Name),
                 disableTracking: true);
@@ -1450,7 +1450,9 @@ public class ContractProgressService(
                 MaterialName = ci.Material.Name,
                 Price = ci.Price,
                 Quantity = ci.Quantity,
-                Amount = ci.Amount
+                Amount = ci.Amount,
+                UnitOfMeasureName = ci.Material.UnitOfMeasure?.Name,
+                UnitOfMeasureCode = ci.Material.UnitOfMeasure?.Code
             }).ToList();
 
             return itemDtos;
