@@ -1548,7 +1548,7 @@ export function ContractBasicInformationForm() {
 
                             {/* Thành tiền */}
                             {!isRuleContract && (
-                              <td className='border-b px-3 py-2 text-muted-foreground'>
+                              <td className='border-b px-3 py-2'>
                                 <FormNumber
                                   control={form.control}
                                   name={`contractOtherItems.${index}.price`}
